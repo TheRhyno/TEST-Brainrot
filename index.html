@@ -460,52 +460,27 @@ html, body {
 }
 
 
+  // Force le rechargement si la page est restaurée depuis le cache
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
+
 
 </style>
+
+<!-- Empêche le cache dans WebView -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+
 </head>
 <body>
 
-
-
-
-
-
 <h1>Brainrot TCG</h1>
-
-
-
-
-<div id="bossArea" style="display:none; background: rgba(20, 20, 35, 0.8); border: 2px solid #ff4444; border-radius: 12px; padding: 15px; margin: 10px auto 20px auto; max-width: 500px; border: 2px solid #ff4444;">
-    <div style="color: #ff4444; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.9rem;">
-        ⚠️ Boss Actif : <span id="bossNameDisplay">...</span>
-    </div>
-    
-    <div style="background: #000; height: 18px; border-radius: 9px; border: 1px solid #444; overflow: hidden;">
-        <div id="bossBarProgress" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #880000); transition: width 0.3s;"></div>
-    </div>
-    
-    <div id="bossHpTextDisplay" style="color: white; font-family: monospace; font-size: 13px; margin-top: 6px;">
-        0 / 0 PV
-    </div>
-</div>
-
-
-<div id="rewardPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000001; justify-content:center; align-items:center; flex-direction:column; padding:20px; box-sizing:border-box;">
-    <div style="background:#162037; padding:30px; border-radius:20px; border:4px solid #ffd700; text-align:center; max-width:350px; width:100%; box-shadow: 0 0 50px rgba(255, 215, 0, 0.4); animation: ogText 0.5s ease-out;">
-        <h2 style="color:#ffd700; margin-top:0; font-size:1.5rem; text-transform:uppercase;">🏆 Butin de Boss !</h2>
-        <p style="color:#e8eef7; margin-bottom:20px;">Le Boss est vaincu ! Voici ta récompense :</p>
-        
-        <img id="rewardCardImg" src="" style="width:180px; height:auto; border-radius:12px; border:3px solid #fff; margin-bottom:15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-        
-        <div id="rewardCardName" style="font-size:1.4rem; font-weight:bold; color:#fff; margin-bottom:5px;"></div>
-        <div id="rewardCardRarity" style="font-size:1rem; margin-bottom:25px; font-weight:bold;"></div>
-
-        <button onclick="document.getElementById('rewardPopup').style.display='none'" style="background:#7c3aed; color:white; border:none; padding:12px 30px; border-radius:10px; cursor:pointer; font-weight:bold; font-size:1.1rem; width:100%;">Génial !</button>
-    </div>
-</div>
-
-
-
 
 <div style="text-align:center;margin-bottom:20px">
   <button id="openPack" style="padding:14px 22px;font-size:1.1rem;border-radius:12px;border:0;background:#ffcb05;color:#3b4cca;font-weight:700;cursor:pointer">
@@ -741,7 +716,9 @@ html, body {
 </div>
 
 
+
 <script>
+
 
 const firebaseConfig = {
 
@@ -764,8 +741,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
-
 
 
 
@@ -894,7 +869,6 @@ const ALL_CARDS = [
 
 
 
-
   { name:"Skibidi Toilet", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-3be000d4-c396-4f70-9827-7b9f3208525e.png" },
   { name:"Headless Horseman", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-afc3dd97-67c3-4c8b-94be-e3909d345d21.png" },
   { name:"John Pork", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-e72fbeb0-d333-45cc-afd2-f501c066d2f8.png" },
@@ -922,8 +896,6 @@ const SHOP_CARDS = [
   { name: "Booster PLATINE", isPack: true, packType: "platinum", price: 25000, rarity: "1 Secret minimum", image: "https://cdn.phototourl.com/uploads/2026-03-18-a1925a7f-b526-4171-8ab5-c88a216d2867.png" },
   { name: "Booster DIAMANT", isPack: true, packType: "diamond", price: 50000, rarity: "1 OG minimum", image: "https://cdn.phototourl.com/uploads/2026-03-18-3bbfcd6b-5128-4913-bcdd-10ae790b137b.png" }
 ];
-
-
 
 
 
@@ -979,170 +951,6 @@ function blockInput(e) {
 
 // Lancement
 disableSite(false);
-
-
-
-
-
-
-
-
-
-
-function initialiserGestionBoss() {
-    // Écoute en temps réel
-    db.collection("global_event").doc("boss_battle").onSnapshot(async (doc) => {
-        const area = document.getElementById("bossArea");
-        const homeSection = document.getElementById("homeSection");
-        
-        if (!doc.exists || !area) return;
-
-        const data = doc.data();
-        const hpCurrent = data.hp_current ?? 0;
-        const hpMax = data.hp_max || 1000000;
-        const bossId = data.event_id || "event_1";
-
-        // AFFICHAGE DE LA BARRE (Seulement si le boss est vivant)
-        if (data.active === true && hpCurrent > 0 && homeSection.style.display !== "none") {
-            area.style.display = "block";
-            document.getElementById("bossNameDisplay").innerText = data.name || "BOSS";
-            const pourcentage = Math.max(0, (hpCurrent / hpMax) * 100);
-            document.getElementById("bossBarProgress").style.width = pourcentage + "%";
-            document.getElementById("bossHpTextDisplay").innerText = 
-                hpCurrent.toLocaleString() + " / " + hpMax.toLocaleString() + " PV";
-        } else {
-            area.style.display = "none";
-        }
-
-        // VÉRIFICATION DU BUTIN (Que le joueur soit là ou qu'il revienne après l'event)
-        // Si les PV sont à 0, on tente de donner la récompense
-        if (hpCurrent <= 0) {
-            await verifierEtDonnerRecompense(bossId);
-        }
-    });
-}
-
-
-
-
-// --- SYSTÈME DE BOSS UNIQUE (Affichage + Récompense) ---
-
-function initialiserGestionBoss() {
-    // On écoute les changements sur le document du boss en temps réel
-    db.collection("global_event").doc("boss_battle").onSnapshot(async (doc) => {
-        const area = document.getElementById("bossArea");
-        const homeSection = document.getElementById("homeSection");
-        
-        if (!doc.exists || !area) return;
-
-        const data = doc.data();
-        const hpCurrent = data.hp_current ?? 0;
-        const hpMax = data.hp_max || 1000000;
-        const bossId = data.event_id || "event_1";
-
-        // 1. MISE À JOUR VISUELLE DE LA BARRE
-        // On l'affiche seulement si : Boss actif ET PV > 0 ET on est sur l'accueil
-        if (data.active === true && hpCurrent > 0 && homeSection.style.display !== "none") {
-            area.style.display = "block";
-            document.getElementById("bossNameDisplay").innerText = data.name || "BOSS";
-            
-            // Calcul et mise à jour de la barre
-            const pourcentage = Math.max(0, (hpCurrent / hpMax) * 100);
-            document.getElementById("bossBarProgress").style.width = pourcentage + "%";
-            
-            // Texte des PV avec formatage (ex: 1 000 000)
-            document.getElementById("bossHpTextDisplay").innerText = 
-                hpCurrent.toLocaleString() + " / " + hpMax.toLocaleString() + " PV";
-        } else {
-            // On cache la barre si le boss est mort ou si on change d'onglet
-            area.style.display = "none";
-        }
-
-        // 2. VÉRIFICATION DE LA RÉCOMPENSE (En direct ou à la connexion)
-        if (hpCurrent <= 0) {
-            await verifierEtDonnerRecompense(bossId);
-        }
-    });
-}
-
-async function verifierEtDonnerRecompense(bossId) {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const userRef = db.collection("users").doc(user.uid);
-    
-    try {
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return;
-
-        const userData = userDoc.data();
-        const boostersOuverts = userData.boostersOpened || 0;
-        const recompensesObtenues = userData.bossRewardsClaimed || [];
-
-        // CONDITION : A ouvert au moins 1 booster ET n'a pas encore reçu CETTE récompense
-        if (boostersOuverts > 0 && !recompensesObtenues.includes(bossId)) {
-            
-            const maRecompense = {
-                name: "Noobini Pizzanini",
-                rarity: "Commun",
-                image: "https://www.eldorado.gg/blog/wp-content/uploads/2025/12/noobini-santanini-200x300.webp"
-            };
-
-            let inventory = userData.inventory || {};
-            
-            // Ajout à l'inventaire (gestion doublons)
-            if (inventory[maRecompense.name]) {
-                inventory[maRecompense.name].count = (inventory[maRecompense.name].count || 1) + 1;
-            } else {
-                inventory[maRecompense.name] = { ...maRecompense, count: 1 };
-            }
-
-            // Marquer comme récupéré pour cet event_id
-            recompensesObtenues.push(bossId);
-
-            // Mise à jour groupée sur Firebase
-            await userRef.update({
-                inventory: inventory,
-                bossRewardsClaimed: recompensesObtenues
-            });
-
-            // --- DÉCLENCHEMENT DE LA POP-UP ---
-            document.getElementById("rewardCardImg").src = maRecompense.image;
-            document.getElementById("rewardCardName").innerText = maRecompense.name;
-            document.getElementById("rewardCardRarity").innerText = maRecompense.rarity;
-            document.getElementById("rewardCardRarity").style.color = "#b0b0b0"; // Gris pour Commun
-
-            document.getElementById("rewardPopup").style.display = "flex";
-            
-            console.log("🎁 Récompense de boss distribuée avec succès !");
-            
-            // Optionnel : rafraîchir l'affichage de la collection si l'onglet est ouvert
-            if (typeof refreshCollection === "function") refreshCollection(collection);
-        }
-    } catch (error) {
-        console.error("Erreur lors de la distribution du loot :", error);
-    }
-}
-
-// Fonction pour infliger des dégâts
-function hitBoss() {
-    const bossRef = db.collection("global_event").doc("boss_battle");
-    
-    bossRef.update({
-        hp_current: firebase.firestore.FieldValue.increment(-100)
-    }).catch(err => console.error("Erreur hitBoss :", err));
-}
-
-// Lancement global
-initialiserGestionBoss();
-
-
-
-
-
-
-
-
 
 
 
@@ -1690,10 +1498,6 @@ function openPackSequence() {
             if (b.classList.contains("booster-opening")) return;
             b.classList.add("booster-opening");
 
-            // --- ÉVÉNEMENT BOSS : ON INFLIGE LES DÉGÂTS ICI ---
-            if (typeof hitBoss === "function") hitBoss();
-            if (typeof hitBossEffect === "function") hitBossEffect();
-
             const flash = document.createElement("div");
             flash.className = "flash-effect";
             document.body.appendChild(flash);
@@ -1723,31 +1527,31 @@ function openPackSequence() {
                         if (existingCard.level === undefined) existingCard.level = 1;
                         if (existingCard.exp === undefined) existingCard.exp = 0;
 
-                        // --- DANS openPackSequence (Logique Doublon) ---
-                        const expTable = {
-                         "Commun": 15, 
-                        "Rare": 12, 
-                        "Epic": 10, 
-                        "Legendary": 8,
-                        "Mythic": 5, 
-                        "Brainrot God": 4, 
-                        "Secret": 3, 
-                        "OG": 2 
-                        };
+// --- DANS openPackSequence (Logique Doublon) ---
+const expTable = {
+ "Commun": 15, 
+"Rare": 12, 
+"Epic": 10, 
+"Legendary": 8,
+"Mythic": 5, 
+"Brainrot God": 4, 
+"Secret": 3, 
+"OG": 2 
+};
 
-                        // 1. On ajoute l'EXP
-                        existingCard.exp = (existingCard.exp || 0) + 1;
-                        if (!existingCard.level) existingCard.level = 1;
+// 1. On ajoute l'EXP
+existingCard.exp = (existingCard.exp || 0) + 1;
+if (!existingCard.level) existingCard.level = 1;
 
-                        // 2. On récupère le palier selon la rareté
-                        let needed = expTable[existingCard.rarity] || 10;
+// 2. On récupère le palier selon la rareté
+let needed = expTable[existingCard.rarity] || 10;
 
-                        // 3. Boucle de Level Up : tant qu'on a assez d'EXP, on monte de niveau
-                        while (existingCard.exp >= needed) {
-                            existingCard.exp -= needed; // On consomme l'EXP
-                            existingCard.level += 1;    // On monte de niveau
-                            console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
-                        }
+// 3. Boucle de Level Up : tant qu'on a assez d'EXP, on monte de niveau
+while (existingCard.exp >= needed) {
+    existingCard.exp -= needed; // On consomme l'EXP
+    existingCard.level += 1;    // On monte de niveau
+    console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
+}
 
                         // Gain de fragments (Dust)
                         const dustValues = {
@@ -1799,10 +1603,9 @@ function openPackSequence() {
     }); // Fin du forEach
 } // Fin de la fonction openPackSequence
 
+
 // Liaison du bouton principal
 document.getElementById("openPack").onclick = openPackSequence;
-
-
 
 
 
@@ -2537,8 +2340,7 @@ if (logoutBtnEl) {
     };
 }
 
-// Lance la vérification du Boss dès que le site charge
-syncBoss();
+
 
 </script>
 </body>

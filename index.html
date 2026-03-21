@@ -1,0 +1,2545 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Brainrot TCG</title>
+<style>
+/* Styles généraux */
+body{margin:0;font-family:Arial;background:#0e1525;color:#e8eef7;padding:20px;text-align:center}
+h1{text-align:center;margin:0 0 20px}
+button{padding:10px 14px;border-radius:8px;border:0;background:#7c3aed;color:#fff;cursor:pointer}
+button:disabled{background:#3b3b3b;cursor:not-allowed}
+.section{max-width:700px;margin:auto}
+.cards{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;justify-content:center}
+.card{background:#162037;padding:10px;border-radius:10px;width:140px;text-align:center}
+.card strong{display:block}
+.note{color:#8da0b8;font-size:0.9rem;margin-top:6px}
+#bigCardOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:10000;display:none;flex-direction:column;cursor:pointer}
+#bigCardOverlay img{max-width:60%;border-radius:12px;margin-bottom:15px}
+#bigCardName{color:#fff;font-size:1.5rem;margin-bottom:10px}
+
+/* Animation booster flash */
+@keyframes boosterFlash {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+
+
+
+html, body {
+  /* On garde ton verrouillage de scroll */
+  overflow: hidden; 
+  height: 100%;
+  width: 100%;
+  position: fixed; 
+  margin: 0;
+  padding: 0;
+  -webkit-touch-callout: none; 
+
+  /* --- CONFIGURATION FLEXBOX --- */
+  display: flex;
+  flex-direction: column;   
+  align-items: center;       /* CENTRE EN LARGEUR */
+  justify-content: flex-start; 
+
+  /* Sécurité anti-débordement globale */
+  box-sizing: border-box;
+}
+
+/* On cible les sections qui peuvent être longues */
+#collectionSection, #allCardsSection, #homeSection {
+  width: 100%;        
+  max-width: 100vw;   /* FORCE la section à ne pas dépasser l'écran */
+  height: 100vh;      
+  overflow-y: auto;   
+  overflow-x: hidden; /* COUPE tout ce qui dépasse à droite (les boosters) */
+  padding-bottom: 80px; 
+  box-sizing: border-box; /* Inclus le padding dans le calcul des 100% */
+  
+  /* Fluidité mobile */
+  -webkit-overflow-scrolling: touch; 
+  touch-action: pan-y; 
+}
+
+
+
+/* Optionnel : Si tu veux que le Shop scrolle aussi s'il y a trop d'objets */
+#shopSection {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+
+@media (max-width: 600px) {
+    body { padding: 10px; }
+    .cards { gap: 6px; justify-content: center; }
+    .card { width: 90%; max-width: none; } /* prend presque toute la largeur en mobile */
+    button { padding: 8px 12px; font-size: 0.9rem; }
+    #searchCard { width: 90%; max-width: 300px; }
+}
+
+@media (max-width: 400px) {
+    #authOverlay input { font-size: 0.9rem; padding: 10px; }
+    #authOverlay button { font-size: 0.9rem; padding: 8px 0; width: 90%; }
+    #authOverlay h2 { font-size: 1.2rem; }
+}
+
+
+#authOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(14,21,37,0.95); /* un léger fondu */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* scroll si écran trop petit */
+    text-align: center;
+    z-index: 9999;
+}
+
+#authOverlay h2 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+#authOverlay input {
+    width: 90%; /* prend presque toute la largeur écran */
+    max-width: 320px; /* limite pour grands écrans */
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+}
+
+#authOverlay button {
+    width: 45%; /* deux boutons côte à côte */
+    max-width: 140px;
+    padding: 10px 0;
+    margin: 5px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+
+
+
+@media (max-width: 480px) {
+#choosePackArea {
+  display: flex;
+  justify-content: space-between; /* espace entre boosters */
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: nowrap; /* on reste sur une seule ligne */
+}
+
+.booster {
+  flex: 1 1 0;           /* prend tout l’espace disponible également */
+  max-width: calc((100% - 20px) / 3); /* 3 boosters avec gap */
+  height: auto;
+  aspect-ratio: 150 / 220;  /* garde les proportions du booster */
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.booster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;     /* remplissage complet de la boîte */
+  display: block;
+}
+
+
+@media (max-width: 768px) { /* mobile/tablette */
+  body, * {
+    user-select: none;       /* Empêche la sélection du texte */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+}
+
+
+
+#disableOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.98); 
+    color: #fff;
+    
+    /* Centrage parfait PC/Mobile */
+    display: none; /* Ton JS passera ça en 'flex' */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    
+    /* On écrase le z-index des news (100000) */
+    z-index: 9999999 !important; 
+    
+    padding: 20px;
+    box-sizing: border-box;
+    font-size: 1.5rem;
+    pointer-events: all; 
+}
+
+
+
+.flash-effect {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  animation: boosterFlash 0.45s ease-out forwards;
+}
+.booster.booster-opening {
+  animation: boosterFlash 0.45s ease-out forwards;
+}
+
+.card {
+  position: relative;
+}
+
+.new-label {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff69b4;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 6px;
+  z-index: 10;
+}
+.card-wrapper {
+  position: relative; /* nécessaire pour positionner le label au-dessus de la carte */
+}
+
+
+/* --- Taille standard type carte Pokémon --- */
+.card {
+    width: 180px;
+    height: 260px;
+    background: #162037;
+    border-radius: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #fff; /* à adapter selon rareté */
+}
+
+.card img {
+    width: calc(100% - 10px);  /* laisse 5px de chaque côté */
+    height: 50%;                /* exactement la moitié de la carte */
+    object-fit: contain;        /* garde les proportions sans étirer */
+    display: block;
+    margin: 5px auto 10px auto; /* petit espace en haut et entre image/nom */
+    border-radius: 8px;
+}
+
+
+
+/* Contours par rareté */
+.r-Commun      { border-color: #b0b0b0; }   /* gris */
+.r-Rare   { border-color: #3cb043; }   /* vert */
+.r-Epic       { border-color: #a335ee; }   /* bleu */
+.r-Legendary { border-color: #FFD700; }
+.r-Mythic  { border-color: #FF8C00; }   /* orange */
+.r-Brainrot-God  { border-color: #FF4500; }
+.r-Secret  { border-color: #DA70D6; }
+.r-OG  { border-color: #00FFFF; }
+
+
+
+/* Carte grand format pendant l'ouverture du booster */
+.big-card {
+    width: 260px;
+    height: 380px;
+    background: #162037;
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+    border: 6px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.big-card img {
+    display: block;
+    margin: 0 auto 12px auto;  /* centre l’image */
+    max-width: 100%;           /* évite seulement de dépasser la carte */
+    height: auto;              /* conserve la vraie proportion */
+    border-radius: 10px;
+}
+
+
+
+/* Couleur du nom des cartes selon la rareté */
+
+/* --- Couleur du texte pour les petites cartes --- */
+.r-Commun strong { color: #b0b0b0; }
+.r-Rare strong { color: #3cb043; }
+.r-Epic strong { color: #a335ee; }
+.r-Legendary strong { color: #FFD700; }
+.r-Mythic strong { color: #FF8C00; }
+.r-Brainrot-God strong { color: #FF4500; }
+.r-Secret strong { color: #DA70D6; }
+.r-OG strong { color: #00FFFF; }
+
+/* --- Bordure pour grandes cartes --- */
+.big-Commun { border-color: #b0b0b0; }
+.big-Rare { border-color: #3cb043; }
+.big-Epic { border-color: #a335ee; }
+.big-Legendary { border-color: #FFD700; }
+.big-Mythic { border-color: #FF8C00; }
+.big-Brainrot-God { border-color: #FF4500; }
+.big-Secret { border-color: #DA70D6; }
+.big-OG { border-color: #00FFFF; }
+
+/* --- Texte pour grandes cartes --- */
+.big-Commun strong { color: #b0b0b0; }
+.big-Rare strong { color: #3cb043; }
+.big-Epic strong { color: #a335ee; }
+.big-Legendary strong { color: #FFD700; }
+.big-Mythic strong { color: #FF8C00; }
+.big-Brainrot-God strong { color: #FF4500; }
+.big-Secret strong { color: #DA70D6; }
+.big-OG strong { color: #00FFFF; }
+
+/* --- Badge pourcentage selon rareté --- */
+.rarity-indicator {
+    position: absolute;
+    bottom: 5px;  /* en bas */
+    right: 5px;   /* à droite */
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    pointer-events: none;
+    color: #fff;
+    background: #555; /* fallback */
+}
+
+.rarity-indicator.r-OG {
+    background: rgba(0,0,0,0.6); /* fond semi-transparent pour OG */
+    color: #fff;
+}
+
+/* Couleur selon rareté */
+.rarity-indicator.r-Commun { background: #b0b0b0; }
+.rarity-indicator.r-Rare { background: #3cb043; }
+.rarity-indicator.r-Epic { background: #a335ee; }
+.rarity-indicator.r-Legendary { background: #FFD700; color: #000; }
+.rarity-indicator.r-Mythic { background: #FF8C00; }
+.rarity-indicator.r-Brainrot-God { background: #FF4500; }
+.rarity-indicator.r-Secret { background: #DA70D6; }
+.rarity-indicator.r-OG { background: #00FFFF; color: #000; }
+
+
+#dustDisplay {
+  display: none;
+}
+
+
+
+
+/* Animation OG avec overlay qui bloque tout */
+#ogAnimation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  pointer-events: all; /* on capture le clic ici */
+  user-select: none;
+}
+
+#ogText {
+  font-size: 80px;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow:
+    0 0 20px #00ffff,
+    0 0 40px #00ffff,
+    0 0 80px #00ffff;
+  animation: ogText 1.5s ease-out;
+}
+
+@keyframes ogText {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+
+#maintenanceOverlay {
+    display: none; /* Caché par défaut */
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.98);
+    
+    /* --- SOLUTION : On met un chiffre plus haut que le newsOverlay (100000) --- */
+    z-index: 2000000 !important; 
+    
+    color: white;
+    
+    /* Centrage total */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    font-family: sans-serif;
+    
+    /* On bloque tous les clics derrière */
+    pointer-events: all; 
+}
+
+#maintenanceOverlay h1 {
+    color: #ff4444;
+    font-size: clamp(1.8rem, 5vw, 3rem); 
+    margin: 0 0 20px 0;
+}
+
+#maintenanceOverlay p {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+}
+
+.error-box {
+    display: inline-block;
+    padding: 12px 20px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    background: #1a1a1a;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+
+
+</style>
+</head>
+<body>
+
+
+
+
+
+
+<h1>Brainrot TCG</h1>
+
+
+
+
+<div id="bossArea" style="display:none; background: rgba(20, 20, 35, 0.8); border: 2px solid #ff4444; border-radius: 12px; padding: 15px; margin: 10px auto 20px auto; max-width: 500px; border: 2px solid #ff4444;">
+    <div style="color: #ff4444; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 0.9rem;">
+        ⚠️ Boss Actif : <span id="bossNameDisplay">...</span>
+    </div>
+    
+    <div style="background: #000; height: 18px; border-radius: 9px; border: 1px solid #444; overflow: hidden;">
+        <div id="bossBarProgress" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #880000); transition: width 0.3s;"></div>
+    </div>
+    
+    <div id="bossHpTextDisplay" style="color: white; font-family: monospace; font-size: 13px; margin-top: 6px;">
+        0 / 0 PV
+    </div>
+</div>
+
+
+<div id="rewardPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000001; justify-content:center; align-items:center; flex-direction:column; padding:20px; box-sizing:border-box;">
+    <div style="background:#162037; padding:30px; border-radius:20px; border:4px solid #ffd700; text-align:center; max-width:350px; width:100%; box-shadow: 0 0 50px rgba(255, 215, 0, 0.4); animation: ogText 0.5s ease-out;">
+        <h2 style="color:#ffd700; margin-top:0; font-size:1.5rem; text-transform:uppercase;">🏆 Butin de Boss !</h2>
+        <p style="color:#e8eef7; margin-bottom:20px;">Le Boss est vaincu ! Voici ta récompense :</p>
+        
+        <img id="rewardCardImg" src="" style="width:180px; height:auto; border-radius:12px; border:3px solid #fff; margin-bottom:15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+        
+        <div id="rewardCardName" style="font-size:1.4rem; font-weight:bold; color:#fff; margin-bottom:5px;"></div>
+        <div id="rewardCardRarity" style="font-size:1rem; margin-bottom:25px; font-weight:bold;"></div>
+
+        <button onclick="document.getElementById('rewardPopup').style.display='none'" style="background:#7c3aed; color:white; border:none; padding:12px 30px; border-radius:10px; cursor:pointer; font-weight:bold; font-size:1.1rem; width:100%;">Génial !</button>
+    </div>
+</div>
+
+
+
+
+<div style="text-align:center;margin-bottom:20px">
+  <button id="openPack" style="padding:14px 22px;font-size:1.1rem;border-radius:12px;border:0;background:#ffcb05;color:#3b4cca;font-weight:700;cursor:pointer">
+    Ouvrir un booster
+  </button>
+
+  <div id="remaining" class="note"></div>
+
+  <button id="resetCollection" style="margin-left:10px;padding:10px 12px;border-radius:8px;border:0;background:#a00;color:#fff;display:none;">
+    Réinitialiser collection
+  </button>
+</div>
+
+<div id="dustDisplay" class="note">💎 Fragments : 0</div>
+
+  <div id="homeSection">
+  <div id="boosterCounter" style="color:#fff;font-weight:bold;font-size:1rem;margin-bottom:10px;">
+    Boosters ouverts : 0
+  </div>
+    <div id="choosePackArea" style="display:none; margin-top:20px;"></div>
+  </div>
+
+  <div id="collectionSection" style="display:none;margin-bottom:80px">
+    <h2>Ta collection</h2>
+
+  <div style="margin-bottom: 10px;">
+    <input type="text" id="searchCollection" placeholder="Rechercher dans ta collection..." style="padding:6px 10px;border-radius:6px;border:none;width:220px">
+  </div>
+
+
+  <div style="margin-bottom: 10px;">
+    <button id="showMissingBtn" style="padding:6px 10px;border-radius:6px;border:none;background:#7c3aed;color:#fff;cursor:pointer">
+      Voir les cartes manquantes
+    </button>
+  </div>
+
+    <div id="collection" class="cards"></div>
+  </div>
+
+
+
+  <div id="allCardsSection" style="display:none;margin-bottom:80px">
+    <h2>Chances d'obtention</h2>
+
+
+
+
+
+
+  <input 
+    type="text"
+    id="searchCard"
+    placeholder="Rechercher une carte..."
+    style="padding:10px;border-radius:8px;border:none;margin-bottom:20px;width:220px"
+  >
+
+    <div id="allCardsList" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;"></div>
+  </div>
+</div>
+
+<nav style="position:fixed;bottom:0;left:0;width:100%;background:#111a2e;padding:10px 0;display:flex;justify-content:space-around;border-top:2px solid #0d1220;z-index:9999">
+  <button id="tabHome">Accueil</button>
+
+
+  <button id="tabCollection">Collection</button>
+  <button id="tabShop">Boutique</button>
+  <button id="tabAllCards">Chances d'obtention</button>
+</nav>
+
+<div id="bigCardOverlay">
+  <img id="bigCardImg" src="" alt="Carte">
+  <div id="bigCardName"></div>
+</div>
+
+
+<div id="shopSection" style="display:none;margin-bottom:80px">
+  <h2>Boutique</h2>
+  <div id="shopCards" class="cards"></div>
+</div>
+
+
+
+
+
+<div id="authOverlay">
+
+<h2>Connecte-toi pour sauvegarder ta progression</h2>
+<input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
+<input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
+<div style="margin-top:10px;">
+  <button id="loginBtn" style="margin-right:10px;">Connexion</button>
+  <button id="signupBtn">Inscription</button>
+
+
+</div>
+<div id="authError" style="color:#f88;margin-top:10px;"></div>
+
+</div>
+
+
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+
+
+<div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+    <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);">
+        
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 1.40</h2>
+        
+        <div style="text-align:left; color:#e8eef7;">
+            
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    💎 <b>Boutique :</b> Réduction des prix des boosters exclusifs ! <br>
+                    🛠️ <b>Bugs :</b> Résolution des problèmes de rareté des cartes & synchronisation de la boutique pour tous.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🆙 <b>Niveaux :</b> Accumulez des cartes identiques pour augmenter leur niveau dans la collection !
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🔜 <b>À venir :</b> Les cartes Brainrot God et Secret seront bientôt disponibles !
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px; opacity: 0.8; font-size: 0.9rem;">
+                <p style="margin: 0;">
+                    ⚙️ Corrections de bugs et optimisations.
+                </p>
+            </div>
+
+        </div>
+
+        <button onclick="closeNews()" style="background:#7c3aed; color:white; border:none; padding:15px 25px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; font-size: 1rem; transition: 0.3s;">
+            C'est parti !
+        </button>
+    </div>
+</div>
+
+
+<div id="disableOverlay" style="display:none;">
+    🚫 Le site est actuellement en maintenance.<br>
+    Veuillez revenir plus tard ou contacter le développeur.
+</div>
+
+
+
+
+<div id="maintenanceOverlay" style="display:none;">
+    <h1>⚠️ LIMITE ATTEINTE</h1>
+    <p>
+        Le serveur de sauvegarde est temporairement saturé.<br><br>
+        Pour éviter la perte de tes données, <b>le site est mis en pause</b>.<br>
+        Reviens plus tard ou contacte le développeur.
+    </p>
+    <div class="error-box">
+        Code erreur : 429 QuotaExceeded
+    </div>
+</div>
+
+
+
+
+<audio id="bgMusic" loop>
+  <source src="https://raw.githubusercontent.com/TheRhyno/Musiques/main/SpotiDownloader.com%20-%20C'est%20nous%20dans%20le%20top%20(Brainrot)%20-%20Unchained(1).mp3" type="audio/mpeg">
+</audio>
+
+<button id="musicBtn" style="position: fixed; top: 10px; left: 10px; z-index: 1000; width: 34px; height: 34px; padding: 0; background: rgba(30, 41, 59, 0.8); color: white; border-radius: 8px; border: 1px solid #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; backdrop-filter: blur(4px);">
+    🔈
+</button>
+
+
+
+
+<button id="accountBtn" style="display:none; position: fixed; top: 10px; right: 10px; z-index: 1000; width: 34px; height: 34px; padding: 0; background: rgba(30, 41, 59, 0.8); color: white; border-radius: 8px; border: 1px solid #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; backdrop-filter: blur(4px);">
+    👤
+</button>
+
+<div id="accountSection" style="display:none; flex-direction:column; align-items:center; padding:20px; box-sizing:border-box; background:#111; color:white; min-height:100vh;">
+    
+    <h2 style="margin-top:20px; margin-bottom:30px;">Mon Profil</h2>
+    
+<div style="background: #222; padding: 20px; border-radius: 12px; width: 95%; max-width: 400px; border: 1px solid #444; margin-bottom: 20px;">
+    <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Email :</p>
+    <p id="userEmail" style="font-weight: bold; margin: 5px 0 15px 0; word-break: break-all;">...</p>
+    
+    <p style="margin: 0; color: #aaa; font-size: 0.8rem;">ID Utilisateur :</p>
+    <p id="userIdDisplay" style="font-size: 0.7rem; color: #666; word-break: break-all; margin: 5px 0 0 0;">...</p>
+
+    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; align-items: center; background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 10px;">
+    
+    <div>
+        <p style="margin: 0; color: #7c3aed; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileBoosters">0</p>
+        <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Boosters</p>
+    </div>
+
+    <div>
+        <p style="margin: 0; color: #fbbf24; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileDust">0</p>
+        <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Fragments</p>
+    </div>
+
+    <div>
+        <p style="margin: 0; color: #10b981; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileCards">0/0</p>
+        <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Collection</p>
+    </div>
+
+</div>
+
+    <div style="display: flex; gap: 12px; width: 95%; max-width: 400px;">
+        
+        <button id="backFromAccount" style="flex: 1; background:#444; color:white; padding:15px; border-radius:10px; border:0; cursor:pointer; font-weight:bold;">
+            ← Retour
+        </button>
+
+        <button id="logoutBtn" style="flex: 1; background:#ef4444; color:white; padding:15px; border-radius:10px; border:0; cursor:pointer; font-weight:bold;">
+            Déconnexion
+        </button>
+
+    </div>
+</div>
+
+
+<script>
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyD4H_pdAZSLrixwH-1NDRpEd537X-Gnvik",
+
+  authDomain: "brainrot-tcg-6d0ae.firebaseapp.com",
+
+  projectId: "brainrot-tcg-6d0ae",
+
+  storageBucket: "brainrot-tcg-6d0ae.firebasestorage.app",
+
+  messagingSenderId: "622979343428",
+
+  appId: "1:622979343428:web:b8499811ce8379b0f84811",
+
+  measurementId: "G-6GE923T5CK"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+
+
+
+
+// --- Données et probabilités ---
+const ALL_CARDS = [
+
+  {name:"Noobini Pizzanini", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/noobini-santanini-200x300.webp"},
+  {name:"Lirilì Larilà", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Liliri_Lalira.webp"},
+  {name:"Tim Cheese", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Tim_Cheese-161x300.webp"},
+  {name:"Fluriflura", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Fluriflura-215x300.webp"},
+  {name:"Talpa Di Fero", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Talpa_Di_Fero-240x300.webp"},
+  {name:"Noobini Santanini", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/NoobiniSantanini-204x300.webp"},
+  {name:"Svinina Bombardino", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/svinina-bombardino.webp"},
+  {name:"Raccooni Jandelini", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Raccooni-197x300.webp"},
+  {name:"Pipi Kiwi", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Pipi_Kiwi.webp"},
+  {name:"Tartaragno", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/10/Tartaragnoo.webp"},
+  {name:"Pipi Corni", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/pipi-corni.webp"},
+  {name:"Holy Arepa", rarity:"Commun", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Holy-Arepa-300x169.webp"},
+
+
+
+  {name:"Trippi Troppi", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Trippi_Troppi.webp"},
+  {name:"Gangster Footera", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/gangster-footera-185x300.webp"},
+  {name:"Bandito Bobritto", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/bandito-bobritto-160x300.webp"},
+  {name:"Boneca Ambalabu", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Boneca_Ambalabu-226x300.webp"},
+  {name:"Cacto Hipopotamo", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Cacto_Hipopotamo1.webp"},
+  {name:"Ta Ta Ta Ta Sahur", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/ta-ta-ta-sahur-264x300.webp"},
+  {name:"Tric Trac Baraboom", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Tric-Trac-Baraboom-5.webp"},
+  {name:"Frogo Elfo", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Frogo_Elfo-181x300.webp"},
+  {name:"Pipi Avocado", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/pipi-avocado.webp"},
+  {name:"Pengolino Nuvoletto", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Pengolino-Nuvoletto-246x300.webp"},
+  {name:"Pinealotto Fruttarino", rarity:"Rare", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Pintealotto.webp"},
+
+  {name:"Cappuccino Assassino", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Cappuccino_Assassino-264x300.webp"},
+  {name:"Bandito Axolito", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Bandito_Axolito1.webp"},
+  {name:"Brr Brr Patapim", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/brr-brr-patapim-217x300.webp"},
+  {name:"Avocadini Antilopini", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Avocadini_Antilopini-224x300.webp"},
+  {name:"Trulimero Trulicina", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/trulimero-trulicina.webp"},
+  {name:"Bambini Crostini", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/bambini-crostini.webp"},
+  {name:"Malame Amarele", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/MalameAmarele-200x300.webp"},
+  {name:"Bananita Dolphinita", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Dolphin_But_Banana-226x300.webp"},
+  {name:"Perochello Lemonchello", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/perochello-lemonchello.webp"},
+  {name:"Brri Brri Bicus Dicus Bombicus", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Berry_berry_bicus_dickus.webp"},
+  {name:"Avocadini Guffo", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/AvocadiniGuffo.webp"},
+  {name:"Ti Ti Ti Sahur", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/tititi-sahur.webp"},
+  {name:"Mangolini Parrocini", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/mangolini-parrochini-264x300.webp"},
+  {name:"Frogato Pirato", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/frogato-pirato.webp"},
+  {name:"Gato Celesto", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Gato-Celestowebp-286x300.webp"},
+  {name:"Salamino Penguino", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Salamino-Penguino.webp"},
+  {name:"Doi Doi Do", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/DoiDoi.webp"},
+  {name:"Penguin Tree", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/PenguinTree-157x300.webp"},
+  {name:"Wombo Rollo", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Wombo-200x300.webp"},
+  {name:"Penguino Cocosino", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Penguino_Cocosino.webp"},
+  {name:"Mummio Rappitto", rarity:"Epic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Mummio_Rappitto-215x300.webp"},
+
+  {name:"Chimpanzini Bananini", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/ChimpanziniBananini-262x300.webp"},
+  {name:"Tirilikalika Tirilikalako", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/TirilikalikaTirilikalakoTransparent.webp"},
+  {name:"Ballerina Cappuccina", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Ballerina_cappucinaaaa212121-261x300.webp"},
+  {name:"Burbaloni Loliloli", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/burbaloni-loliloli.webp"},
+  {name:"Chef Crabracadabra", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Chef-Crabracadabra.webp"},
+  {name:"Lionel Cactuseli", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Lionel-Cactuseli.webp"},
+  {name:"Glorbo Fruttodrillo", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/GlorboFruttodrillo.webp"},
+  {name:"Quivoli Ameleoni", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Quivioli_Ameleonni.webp"},
+  {name:"Blueberrinni Octopusini", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/NewBlueberrinni-1.webp"},
+  {name:"Caramello Filtrello", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Caramello_Filtrello2.webp"},
+  {name:"Pipi Potato", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/pipi-potato-236x300.webp"},
+  {name:"Strawberrelli Flamingelli", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Strawberrelli_Flamingelli.webp"},
+  {name:"Cocosini Mama", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Cocosini_Mama-157x300.webp"},
+  {name:"Pandaccini Bananini", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Pandaccini_Bananini.webp"},
+  {name:"Quackula", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Quackula.webp"},
+  {name:"Pi Pi Watermelon", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Pi_Pi_Watermelon.webp"},
+  {name:"Signore Carapace", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Teenage_turtle.webp"},
+  {name:"Buho del Cielo", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Buho-del-Cielo-140x300.webp"},
+  {name:"Sigma Boy", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Sig_ma_Boy-240x300.webp"},
+  {name:"Chocco Bunny", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Chocco_Bunny-194x300.webp"},
+  {name:"Puffaball", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Puffaball.webp"},
+  {name:"Sigma Girl", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/SigmaGirl-216x300.webp"},
+  {name:"Sealo Regalo", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/01/Sealo-Regalo-228x300.webp"},
+  {name:"Buho de Fuego", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Buhodefuego-244x300.webp"},
+  {name:"Seraphino Gruyero", rarity:"Legendary", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Seraphino-Gruyero-300x251.webp"},
+
+
+  {name:"Frigo Camelo", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/frigo-camelo.webp"},
+  {name:"Orangutini Ananassini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Banana-242x300.webp"},
+  {name:"Rhino Toasterino", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/rhino-toasterino-249x300.webp"},
+  {name:"Bombardiro Crocodilo", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/A_flying_alligator-1.webp"},
+  {name:"Spioniro Golubiro", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/spioniro-golubiro-216x300.webp"},
+  {name:"Bombombini Gusini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/bombombini-gusini.webp"},
+  {name:"Zibra Zubra Zibralini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Zibra_Zubra_Zibralini-151x300.webp"},
+  {name:"Tigrilini Watermelini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Tigrilini_Watermelini1-216x300.webp"},
+  {name:"Avocadorilla", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Avocadorilla.webp"},
+  {name:"Mythic Lucky Block", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Mythic_Lucky_Block.webp"},
+  {name:"Cavallo Virtuoso", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Cavallo_Virtuoso-221x300.webp"},
+  {name:"Gorillo Subwoofero", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/gorillo-subwoofero-248x300.webp"},
+  {name:"Gorillo Watermelondrillo", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Gorillo-Watermelondrillo.webp"},
+  {name:"Stoppo Luminino", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Stoppo_Luminino-266x300.webp"},
+  {name:"Ganganzelli Trulala", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Ganganzelli_Trulala-247x300.webp"},
+  {name:"Tob Tobi Tobi", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Tob_Tobi_Tobi.webp"},
+  {name:"Lerulerulerule", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Lerulerulerule-256x300.webp"},
+  {name:"Te Te Te Sahur", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Te_Te_Te_Sahur.webp"},
+  {name:"Rhino Helicopterino", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/rhino-helicopterino.webp"},
+  {name:"Magi Ribbitini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/MagiRibbit.webp"},
+  {name:"Tracoducotulu Delapeladustuz", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Tracoducotulu-254x300.webp"},
+  {name:"Jingle Jingle Sahur", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/JingleJingleSahur.webp"},
+  {name:"Los Noobinis", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Noobinis.webp"},
+  {name:"Spongini Quackini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/01/Spongini-Quackini-179x300.webp"},
+  {name:"Cachorrito Melonito", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Watermelon_Doggy-210x300.webp"},
+  {name:"Carloo", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Mateo_fish-233x300.webp"},
+  {name:"Harpuccino", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Harpuccino-178x300.webp"},
+  {name:"Elefanto Frigo", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Elefanto_Frigo_Transparent.webp"},
+  {name:"Carrotini Brainini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/carrotini-brainini.webp"},
+  {name:"Centrucci Nuclucci", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Centrucci_Nuclucci-191x300.webp"},
+  {name:"Toiletto Focaccino", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Toiletto-236x300.webp"},
+  {name:"Jacko Spaventosa", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/jacko-spaventosa-213x300.webp"},
+  {name:"Bananito Bandito", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/bananito-bandito-212x300.webp"},
+  {name:"Tree Tree Tree Sahur", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/TreeTreeTreeSahur-210x300.webp"},
+  {name:"Fizzy Soda", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/01/Fizzy-Soda-195x300.webp"},
+  {name:"Berenjello Angello", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Berenjello-Angello-212x300.webp"},
+
+
+  {name:"Cocofanto Elefanto", rarity:"Brainrot God", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Cocofanto.webp"},
+
+
+
+  {name:"La Vacca Saturno Saturnita", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/La_Vaccca_Saturno_Saturnita.webp"},
+
+
+
+
+  { name:"Skibidi Toilet", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-3be000d4-c396-4f70-9827-7b9f3208525e.png" },
+  { name:"Headless Horseman", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-afc3dd97-67c3-4c8b-94be-e3909d345d21.png" },
+  { name:"John Pork", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-e72fbeb0-d333-45cc-afd2-f501c066d2f8.png" },
+  { name:"Meowl", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-6acb0782-4a61-4b79-b994-e0c5717f6672.png" },
+  { name:"Smurf Cat", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-22b121bc-4380-4104-aff6-a2adf5f7bca5.png" },
+  { name:"Strawberry Elephant", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-86e303da-a89b-41d3-9902-35c2e8fea136.png" },
+
+
+
+];
+
+
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03 };
+
+const BOOSTER_IMAGES = [
+  "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png",
+  "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png",
+  "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png"
+];
+
+
+
+const SHOP_CARDS = [
+  { name: "Booster OR", isPack: true, packType: "gold", price: 10000, rarity: "1 Brainrot God minimum", image: "https://cdn.phototourl.com/uploads/2026-03-18-932a1812-124d-4b83-bb18-b8f14429f207.png" },
+  { name: "Booster PLATINE", isPack: true, packType: "platinum", price: 25000, rarity: "1 Secret minimum", image: "https://cdn.phototourl.com/uploads/2026-03-18-a1925a7f-b526-4171-8ab5-c88a216d2867.png" },
+  { name: "Booster DIAMANT", isPack: true, packType: "diamond", price: 50000, rarity: "1 OG minimum", image: "https://cdn.phototourl.com/uploads/2026-03-18-3bbfcd6b-5128-4913-bcdd-10ae790b137b.png" }
+];
+
+
+
+
+
+
+
+const shopSection = document.getElementById("shopSection");
+const tabShop = document.getElementById("tabShop");
+
+tabShop.addEventListener("click", showShop);
+
+
+
+const searchCollectionInput = document.getElementById("searchCollection");
+
+searchCollectionInput.addEventListener("input", () => {
+    const query = searchCollectionInput.value.toLowerCase();
+
+    const filtered = collection.filter(card => card.name.toLowerCase().includes(query));
+
+    refreshCollection(filtered);
+});
+
+
+
+// --- Overlay site désactivé ---
+function disableSite(active) {
+    const overlay = document.getElementById('disableOverlay');
+    const news = document.getElementById('newsOverlay');
+
+    if(active) {
+        document.body.classList.add('maintenance-active'); // Active le CSS forcé
+        
+        if(overlay) {
+            overlay.style.setProperty('display', 'flex', 'important');
+        }
+        
+        // Cache explicitement la MAJ si elle est déjà là
+        if(news) news.style.setProperty('display', 'none', 'important');
+
+        // Bloque le scroll PC
+        document.body.style.overflow = 'hidden';
+
+        // Bloque les clics (Capture phase)
+        window.addEventListener('click', blockInput, true);
+        window.addEventListener('keydown', blockInput, true);
+    }
+}
+
+function blockInput(e) {
+    e.stopImmediatePropagation();
+    e.preventDefault();
+}
+
+// Lancement
+disableSite(false);
+
+
+
+
+
+
+
+
+
+
+function initialiserGestionBoss() {
+    // Écoute en temps réel
+    db.collection("global_event").doc("boss_battle").onSnapshot(async (doc) => {
+        const area = document.getElementById("bossArea");
+        const homeSection = document.getElementById("homeSection");
+        
+        if (!doc.exists || !area) return;
+
+        const data = doc.data();
+        const hpCurrent = data.hp_current ?? 0;
+        const hpMax = data.hp_max || 1000000;
+        const bossId = data.event_id || "event_1";
+
+        // AFFICHAGE DE LA BARRE (Seulement si le boss est vivant)
+        if (data.active === true && hpCurrent > 0 && homeSection.style.display !== "none") {
+            area.style.display = "block";
+            document.getElementById("bossNameDisplay").innerText = data.name || "BOSS";
+            const pourcentage = Math.max(0, (hpCurrent / hpMax) * 100);
+            document.getElementById("bossBarProgress").style.width = pourcentage + "%";
+            document.getElementById("bossHpTextDisplay").innerText = 
+                hpCurrent.toLocaleString() + " / " + hpMax.toLocaleString() + " PV";
+        } else {
+            area.style.display = "none";
+        }
+
+        // VÉRIFICATION DU BUTIN (Que le joueur soit là ou qu'il revienne après l'event)
+        // Si les PV sont à 0, on tente de donner la récompense
+        if (hpCurrent <= 0) {
+            await verifierEtDonnerRecompense(bossId);
+        }
+    });
+}
+
+
+
+
+// --- SYSTÈME DE BOSS UNIQUE (Affichage + Récompense) ---
+
+function initialiserGestionBoss() {
+    // On écoute les changements sur le document du boss en temps réel
+    db.collection("global_event").doc("boss_battle").onSnapshot(async (doc) => {
+        const area = document.getElementById("bossArea");
+        const homeSection = document.getElementById("homeSection");
+        
+        if (!doc.exists || !area) return;
+
+        const data = doc.data();
+        const hpCurrent = data.hp_current ?? 0;
+        const hpMax = data.hp_max || 1000000;
+        const bossId = data.event_id || "event_1";
+
+        // 1. MISE À JOUR VISUELLE DE LA BARRE
+        // On l'affiche seulement si : Boss actif ET PV > 0 ET on est sur l'accueil
+        if (data.active === true && hpCurrent > 0 && homeSection.style.display !== "none") {
+            area.style.display = "block";
+            document.getElementById("bossNameDisplay").innerText = data.name || "BOSS";
+            
+            // Calcul et mise à jour de la barre
+            const pourcentage = Math.max(0, (hpCurrent / hpMax) * 100);
+            document.getElementById("bossBarProgress").style.width = pourcentage + "%";
+            
+            // Texte des PV avec formatage (ex: 1 000 000)
+            document.getElementById("bossHpTextDisplay").innerText = 
+                hpCurrent.toLocaleString() + " / " + hpMax.toLocaleString() + " PV";
+        } else {
+            // On cache la barre si le boss est mort ou si on change d'onglet
+            area.style.display = "none";
+        }
+
+        // 2. VÉRIFICATION DE LA RÉCOMPENSE (En direct ou à la connexion)
+        if (hpCurrent <= 0) {
+            await verifierEtDonnerRecompense(bossId);
+        }
+    });
+}
+
+async function verifierEtDonnerRecompense(bossId) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = db.collection("users").doc(user.uid);
+    
+    try {
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return;
+
+        const userData = userDoc.data();
+        const boostersOuverts = userData.boostersOpened || 0;
+        const recompensesObtenues = userData.bossRewardsClaimed || [];
+
+        // CONDITION : A ouvert au moins 1 booster ET n'a pas encore reçu CETTE récompense
+        if (boostersOuverts > 0 && !recompensesObtenues.includes(bossId)) {
+            
+            const maRecompense = {
+                name: "Noobini Pizzanini",
+                rarity: "Commun",
+                image: "https://www.eldorado.gg/blog/wp-content/uploads/2025/12/noobini-santanini-200x300.webp"
+            };
+
+            let inventory = userData.inventory || {};
+            
+            // Ajout à l'inventaire (gestion doublons)
+            if (inventory[maRecompense.name]) {
+                inventory[maRecompense.name].count = (inventory[maRecompense.name].count || 1) + 1;
+            } else {
+                inventory[maRecompense.name] = { ...maRecompense, count: 1 };
+            }
+
+            // Marquer comme récupéré pour cet event_id
+            recompensesObtenues.push(bossId);
+
+            // Mise à jour groupée sur Firebase
+            await userRef.update({
+                inventory: inventory,
+                bossRewardsClaimed: recompensesObtenues
+            });
+
+            // --- DÉCLENCHEMENT DE LA POP-UP ---
+            document.getElementById("rewardCardImg").src = maRecompense.image;
+            document.getElementById("rewardCardName").innerText = maRecompense.name;
+            document.getElementById("rewardCardRarity").innerText = maRecompense.rarity;
+            document.getElementById("rewardCardRarity").style.color = "#b0b0b0"; // Gris pour Commun
+
+            document.getElementById("rewardPopup").style.display = "flex";
+            
+            console.log("🎁 Récompense de boss distribuée avec succès !");
+            
+            // Optionnel : rafraîchir l'affichage de la collection si l'onglet est ouvert
+            if (typeof refreshCollection === "function") refreshCollection(collection);
+        }
+    } catch (error) {
+        console.error("Erreur lors de la distribution du loot :", error);
+    }
+}
+
+// Fonction pour infliger des dégâts
+function hitBoss() {
+    const bossRef = db.collection("global_event").doc("boss_battle");
+    
+    bossRef.update({
+        hp_current: firebase.firestore.FieldValue.increment(-100)
+    }).catch(err => console.error("Erreur hitBoss :", err));
+}
+
+// Lancement global
+initialiserGestionBoss();
+
+
+
+
+
+
+
+
+
+
+
+
+let canClickCard = true;
+
+
+// Cette fonction simule le clic sur une carte du booster
+function handleCardClick(cardElement, cardData) {
+    // SI ON A DÉJÀ CLIQUÉ SUR UNE CARTE, ON BLOQUE TOUT
+    if (!canClickCard) return; 
+
+    // ON ACTIVE LE VERROU IMMÉDIATEMENT
+    canClickCard = false;
+
+    // 1. On révèle la carte cliquée (ton code actuel pour l'animation)
+    cardElement.classList.add("revealed"); 
+    
+    // 2. On ajoute la carte à la collection
+    collection.push(cardData);
+    save("collection", collection);
+
+    // 3. OPTIONNEL : On grise ou on cache les deux autres cartes
+    const allPackCards = document.querySelectorAll(".pack-card-item"); // Remplace par ta classe
+    allPackCards.forEach(c => {
+        if (c !== cardElement) {
+            c.style.opacity = "0.5";
+            c.style.pointerEvents = "none"; // Sécurité supplémentaire
+        }
+    });
+
+    console.log("Une seule carte récupérée, les autres sont bloquées !");
+
+    // Une fois que l'animation est finie et qu'on ferme l'overlay
+    // Il faudra remettre canClickCard = true; pour le prochain booster.
+}
+
+
+
+
+
+
+
+
+
+
+const CURRENT_VERSION = "1.40"; // Change ce numéro pour faire réapparaître le message
+
+function checkUpdateNews() {
+    const lastSeenVersion = localStorage.getItem("lastSeenVersion");
+
+    // Si la version stockée est différente de la version actuelle
+    if (lastSeenVersion !== CURRENT_VERSION) {
+        document.getElementById("newsOverlay").style.display = "flex";
+    }
+}
+
+function closeNews() {
+    // On enregistre que l'utilisateur a vu cette version
+    localStorage.setItem("lastSeenVersion", CURRENT_VERSION);
+    document.getElementById("newsOverlay").style.display = "none";
+}
+
+// Appelle la fonction au chargement du site (après la connexion par exemple)
+window.addEventListener('load', checkUpdateNews);
+
+
+
+
+function disableSiteForQuota() {
+    const maintenance = document.getElementById("maintenanceOverlay");
+    if(maintenance) {
+        maintenance.style.display = "flex";
+        // On bloque aussi toute interaction avec le clavier
+        window.addEventListener("keydown", (e) => e.stopPropagation(), true);
+    }
+}
+
+
+
+
+const bgMusic = document.getElementById("bgMusic");
+const musicBtn = document.getElementById("musicBtn");
+let isPlaying = false;
+
+// Fonction pour alterner Play/Pause
+musicBtn.onclick = () => {
+    if (isPlaying) {
+        bgMusic.pause();
+        musicBtn.innerText = "🔈"; // Icône muet
+    } else {
+        bgMusic.play();
+        musicBtn.innerText = "🔊"; // Icône son
+    }
+    isPlaying = !isPlaying;
+};
+
+// Lancer la musique au premier clic sur la page (contrainte navigateur)
+document.addEventListener('click', () => {
+    if (!isPlaying && bgMusic.paused) {
+        // Optionnel : décommente la ligne dessous si tu veux que ça démarre tout seul au 1er clic
+        // bgMusic.play(); isPlaying = true; musicBtn.innerText = "🔊";
+    }
+}, { once: true });
+
+
+
+
+// --- 1. Tirage avec tes pourcentages précis ---
+function pickBoostedCard(tier) {
+    let probs;
+    if (tier === "gold") {
+        probs = { 'Rare': 40, 'Epic': 30, 'Legendary': 20, 'Mythic': 8, 'Brainrot God': 2 };
+    } else if (tier === "platinum") {
+        probs = { 'Epic': 50, 'Legendary': 30, 'Mythic': 15, 'Brainrot God': 4, 'Secret': 1 };
+    } else if (tier === "diamond") {
+        probs = { 'Legendary': 40, 'Mythic': 35, 'Brainrot God': 15, 'Secret': 8, 'OG': 2 };
+    } else {
+        return pickRandomCard();
+    }
+
+    const total = Object.values(probs).reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    
+    for (const [rarity, prob] of Object.entries(probs)) {
+        r -= prob;
+        if (r <= 0) {
+            const filtered = ALL_CARDS.filter(c => c.rarity === rarity);
+            return filtered[Math.floor(Math.random() * filtered.length)] || ALL_CARDS[0];
+        }
+    }
+    return ALL_CARDS[0];
+}
+
+// --- 2. Fonction d'ouverture (Ton bloc propre) ---
+function openSpecialPack(type) {
+    let pack = [];
+
+    if (type === "gold") {
+        pack.push(pickBoostedCard("gold"));
+        pack.push(pickBoostedCard("gold"));
+        pack.push(pickSpecificRarity("Brainrot God"));
+    } else if (type === "platinum") {
+        pack.push(pickBoostedCard("platinum"));
+        pack.push(pickBoostedCard("platinum"));
+        pack.push(pickSpecificRarity("Secret"));
+    } else if (type === "diamond") {
+        pack.push(pickBoostedCard("diamond"));
+        pack.push(pickBoostedCard("diamond"));
+        pack.push(pickSpecificRarity("OG"));
+    }
+
+    pack.forEach(c => {
+        const exists = collection.some(card => card.name === c.name);
+        if (!exists) {
+            c.isNew = true;
+            collection.push({ ...c });
+        } else {
+            c.isNew = false;
+            const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 1000 };
+            dust += (dustValues[c.rarity] || 1);
+        }
+    });
+
+    save("collection", collection);
+    save("dust", dust);
+    refreshDust();
+
+    const user = firebase.auth().currentUser;
+    if (user) {
+        db.collection("users").doc(user.uid).set({ collection, dust }, { merge: true });
+    }
+
+    currentPack = pack;
+    currentCardIndex = 0;
+    showBigCard();
+}
+
+function pickSpecificRarity(rarityName) {
+    const possible = ALL_CARDS.filter(c => c.rarity === rarityName);
+    return possible[Math.floor(Math.random() * possible.length)] || ALL_CARDS[0];
+}
+
+
+
+
+
+
+function showOGAnimation(card, callback) {
+    const anim = document.createElement("div");
+    anim.id = "ogAnimation";
+    anim.style.cssText = `
+        position:fixed;top:0;left:0;width:100vw;height:100vh;
+        background:rgba(0,255,255,0.2);
+        display:flex;align-items:center;justify-content:center;
+        z-index:20000;pointer-events:all;user-select:none;
+    `;
+
+    const text = document.createElement("div");
+    text.innerText = "OG !!!";
+    text.style.cssText = `
+        font-size:80px;font-weight:bold;color:#00ffff;
+        text-shadow:0 0 20px #00ffff,0 0 40px #00ffff,0 0 80px #00ffff;
+        animation: ogText 1.5s ease-out;
+    `;
+
+    anim.appendChild(text);
+    document.body.appendChild(anim);
+
+    // autoriser le clic après animation
+    setTimeout(() => {
+        anim.style.cursor = "pointer";
+        anim.addEventListener("click", () => {
+            anim.remove();
+            if(callback) callback();
+        }, { once: true });
+    }, 1500);
+}
+
+
+
+
+
+
+const boosterCounterDiv = document.getElementById("boosterCounter");
+
+// --- Récupérer le compteur depuis Firestore après connexion ---
+function loadBoosterCounter(uid) {
+    db.collection("users").doc(uid).get()
+      .then(doc => {
+        if (doc.exists) {
+            const count = doc.data().boostersOpened || 0;
+            
+            // 1. Mise à jour de l'accueil
+            boosterCounterDiv.innerText = `Boosters ouverts : ${count}`;
+            boosterCounterDiv.style.display = 'block';
+
+            // 2. Mise à jour du Profil (L'AJOUT EST ICI)
+            const profileEl = document.getElementById("profileBoosters");
+            if(profileEl) profileEl.innerText = count;
+
+        } else {
+            boosterCounterDiv.innerText = `Boosters ouverts : 0`;
+            boosterCounterDiv.style.display = 'block';
+            
+            // Mise à jour du profil à 0 si pas de doc
+            const profileEl = document.getElementById("profileBoosters");
+            if(profileEl) profileEl.innerText = "0";
+        }
+      })
+      .catch(err => console.error("Erreur lors du chargement du compteur :", err));
+}
+
+
+
+
+
+
+
+
+
+const showMissingBtn = document.getElementById("showMissingBtn");
+let showingMissing = false; // pour basculer
+
+showMissingBtn.addEventListener("click", () => {
+    showingMissing = !showingMissing; // inverse l'état
+
+    if(showingMissing){
+        showMissingBtn.textContent = "Voir ma collection"; // bouton pour revenir
+        searchCollectionInput.style.display = "none"; // cache la recherche
+        const missingCards = ALL_CARDS.filter(c => !collection.some(col => col.name === c.name));
+        refreshCollection(missingCards);
+    } else {
+        showMissingBtn.textContent = "Voir les cartes manquantes";
+        searchCollectionInput.style.display = "block"; // réaffiche la recherche
+        refreshCollection(collection); // affiche toute la collection
+    }
+});
+
+
+
+
+
+function showShop() {
+    // 1. Navigation
+    homeSection.style.display = "none";
+    collectionSection.style.display = "none";
+    allCardsSection.style.display = "none";
+    shopSection.style.display = "block";
+    updateButtons();
+
+    const shopDiv = document.getElementById("shopCards");
+    if (!shopDiv) return;
+
+    // --- FUSION : CARTES ALÉATOIRES D'ABORD, BOOSTERS EN BAS ---
+    // [...shopCards] ce sont les cartes qui changent
+    // [...SHOP_CARDS] ce sont tes 3 boosters fixes
+    const fullShopList = [...shopCards, ...SHOP_CARDS];
+
+    // 2. Génération du HTML
+    shopDiv.innerHTML = fullShopList.map(c => {
+        const owned = !c.isPack && collection.some(card => card.name === c.name);
+        const btnText = owned ? "Possédé" : `Acheter (${c.price}💎)`;
+        
+        // Style différent pour les boosters (bordure dorée et fond sombre)
+        const specialStyle = c.isPack 
+            ? 'border: 4px double #ffd700; background: #1a1a1a; box-shadow: 0 0 10px rgba(255,215,0,0.2);' 
+            : 'border: 1px solid #444; background: #222;';
+
+        return `
+            <div class="card r-${(c.rarity || "Commun").replace(/ /g, "-")}" 
+                 style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px; padding: 12px; border-radius: 12px; ${specialStyle}">
+                
+                <div style="text-align: center;">
+                    <div style="font-size:0.7rem; color: #aaa; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;">${c.rarity}</div>
+                    <img src="${c.image}" style="width:100%; height:110px; object-fit:contain; border-radius:8px; margin-bottom: 8px;">
+                    <strong style="display:block; font-size:0.9rem; color: #fff; line-height: 1.2;">${c.name}</strong>
+                </div>
+
+                <button class="buyBtn" 
+                        data-name="${c.name}" 
+                        data-price="${c.price}" 
+                        style="margin-top:12px; width:100%; padding:10px; border-radius:8px; border:0; background:#7c3aed; color:white; cursor:pointer; font-weight:bold; transition: 0.2s;"
+                        ${owned ? "disabled" : ""}>
+                    ${btnText}
+                </button>
+            </div>
+        `;
+    }).join("");
+
+    // 3. Gestion des clics (identique mais vérifiée)
+    document.querySelectorAll(".buyBtn").forEach(btn => {
+        btn.onclick = () => {
+            const name = btn.getAttribute("data-name");
+            const price = parseInt(btn.getAttribute("data-price"));
+            const item = fullShopList.find(i => i.name === name);
+
+            if (item && dust >= price) {
+                dust -= price;
+                save("dust", dust);
+                refreshDust();
+
+                if (item.isPack) {
+                    openSpecialPack(item.packType);
+                } else {
+                    collection.push({...item});
+                    save("collection", collection);
+                    refreshCollection();
+                    alert(`✅ Achat réussi : ${name} !`);
+                }
+                
+                // Sync Firebase
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    db.collection("users").doc(user.uid).set({ collection, dust }, { merge: true });
+                }
+                showShop(); 
+            } else {
+                alert("💎 Pas assez de fragments !");
+            }
+        };
+    });
+}
+
+
+
+
+// --- Stockage ---
+function load(key,def){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(def));}catch(e){return def;}}
+function save(key,val){localStorage.setItem(key,JSON.stringify(val));}
+let collection = load("collection",[]);
+let daily = load("daily",{date:null,opened:0});
+let dust = load("dust", 0);
+let shopCards = [];
+
+function refreshDust(){
+  document.getElementById("dustDisplay").textContent = "💎 Fragments : " + dust;
+}
+
+
+// --- Helper ---
+function pickRandomCard(){
+  const total = Object.values(RARITY_PROBS).reduce((a,b)=>a+b,0);
+  let r = Math.random()*total;
+  let chosenRarity;
+  for(const [rarity,prob] of Object.entries(RARITY_PROBS)){
+    r -= prob;
+    if(r <= 0){ chosenRarity = rarity; break; }
+  }
+  const cards = ALL_CARDS.filter(c=>c.rarity===chosenRarity);
+  if(cards.length===0) return ALL_CARDS[Math.floor(Math.random()*ALL_CARDS.length)];
+  return cards[Math.floor(Math.random()*cards.length)];
+}
+
+function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function cardHTML(c){return `<div class="card"><img src="${c.image}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px"><strong>${escapeHtml(c.name)}</strong><span style="color:#9bb0c8">${escapeHtml(c.rarity)}</span></div>`;}
+
+
+function refreshLimit(){
+  // Plus de limite quotidienne
+  const remaining = document.getElementById("remaining");
+  if(remaining){
+    remaining.textContent = ""; // vide la ligne
+  }
+  const btn = document.getElementById("openPack");
+  if(btn){
+    btn.disabled = false; // toujours activé
+  }
+}
+
+
+// --- Affichage carte grand format ---
+let currentPack=[],currentCardIndex=0;
+const overlay=document.getElementById('bigCardOverlay');
+const bigImg=document.getElementById('bigCardImg');
+const bigName=document.getElementById('bigCardName');
+
+
+
+
+
+
+function showBigCard() {
+    if (currentCardIndex >= currentPack.length) {
+        overlay.style.display = 'none';
+        refreshCollection(); // C'est ici que les chiffres s'actualiseront dans la grille
+        refreshLimit();
+        return;
+    }
+
+    const c = currentPack[currentCardIndex];
+    const wrapper = document.createElement("div");
+    wrapper.className = "card-wrapper";
+
+    if (c.isNew) {
+        const label = document.createElement("div");
+        label.className = "new-label";
+        label.textContent = "NOUVEAU";
+        wrapper.appendChild(label);
+    }
+
+    const cardDiv = document.createElement("div");
+
+    if (c.rarity === "OG") {
+        cardDiv.className = "card big-card big-OG";
+        cardDiv.style.cssText = "border:none; padding:0; background:none; position:relative;";
+
+        const cardImg = document.createElement("img");
+        cardImg.src = c.image;
+        cardImg.style.cssText = "max-width:90vw; max-height:90vh; object-fit:contain; display:block; margin:auto; border-radius:12px;";
+        cardDiv.appendChild(cardImg);
+
+        // --- Animation feu d’artifice ---
+        const canvas = document.createElement("canvas");
+        canvas.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:20000;";
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const particles = [];
+        for (let i = 0; i < 150; i++) {
+            particles.push({
+                x: canvas.width / 2, y: canvas.height / 2,
+                vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 1.5) * 10,
+                alpha: 1, radius: Math.random() * 3 + 2,
+                color: `hsl(${Math.random() * 360},100%,50%)`
+            });
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
+                ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                if (p.alpha <= 0) particles.splice(i, 1);
+            });
+            if (particles.length > 0) requestAnimationFrame(animate); else canvas.remove();
+        }
+        animate();
+
+        overlay.removeEventListener('click', overlayClickHandler);
+        setTimeout(() => { overlay.addEventListener('click', overlayClickHandler); }, 1500);
+
+    } else {
+        // STYLE CLASSIQUE SANS LES NIVEAUX (Juste l'essentiel)
+        cardDiv.className = "card big-card big-" + c.rarity.replace(/ /g, "-");
+        cardDiv.innerHTML = `
+          <div style="font-size:1rem;color:#ccc;margin-bottom:6px;">${escapeHtml(c.rarity)}</div>
+          <img src="${c.image}" alt="${c.name}">
+          <strong>${escapeHtml(c.name)}</strong>
+        `;
+    }
+
+    wrapper.appendChild(cardDiv);
+    overlay.innerHTML = "";
+    overlay.appendChild(wrapper);
+    overlay.style.display = "flex";
+}
+
+
+
+
+// Gestionnaire de clic pour passer à la carte suivante
+function overlayClickHandler() {
+    currentCardIndex++;
+    showBigCard();
+}
+
+// On s'assure qu'on n'ajoute pas l'écouteur 50 fois
+
+overlay.removeEventListener('click', overlayClickHandler);
+overlay.addEventListener('click', overlayClickHandler);
+
+
+
+
+let boostersOpened = 0;          // Compteur total de boosters ouverts
+let boostersSinceLastSave = 0;   // Compteur local depuis la dernière sauvegarde
+let isAnyBoosterOpening = false; // Placée en dehors pour être globale
+
+
+
+function openPackSequence() {
+    const chooseArea = document.getElementById("choosePackArea");
+    chooseArea.style.display = "flex";
+    chooseArea.style.justifyContent = "center";
+    chooseArea.style.gap = "30px";
+    chooseArea.style.marginTop = "40px";
+
+    chooseArea.innerHTML = BOOSTER_IMAGES.map((img, i) =>
+        `<div class="booster" data-id="${i}" style="width:150px;height:220px;border-radius:14px;cursor:pointer;overflow:hidden;box-shadow:0 0 15px rgba(0,0,0,0.4);transition: transform 0.15s;">
+        <img src="${img}" style="width:100%;height:100%;object-fit:cover;">
+     </div>`
+    ).join("");
+
+    // On attache les événements immédiatement après avoir créé le HTML
+    document.querySelectorAll(".booster").forEach(b => {
+        b.onmouseenter = () => b.style.transform = "scale(1.08)";
+        b.onmouseleave = () => b.style.transform = "scale(1)";
+
+        b.onclick = async () => {
+            // Sécurité anti-spam : on vérifie le verrou global
+            if (isAnyBoosterOpening) return; 
+            isAnyBoosterOpening = true; 
+
+            if (b.classList.contains("booster-opening")) return;
+            b.classList.add("booster-opening");
+
+            // --- ÉVÉNEMENT BOSS : ON INFLIGE LES DÉGÂTS ICI ---
+            if (typeof hitBoss === "function") hitBoss();
+            if (typeof hitBossEffect === "function") hitBossEffect();
+
+            const flash = document.createElement("div");
+            flash.className = "flash-effect";
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 450);
+
+            setTimeout(() => {
+                chooseArea.style.display = "none";
+
+                // --- TIRAGE ---
+                currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
+
+                // --- LOGIQUE DE NIVEAUX ET EXP ---
+                currentPack.forEach(c => {
+                    const existingCard = collection.find(card => card.name === c.name);
+                    
+                    if (!existingCard) {
+                        // NOUVELLE CARTE
+                        c.isNew = true;
+                        c.level = 1;
+                        c.exp = 0;
+                        collection.push({ ...c });
+                    } else {
+                        // DOUBLON : On augmente l'EXP
+                        c.isNew = false;
+                        
+                        // Initialisation si les propriétés n'existent pas encore
+                        if (existingCard.level === undefined) existingCard.level = 1;
+                        if (existingCard.exp === undefined) existingCard.exp = 0;
+
+                        // --- DANS openPackSequence (Logique Doublon) ---
+                        const expTable = {
+                         "Commun": 15, 
+                        "Rare": 12, 
+                        "Epic": 10, 
+                        "Legendary": 8,
+                        "Mythic": 5, 
+                        "Brainrot God": 4, 
+                        "Secret": 3, 
+                        "OG": 2 
+                        };
+
+                        // 1. On ajoute l'EXP
+                        existingCard.exp = (existingCard.exp || 0) + 1;
+                        if (!existingCard.level) existingCard.level = 1;
+
+                        // 2. On récupère le palier selon la rareté
+                        let needed = expTable[existingCard.rarity] || 10;
+
+                        // 3. Boucle de Level Up : tant qu'on a assez d'EXP, on monte de niveau
+                        while (existingCard.exp >= needed) {
+                            existingCard.exp -= needed; // On consomme l'EXP
+                            existingCard.level += 1;    // On monte de niveau
+                            console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
+                        }
+
+                        // Gain de fragments (Dust)
+                        const dustValues = {
+                            "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20,
+                            "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 10000
+                        };
+                        dust += dustValues[c.rarity] || 1;
+                    }
+                });
+
+                // Sauvegardes locales
+                save("collection", collection);
+                save("dust", dust);
+                refreshDust();
+
+                // --- FIREBASE ET COMPTEURS ---
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    db.collection("users").doc(user.uid).set({
+                        collection: collection,
+                        dust: dust,
+                        boostersOpened: firebase.firestore.FieldValue.increment(1)
+                    }, { merge: true })
+                    .then(() => {
+                        const counterEl = document.getElementById("boosterCounter");
+                        if (counterEl) {
+                            let current = parseInt(counterEl.innerText.replace(/\D/g, "")) || 0;
+                            counterEl.innerText = `Boosters ouverts : ${current + 1}`;
+                        }
+                        if (document.getElementById("profileBoosters")) document.getElementById("profileBoosters").innerText = (parseInt(document.getElementById("profileBoosters").innerText) || 0) + 1;
+                        if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
+                        if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
+                    })
+                    .catch(err => {
+                        console.error("Erreur Firebase:", err);
+                        isAnyBoosterOpening = false;
+                    });
+                }
+
+                currentCardIndex = 0;
+                showBigCard();
+                b.classList.remove("booster-opening");
+                
+                // On libère le verrou après l'ouverture
+                isAnyBoosterOpening = false; 
+
+            }, 500); // Fin du setTimeout d'ouverture
+        }; // Fin du b.onclick
+    }); // Fin du forEach
+} // Fin de la fonction openPackSequence
+
+// Liaison du bouton principal
+document.getElementById("openPack").onclick = openPackSequence;
+
+
+
+
+
+// Fonction dédiée pour envoyer les données à Firestore
+function saveToFirebase(uid) {
+  db.collection("users").doc(uid).set({
+    collection: collection,
+    dust: dust,
+    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true })
+  .then(() => console.log("✅ Sauvegarde Firebase réussie !"))
+  .catch(err => console.error("❌ Erreur Firebase :", err));
+}
+
+// Liaison du bouton d'ouverture
+document.getElementById("openPack").addEventListener("click", openPackSequence);
+
+
+
+
+// --- Onglets ---
+const homeSection=document.getElementById("homeSection");
+const collectionSection=document.getElementById("collectionSection");
+const allCardsSection=document.getElementById("allCardsSection");
+const tabHome=document.getElementById("tabHome");
+const tabCollection=document.getElementById("tabCollection");
+const tabAllCards=document.getElementById("tabAllCards");
+const openPackBtn=document.getElementById("openPack");
+const resetLimitBtn=document.getElementById("resetLimit");
+const resetCollectionBtn=document.getElementById("resetCollection");
+const remainingDiv=document.getElementById("remaining");
+
+function showHome(){ 
+homeSection.style.display="block"; 
+collectionSection.style.display="none"; 
+allCardsSection.style.display="none";     
+shopSection.style.display = "none"; 
+updateButtons();}
+
+function showCollection(){ 
+homeSection.style.display="none"; 
+collectionSection.style.display="block"; 
+allCardsSection.style.display="none"; 
+shopSection.style.display = "none"; 
+updateButtons();}
+
+function showAllCards() {
+  // Affiche uniquement la section "Chances d'obtention"
+  homeSection.style.display = "none"; 
+  collectionSection.style.display = "none"; 
+  allCardsSection.style.display = "block"; 
+shopSection.style.display = "none";
+  updateButtons();
+
+  const search = document.getElementById("searchCard");
+
+  // Affiche toutes les cartes au départ
+  displayCards(ALL_CARDS);
+
+  // Moteur de recherche
+  if (search) {
+    search.oninput = function() {
+      const value = this.value.toLowerCase();
+      const filtered = ALL_CARDS.filter(card =>
+        card.name.toLowerCase().includes(value)
+      );
+      displayCards(filtered);
+    };
+  }
+}
+
+
+function isVisible(el){ return el.style.display !== "none"; }
+
+
+function updateButtons() {
+  if (isVisible(homeSection)) {
+    openPackBtn.style.display = "inline-block";
+    resetCollectionBtn.style.display = "none";
+    dustDisplay.style.display = "none"; // <-- cacher les fragments
+  } 
+  else if (isVisible(collectionSection)) {
+    openPackBtn.style.display = "none";
+    resetCollectionBtn.style.display = "inline-block";
+    dustDisplay.style.display = "none"; // <-- cacher les fragments
+  } 
+  else if (isVisible(allCardsSection)) {
+    openPackBtn.style.display = "none";
+    resetCollectionBtn.style.display = "none";
+    dustDisplay.style.display = "none"; // <-- cacher les fragments
+  } 
+  else if (isVisible(shopSection)) {
+    openPackBtn.style.display = "none";
+    resetCollectionBtn.style.display = "none";
+    dustDisplay.style.display = "block"; // <-- montrer les fragments uniquement ici
+  }
+}
+
+function refreshCollection(cardsToShow) {
+    const collectionDiv = document.getElementById("collection");
+    collectionDiv.innerHTML = "";
+
+    const cards = cardsToShow || collection;
+
+    // --- TABLEAU DE RÉFÉRENCE ---
+    const expTable = {
+        "Commun": 15, 
+        "Rare": 12, 
+        "Epic": 10, 
+        "Legendary": 8,
+        "Mythic": 5, 
+        "Brainrot God": 4, 
+        "Secret": 3, 
+        "OG": 2
+    };
+
+    // --- COMPTEUR cartes obtenues / total ---
+    const collectionSection = document.getElementById("collectionSection");
+    let compteurDiv = collectionSection.querySelector(".compteur-cards");
+
+    if (!compteurDiv) {
+        compteurDiv = document.createElement("div");
+        compteurDiv.className = "compteur-cards";
+        compteurDiv.style.fontSize = "1rem";
+        compteurDiv.style.color = "#fff";
+        compteurDiv.style.marginBottom = "15px";
+        compteurDiv.style.textAlign = "center";
+        compteurDiv.style.fontWeight = "bold";
+
+        const existingTitle = collectionSection.querySelector("h2");
+        if (existingTitle) {
+            existingTitle.insertAdjacentElement("afterend", compteurDiv);
+        }
+    }
+
+    compteurDiv.innerText = `Cartes obtenues : ${collection.length} / ${ALL_CARDS.length}`;
+
+    // --- Affichage des cartes ---
+    cards.forEach(c => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "card-wrapper";
+        wrapper.style.position = "relative"; 
+
+        const level = c.level || 1;
+        const exp = c.exp || 0;
+        const expNeeded = expTable[c.rarity] || 10;
+        const progressPercent = Math.min((exp / expNeeded) * 100, 100);
+
+        // --- INDICATEUR DE NIVEAU (Badge) ---
+        const levelBadge = document.createElement("div");
+        levelBadge.style.cssText = `
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border: 1px solid #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        `;
+        
+        // Texte du niveau
+        const levelText = document.createElement("span");
+        levelText.innerText = `Niv. ${level}`;
+        levelBadge.appendChild(levelText);
+
+        // --- AJOUT SPÉCIAL OG : Compteur sous le niveau ---
+        if (c.rarity === "OG") {
+            const ogCounter = document.createElement("span");
+            ogCounter.style.cssText = "font-size: 0.6rem; opacity: 0.8; margin-top: -2px;";
+            ogCounter.innerText = `${exp}/${expNeeded}`;
+            levelBadge.appendChild(ogCounter);
+        }
+        
+        wrapper.appendChild(levelBadge);
+
+        if(c.isNew){
+            const label = document.createElement("div");
+            label.className = "new-label";
+            label.textContent = "NOUVEAU";
+            wrapper.appendChild(label);
+        }
+
+        const cardDiv = document.createElement("div");
+
+        if (c.rarity === "OG") {
+            // --- STYLE OG : SANS BARRE EXP ---
+            cardDiv.className = "card";
+            cardDiv.style.cssText = "position:relative; border:none; padding:0; background:none; overflow:hidden;";
+
+            cardDiv.innerHTML = `
+                <img src="${c.image}" style="width:100%;height:100%;object-fit:contain;display:block;border-radius:0;">
+            `;
+        } else {
+            // --- STYLE CLASSIQUE : AVEC BARRE EXP ---
+            cardDiv.className = "card r-" + c.rarity.replace(/ /g, "-");
+            
+            const expBarHTML = `
+                <div class="exp-container" style="width:100%; height:6px; background:rgba(0,0,0,0.3); border-radius:3px; margin-top:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); position:relative;">
+                    <div class="exp-fill" style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); transition: width 0.3s;"></div>
+                </div>
+                <div style="font-size: 0.6rem; color: #aaa; text-align: right; margin-top: 2px;">${exp}/${expNeeded}</div>
+            `;
+
+            cardDiv.innerHTML = `
+                <div style="font-size:0.8rem;color:#ccc;margin-bottom:4px;">${c.rarity}</div>
+                <img src="${c.image}" alt="${c.name}" style="width:100%;border-radius:8px;margin-bottom:8px">
+                <strong>${c.name}</strong>
+                ${expBarHTML}
+            `;
+        }
+
+        wrapper.appendChild(cardDiv);
+        collectionDiv.appendChild(wrapper);
+    });
+
+    // --- Centrage moteur de recherche ---
+    const searchWrapper = document.getElementById("searchCollection")?.parentElement;
+    if (searchWrapper) {
+        searchWrapper.style.display = "flex";
+        searchWrapper.style.justifyContent = "center";
+        searchWrapper.style.marginBottom = "10px";
+    }
+}
+
+
+
+
+
+function refreshAllCards() {
+    const allDiv = document.getElementById("allCardsList");
+    allDiv.innerHTML = "";
+
+    ALL_CARDS.forEach(c => {
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "card r-" + c.rarity.replace(/ /g, "-");
+        cardDiv.innerHTML = `
+            <img src="${c.image}" alt="${c.name}">
+            <strong>${c.name}</strong>
+            <div class="rarity-indicator r-${c.rarity.replace(/ /g, "-")}">${c.rarity}</div>
+        `;
+        allDiv.appendChild(cardDiv);
+    });
+}
+
+
+
+
+
+function displayCards(cards) {
+    const sortedCards = [...cards].sort(
+        (a, b) => (RARITY_PROBS[b.rarity] || 0) - (RARITY_PROBS[a.rarity] || 0)
+    );
+
+    document.getElementById("allCardsList").innerHTML = sortedCards.map(c => {
+        if (c.rarity === "OG") {
+            return `
+            <div class="card" style="position:relative; border:none; padding:0; background:none; overflow:hidden;">
+                <img src="${c.image}" 
+                     style="width:100%;height:100%;object-fit:contain;display:block;border-radius:0;">
+                <span class="rarity-indicator r-OG" 
+                      style="position:absolute; bottom:5px; right:5px;">
+                    ${RARITY_PROBS[c.rarity] || 0}%
+                </span>
+            </div>`;
+        } else {
+            return `
+            <div class="card r-${c.rarity.replace(/ /g, "-")}" style="position:relative;">
+                <div style="font-size:0.8rem;color:#ccc;margin-bottom:6px;font-weight:bold;">
+                    ${escapeHtml(c.rarity)}
+                </div>
+                <img src="${c.image}" alt="${c.name}" 
+                     style="width:100%;height:50%;object-fit:contain;margin:0 auto 10px auto;border-radius:8px;display:block">
+                <strong>${escapeHtml(c.name)}</strong>
+                <span class="rarity-indicator r-${c.rarity.replace(/ /g, "-")}" 
+                      style="position:absolute; bottom:5px; right:5px;">
+                    ${RARITY_PROBS[c.rarity] || 0}%
+                </span>
+            </div>`;
+        }
+    }).join('');
+}
+
+
+
+// --- Affiche toutes les cartes au départ ---
+displayCards(ALL_CARDS);
+
+
+
+
+// --- Listeners ---
+tabHome.addEventListener("click",showHome);
+tabCollection.addEventListener("click",showCollection);
+tabAllCards.addEventListener("click",showAllCards);
+openPackBtn.addEventListener("click",openPackSequence);
+resetCollectionBtn.addEventListener("click",()=>{if(confirm("Réinitialiser la collection ?")){collection=[];save("collection",collection);refreshCollection(); alert("Collection réinitialisée");}});
+
+// --- Init ---
+refreshCollection();
+refreshLimit();
+showHome();
+refreshDust();
+
+
+const authOverlay = document.getElementById("authOverlay");
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
+const loginBtn = document.getElementById("loginBtn");
+const signupBtn = document.getElementById("signupBtn");
+const authError = document.getElementById("authError");
+const logoutBtn = document.getElementById("logoutBtn");
+
+// --- Gestion de l'état de connexion ---
+auth.onAuthStateChanged(user => {
+    const accountBtn = document.getElementById("accountBtn");
+    const userEmailText = document.getElementById("userEmail");
+    const userIdText = document.getElementById("userIdDisplay");
+    
+    // Éléments des nouvelles stats dans le profil
+    const profileBoosters = document.getElementById("profileBoosters");
+    const profileDust = document.getElementById("profileDust");
+
+    if(user){
+        // --- Utilisateur connecté ---
+        authOverlay.style.display = "none";      // Masque le formulaire de login
+        accountBtn.style.display = "flex";       // Affiche le bouton "Mon Compte" (en flex pour l'icône)
+        
+        // Remplissage des infos dans la section profil
+        if(userEmailText) userEmailText.textContent = user.email;
+        if(userIdText) userIdText.textContent = user.uid;
+
+        // Mise à jour visuelle des stats dans le profil au chargement
+        if(profileBoosters) profileBoosters.textContent = typeof boostersOpened !== 'undefined' ? boostersOpened : 0;
+        if(profileDust) profileDust.textContent = typeof dust !== 'undefined' ? dust : 0;
+
+        // Chargement des données de jeu
+        loadUserData(user.uid);                  
+        loadBoosterCounter(user.uid);            
+        checkDailyShop();                        
+        
+    } else {
+        // --- Utilisateur déconnecté ---
+        authOverlay.style.display = "flex";      // Montre le formulaire de login
+        accountBtn.style.display = "none";       // Cache le bouton "Mon Compte"
+        
+        // On s'assure que la page profil est fermée si on se déconnecte
+        const accountSection = document.getElementById("accountSection");
+        if(accountSection) accountSection.style.display = "none";
+    }
+});
+
+// --- Connexion ---
+loginBtn.onclick = () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            const uid = userCredential.user.uid;
+            loadUserData(uid);
+            loadBoosterCounter(uid);
+            authOverlay.style.display = "none";
+            logoutBtn.style.display = "block";
+            authError.textContent = "";
+        })
+        .catch(err => authError.textContent = err.message);
+};
+
+// --- Inscription ---
+signupBtn.onclick = () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            const uid = userCredential.user.uid;
+
+            // Crée le document Firestore pour le nouvel utilisateur
+            db.collection("users").doc(uid).set({
+                boostersOpened: 0,
+                collection: [],
+                dust: 0
+            }).then(() => {
+                console.log("Document utilisateur créé !");
+                loadUserData(uid);
+                loadBoosterCounter(uid);
+                authOverlay.style.display = "none";
+                logoutBtn.style.display = "block";
+                authError.textContent = "";
+            }).catch(err => {
+                console.error("Erreur création doc :", err);
+                authError.textContent = "Erreur création profil : " + err.message;
+            });
+        })
+        .catch(err => authError.textContent = err.message);
+};
+
+// --- Déconnexion ---
+logoutBtn.onclick = () => {
+    auth.signOut()
+        .then(() => {
+            alert("Déconnecté !");
+            collection = [];  // vide collection locale
+            dust = 0;         // vide fragments locaux
+            if(typeof boostersOpened !== 'undefined') boostersOpened = 0; 
+            
+            save("collection", collection);
+            save("dust", dust);
+            
+            refreshCollection();
+            refreshDust();
+            refreshLimit();
+            
+            // On s'assure de masquer la section profil après déco
+            document.getElementById("accountSection").style.display = "none";
+            document.getElementById("mainMenu").style.display = "flex";
+        })
+        .catch(err => console.error("Erreur lors de la déconnexion :", err));
+};
+
+
+
+
+
+
+
+
+// Sauvegarder les données sur Firebase
+function saveUserData(uid){
+  db.collection("users").doc(uid).set({
+    collection: collection,
+    dust: dust,
+    daily: daily
+  }, { merge: true }) // merge = ne remplace pas tout
+  .then(() => console.log("✅ Sauvegarde Firebase réussie"))
+  .catch(err => console.error("❌ Erreur sauvegarde Firebase :", err));
+}
+
+
+// Charger les données depuis Firebase
+function loadUserData(uid) {
+  db.collection("users").doc(uid).get().then(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+
+      // --- RÉPARATION DES DONNÉES (Fix Level/Exp) ---
+      // On parcourt la collection récupérée du serveur
+      let rawCollection = data.collection || [];
+      collection = rawCollection.map(card => {
+        return {
+          ...card,
+          // Si level n'existe pas ou est null, on met 1
+          level: (card.level !== undefined && card.level !== null) ? card.level : 1,
+          // Si exp n'existe pas ou est null, on met 0
+          exp: (card.exp !== undefined && card.exp !== null) ? card.exp : 0
+        };
+      });
+
+      dust = data.dust || 0;
+      daily = data.daily || { date: null, opened: 0 };
+
+      // Sauvegarde locale pour synchroniser
+      save("collection", collection);
+      save("dust", dust);
+      save("daily", daily);
+
+      // Mise à jour de l'interface
+      refreshCollection();
+      refreshDust();
+      refreshLimit();
+
+      // --- Mise à jour du menu Profil ---
+      const profileDustEl = document.getElementById("profileDust");
+      if (profileDustEl) profileDustEl.innerText = dust;
+
+      const profileCardsEl = document.getElementById("profileCards");
+      if (profileCardsEl) {
+        profileCardsEl.innerText = `${collection.length} / ${ALL_CARDS.length}`;
+      }
+
+    } else {
+      // Si l'utilisateur n'a pas de document, on le crée
+      saveUserData(uid);
+    }
+  }).catch(err => {
+    console.error("Erreur lors du chargement des données :", err);
+  });
+}
+
+
+
+
+
+
+
+
+
+// Sauvegarder automatiquement après chaque action
+let saveTimeout = null;
+let pendingSave = false;
+const SAVE_DELAY = 3000; // 3 secondes entre actions pour regrouper
+
+function queueSave() {
+    if (!auth.currentUser) return; // Sécurité si l'utilisateur se déconnecte pendant le délai
+    
+    pendingSave = true;
+    if(saveTimeout) clearTimeout(saveTimeout);
+
+    saveTimeout = setTimeout(() => {
+        console.log("⏳ Sauvegarde en cours...");
+
+        db.collection("users").doc(auth.currentUser.uid).set({
+            collection: collection || [],
+            dust: dust || 0,
+            boostersOpened: boostersOpened || 0
+        }, { merge: true })
+        .then(() => {
+            console.log("✅ Sauvegarde Firebase réussie !");
+            pendingSave = false;
+        })
+        .catch(err => {
+            console.error("❌ Erreur Firestore:", err.code, err.message);
+
+            // 1. Détection spécifique du Quota Firebase (Spark Plan 50k reads/20k writes)
+            const isQuotaError = 
+                err.code === 'resource-exhausted' || 
+                err.code === 'functions/resource-exhausted' ||
+                err.message.toLowerCase().includes('quota');
+
+            // 2. Détection d'accès refusé (souvent lié au quota ou règles de sécu)
+            const isPermissionError = err.code === 'permission-denied';
+
+            if (isQuotaError || isPermissionError) {
+                disableSiteForQuota();
+            } else {
+                // Si c'est juste une micro-coupure internet, on ne bloque pas le site
+                console.warn("⚠️ Erreur de sauvegarde simple (Internet ?), tentative suivante au prochain clic.");
+                pendingSave = false; 
+            }
+        });
+
+    }, SAVE_DELAY);
+}
+
+function flushSave() {
+    if(!pendingSave) return;
+
+    console.log("⏳ flushSave: tentative de sauvegarde avant fermeture...");
+
+    db.collection("users").doc(auth.currentUser.uid).set({
+        collection: collection || [],
+        dust: dust || 0,
+        boostersOpened: boostersOpened || 0
+    }, { merge: true })
+    .then(() => {
+        console.log("✅ flushSave réussie !");
+        pendingSave = false;
+    })
+    .catch(err => {
+        console.error("❌ flushSave erreur Firestore:", err);
+        pendingSave = false;
+    });
+}
+
+window.addEventListener("beforeunload", flushSave);
+
+
+
+
+async function checkDailyShop() {
+    const now = new Date();
+    const updateHour = 0; 
+    const updateMinute = 0;
+    const updateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), updateHour, updateMinute);
+
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    // --- CIBLE LE DOCUMENT COMMUN ---
+    const docRef = db.collection("globalShop").doc("today");
+    
+    let docSnap;
+    try {
+        docSnap = await docRef.get();
+    } catch (e) {
+        console.error("Erreur Firestore Shop:", e);
+        return;
+    }
+
+    let shouldUpdate = false;
+    let shopCardsFromDb = [];
+
+    if (!docSnap.exists) {
+        shouldUpdate = true;
+    } else {
+        const data = docSnap.data();
+        const lastUpdate = data?.lastUpdate ? new Date(data.lastUpdate) : null;
+        shopCardsFromDb = data?.cards || [];
+
+        // Si l'heure de reset est passée et que la boutique globale est obsolète
+        if (!lastUpdate || (now >= updateTime && lastUpdate < updateTime)) {
+            shouldUpdate = true;
+        }
+    }
+
+    if (shouldUpdate) {
+        const RARITY_PRICES = {
+            "Commun": 1000, "Rare": 2000, "Epic": 6000, "Legendary": 8000,
+            "Mythic": 10000, "Brainrot God": 20000, "Secret": 50000, "OG": 100000
+        };
+
+        const RARITY_PROBABILITIES = {
+            "Commun": 1, "Rare": 1, "Epic": 3, "Legendary": 15,
+            "Mythic": 25, "Brainrot God": 20, "Secret": 20, "OG": 15
+        };
+
+        const totalWeight = Object.values(RARITY_PROBABILITIES).reduce((a, b) => a + b, 0);
+
+        function pickRandomRarity() {
+            const roll = Math.random() * totalWeight;
+            let cumulative = 0;
+            for (const [rarity, chance] of Object.entries(RARITY_PROBABILITIES)) {
+                cumulative += chance;
+                if (roll <= cumulative) return rarity;
+            }
+            return "Commun";
+        }
+
+        function pickRandomCardWithProbability() {
+            const chosenRarity = pickRandomRarity();
+            const possibleCards = ALL_CARDS.filter(c => c.rarity === chosenRarity);
+            const card = possibleCards.length > 0 
+                ? possibleCards[Math.floor(Math.random() * possibleCards.length)]
+                : ALL_CARDS[Math.floor(Math.random() * ALL_CARDS.length)];
+
+            return { ...card, price: RARITY_PRICES[card.rarity] || 1000 };
+        }
+
+        // --- GÉNÉRATION DES 4 CARTES UNIQUES ---
+        const newShop = [];
+        let attempts = 0;
+        while (newShop.length < 4 && attempts < 50) {
+            const candidate = pickRandomCardWithProbability();
+            // Vérifie si le nom de la carte est déjà présent dans la sélection
+            if (!newShop.some(c => c.name === candidate.name)) {
+                newShop.push(candidate);
+            }
+            attempts++;
+        }
+
+        shopCards = newShop;
+
+        // --- SAUVEGARDE COMMUNE ---
+        await docRef.set({
+            lastUpdate: now.toISOString(),
+            cards: newShop
+        });
+        
+        console.log("🏪 Boutique commune mise à jour sans doublons !");
+    } else {
+        shopCards = shopCardsFromDb;
+    }
+
+    if (typeof showShop === "function" && isVisible(shopSection)) {
+        showShop(); 
+    }
+}
+
+
+
+
+// --- GESTION DU COMPTE ---
+
+// --- GESTION DU COMPTE ---
+
+// On récupère les éléments (Assure-toi que ces IDs existent dans ton HTML)
+const accountBtn = document.getElementById("accountBtn");
+const accountSection = document.getElementById("accountSection");
+const backFromAccount = document.getElementById("backFromAccount");
+const userEmailText = document.getElementById("userEmail");
+const userIdText = document.getElementById("userIdDisplay");
+
+// Ouvrir la page compte
+if (accountBtn) {
+    accountBtn.onclick = () => {
+        // On cache les sections du jeu
+        homeSection.style.display = "none";
+        collectionSection.style.display = "none";
+        allCardsSection.style.display = "none";
+        shopSection.style.display = "none";
+        accountBtn.style.display = "none"; // Cache le petit bouton
+        
+        // On affiche la page profil
+        if (accountSection) {
+            accountSection.style.display = "flex";
+            accountSection.style.flexDirection = "column";
+            accountSection.style.alignItems = "center";
+        }
+    };
+}
+
+// Retourner au jeu
+if (backFromAccount) {
+    backFromAccount.onclick = () => {
+        if (accountSection) accountSection.style.display = "none";
+        if (accountBtn) accountBtn.style.display = "block";
+        showHome(); // Relance l'affichage de l'accueil
+    };
+}
+
+// Logique de déconnexion (Correction de l'erreur de déclaration)
+const logoutBtnEl = document.getElementById("logoutBtn");
+if (logoutBtnEl) {
+    logoutBtnEl.onclick = () => {
+        if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
+            auth.signOut().then(() => {
+                // Reset local des données
+                collection = [];
+                dust = 0;
+                save("collection", []);
+                save("dust", 0);
+                localStorage.clear(); 
+                window.location.reload(); // Recharge pour tout nettoyer
+            });
+        }
+    };
+}
+
+// Lance la vérification du Boss dès que le site charge
+syncBoss();
+
+</script>
+</body>
+</html>

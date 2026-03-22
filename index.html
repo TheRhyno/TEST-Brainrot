@@ -2181,8 +2181,13 @@ window.addEventListener("beforeunload", flushSave);
 
 
 
+
+
 async function checkDailyShop() {
     const now = new Date();
+    // Identifiant unique du jour (ex: "22/03/2026") pour la règle Firestore
+    const todayStr = now.toLocaleDateString("fr-FR");
+    
     const updateHour = 0; 
     const updateMinute = 0;
     const updateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), updateHour, updateMinute);
@@ -2211,8 +2216,9 @@ async function checkDailyShop() {
         const lastUpdate = data?.lastUpdate ? new Date(data.lastUpdate) : null;
         shopCardsFromDb = data?.cards || [];
 
-        // Si l'heure de reset est passée et que la boutique globale est obsolète
-        if (!lastUpdate || (now >= updateTime && lastUpdate < updateTime)) {
+        // Condition de mise à jour : 
+        // Soit la date texte est différente, soit l'heure de reset est passée
+        if (data.dateString !== todayStr || !lastUpdate || (now >= updateTime && lastUpdate < updateTime)) {
             shouldUpdate = true;
         }
     }
@@ -2255,30 +2261,43 @@ async function checkDailyShop() {
         let attempts = 0;
         while (newShop.length < 4 && attempts < 50) {
             const candidate = pickRandomCardWithProbability();
-            // Vérifie si le nom de la carte est déjà présent dans la sélection
             if (!newShop.some(c => c.name === candidate.name)) {
                 newShop.push(candidate);
             }
             attempts++;
         }
 
-        shopCards = newShop;
-
-        // --- SAUVEGARDE COMMUNE ---
-        await docRef.set({
-            lastUpdate: now.toISOString(),
-            cards: newShop
-        });
+        // --- TENTATIVE DE SAUVEGARDE COMMUNE ---
+        try {
+            await docRef.set({
+                dateString: todayStr, // CRUCIAL pour tes règles Firestore
+                lastUpdate: now.toISOString(),
+                cards: newShop
+            });
+            shopCards = newShop;
+            console.log("🏪 Boutique commune mise à jour pour tout le monde !");
+        } catch (error) {
+            // Si l'écriture échoue (ex: Permission Denied), cela signifie que 
+            // quelqu'un a déjà créé la boutique pour aujourd'hui entre-temps.
+            console.warn("Boutique déjà mise à jour par un autre joueur ou accès refusé.");
+            // On récupère la version qui est sur le serveur pour être raccord
+            const finalSnap = await docRef.get();
+            if (finalSnap.exists) {
+                shopCards = finalSnap.data().cards;
+            }
+        }
         
-        console.log("🏪 Boutique commune mise à jour sans doublons !");
     } else {
         shopCards = shopCardsFromDb;
+        console.log("✅ Boutique du jour récupérée.");
     }
 
     if (typeof showShop === "function" && isVisible(shopSection)) {
         showShop(); 
     }
 }
+
+
 
 
 

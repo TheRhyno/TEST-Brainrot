@@ -1194,54 +1194,98 @@ function preparerAdversaire() {
 
 
 async function lancerLeCombat() {
-    // 1. On vérifie que les deux cartes sont bien présentes
-    if (!selectedPlayerCard || !currentOpponentCard) {
-        alert("Il manque une carte pour combattre !");
-        return;
+    let p1Power, p2Power, maCarte, carteAdversaire;
+    const btn = document.getElementById("btn-start-fight");
+
+    // --- 1. RÉCUPÉRATION DES DONNÉES (MULTI OU SOLO) ---
+    if (currentRoomId) {
+        // MODE MULTIJOUEUR
+        const roomRef = db.collection("battles").doc(currentRoomId);
+        const doc = await roomRef.get();
+        const data = doc.data();
+
+        if (!data.card1 || !data.card2) {
+            alert("L'adversaire n'a pas encore choisi sa carte !");
+            return;
+        }
+
+        // On définit qui est "Moi" et qui est "L'autre"
+        maCarte = (role === "player1") ? data.card1 : data.card2;
+        carteAdversaire = (role === "player1") ? data.card2 : data.card1;
+        
+        p1Power = getPower(maCarte);
+        p2Power = getPower(carteAdversaire);
+
+        // RÉVÉLATION VISUELLE de la carte adverse (enlève le "?")
+        const opponentSlot = document.getElementById("opponent-slot");
+        opponentSlot.innerHTML = `
+            <div class="card ${carteAdversaire.rarity ? carteAdversaire.rarity.toLowerCase() : ''}" style="width:100%; height:100%; margin:0; border:none;">
+                <div class="card-inner" style="height:100%; padding: 5px;">
+                    <img src="${carteAdversaire.image}" class="card-img" style="max-height: 70%; object-fit: contain;">
+                    <div class="card-name" style="font-size: 0.7rem; margin-top: 2px;">${carteAdversaire.name}</div>
+                    <div class="card-power" style="font-size: 0.8rem; color:#ffcc00;">${p2Power} ATK</div>
+                </div>
+            </div>
+        `;
+    } else {
+        // MODE SOLO (IA)
+        if (!selectedPlayerCard || !currentOpponentCard) {
+            alert("Il manque une carte pour combattre !");
+            return;
+        }
+        maCarte = selectedPlayerCard;
+        carteAdversaire = currentOpponentCard;
+        p1Power = getPower(maCarte);
+        p2Power = getPower(carteAdversaire);
     }
 
-    // 2. On récupère la puissance des deux cartes // ICI
-    const p1Power = getPower(selectedPlayerCard);
-    const p2Power = getPower(currentOpponentCard);
-    
-    // 3. Désactiver le bouton pendant le calcul pour éviter les doubles clics
-    const btn = document.getElementById("btn-start-fight");
+    // --- 2. SUSPENSE ---
     btn.disabled = true;
     btn.innerText = "Combat en cours...";
-
-    // Petit délai pour le suspense
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 4. LE VERDICT // ICI
+    // --- 3. LE VERDICT ---
     if (p1Power >= p2Power) {
         // --- VICTOIRE ---
         dust += 500; 
-        collection.push(currentOpponentCard); // Tu voles la carte de l'IA !
+        collection.push(carteAdversaire); // Tu voles la carte (IA ou Joueur !)
         
-        alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a écrasé l'adversaire (${p2Power} ATK).\n\nTu gagnes +500 Dust et tu captures la carte : ${currentOpponentCard.name} !`);
+        alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a écrasé l'adversaire (${p2Power} ATK).\n\nTu gagnes +500 Dust et tu captures la carte : ${carteAdversaire.name} !`);
     } else {
         // --- DÉFAITE ---
-        dust = Math.max(0, dust - 500); // On perd 500 Dust (sans descendre sous 0)
+        dust = Math.max(0, dust - 500);
         
-        // On retire TA carte de ta collection // ICI
-        collection.splice(selectedPlayerCardIndex, 1); 
+        // On retire TA carte de ta collection
+        // Attention : en multi, assure-toi que selectedPlayerCardIndex est bien défini
+        if (selectedPlayerCardIndex !== -1) {
+            collection.splice(selectedPlayerCardIndex, 1); 
+        }
         
-        alert(`💀 DÉFAITE...\n\nTon champion (${p1Power} ATK) a été détruit par l'IA (${p2Power} ATK).\n\nTu perds 500 Dust et ta carte ${selectedPlayerCard.name} est perdue.`);
+        alert(`💀 DÉFAITE...\n\nTon champion (${p1Power} ATK) a été détruit par l'adversaire (${p2Power} ATK).\n\nTu perds 500 Dust et ta carte ${maCarte.name} est perdue.`);
     }
 
-    // 5. Mise à jour de l'interface et Sauvegarde // ICI
+    // --- 4. MISE À JOUR ET SAUVEGARDE ---
     refreshDust();
     
-    // Si tu utilises Firebase, on synchronise
     if (typeof auth !== 'undefined' && auth.currentUser) {
         btn.innerText = "Sauvegarde...";
         await saveUserData(auth.currentUser.uid); 
+        
+        // Si on était en multi, on ferme la salle
+        if (currentRoomId) {
+            await db.collection("battles").doc(currentRoomId).update({ status: "finished" });
+            currentRoomId = null; // Reset pour le prochain match
+        }
     }
 
-    // 6. Retour à l'état initial
+    // --- 5. RETOUR À L'ÉTAT INITIAL ---
+    btn.disabled = false;
+    btn.innerText = "🔥 LANCER LE COMBAT ! 🔥";
     resetArena();
-    showCollection(); // On ramène le joueur à sa collection pour voir le résultat
+    showCollection(); 
 }
+
+
 
 
 

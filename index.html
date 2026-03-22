@@ -469,6 +469,9 @@ html, body {
 
 
 
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -530,24 +533,20 @@ html, body {
 
 
 
-  <input 
-    type="text"
-    id="searchCard"
-    placeholder="Rechercher une carte..."
-    style="padding:10px;border-radius:8px;border:none;margin-bottom:20px;width:220px"
-  >
+<input 
+      type="text"
+      id="searchCard"
+      placeholder="Rechercher une carte..."
+      style="padding:10px;border-radius:8px;border:none;margin-bottom:20px;width:220px"
+    >
 
     <div id="allCardsList" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;"></div>
-  </div>
-</div>
-
-<nav style="position:fixed;bottom:0;left:0;width:100%;background:#111a2e;padding:10px 0;display:flex;justify-content:space-around;border-top:2px solid #0d1220;z-index:9999">
+  </div> </div> <nav style="position:fixed;bottom:0;left:0;width:100%;background:#111a2e;padding:10px 0;display:flex;justify-content:space-around;border-top:2px solid #0d1220;z-index:9999">
   <button id="tabHome">Accueil</button>
-
-
   <button id="tabCollection">Collection</button>
   <button id="tabShop">Boutique</button>
-  <button id="tabAllCards">Chances d'obtention</button>
+  <button id="tabAllCards">Chances</button>
+  <button id="tabCombat">Combat</button>
 </nav>
 
 <div id="bigCardOverlay">
@@ -555,30 +554,55 @@ html, body {
   <div id="bigCardName"></div>
 </div>
 
-
-<div id="shopSection" style="display:none;margin-bottom:80px">
+<div id="shopSection" class="section" style="display:none;margin-bottom:80px">
   <h2>Boutique</h2>
   <div id="shopCards" class="cards"></div>
 </div>
 
+<div id="combatSection" class="section" style="display:none;flex-direction: column; justify-content: center; align-items: center; min-height: 80vh; margin-bottom:80px; text-align: center;">
+    <h2 style="color: #ff4444; text-shadow: 0 0 10px red;">⚔️ ARÈNE DE DUEL ⚔️</h2>
+
+
+<div id="recherche-container" style="margin-bottom: 20px;">
+        <button id="btn-recherche-match" onclick="chercherPartie()" style="background: #7c3aed; padding: 15px 25px; font-weight: bold; border-radius: 10px; box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);">
+            🔍 TROUVER UN ADVERSAIRE
+        </button>
+        <div id="status-recherche" style="margin-top: 10px; color: #8da0b8; font-style: italic; font-size: 0.9rem;">
+            Connecte-toi et clique pour chercher un duel...
+        </div>
+    </div>
 
 
 
-
-<div id="authOverlay">
-
-<h2>Connecte-toi pour sauvegarder ta progression</h2>
-<input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
-<input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
-<div style="margin-top:10px;">
-  <button id="loginBtn" style="margin-right:10px;">Connexion</button>
-  <button id="signupBtn">Inscription</button>
-
-
+    <div style="display: flex; justify-content: center; align-items: center; margin: 30px 0; background: #162037; padding: 20px; border-radius: 15px; border: 2px solid #7c3aed;">
+        <div id="player-slot" onclick="ouvrirSelectionCombat()" style="width: 140px; height: 200px; border: 2px dashed #8da0b8; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #0e1525;">
+            <span style="color: #8da0b8; font-size: 0.8rem; text-align:center;">Clique ici pour<br>choisir ta carte</span>
+        </div>
+        <div style="font-size: 2.5em; font-weight: bold; color: #ff4444;">VS</div>
+        <div id="opponent-slot" style="width: 140px; height: 200px; border: 2px solid #ff4444; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #0e1525;">
+            <span style="font-size: 3em;">?</span>
+        </div>
+    </div>
+    <div id="battle-info" style="margin: 15px 0; font-weight: bold; color: white;"></div>
+    <button id="btn-start-fight" style="display:none; background: #ff4444; padding: 15px 30px; border-radius: 10px;" onclick="lancerLeCombat()">🔥 LANCER LE COMBAT ! 🔥</button>
 </div>
-<div id="authError" style="color:#f88;margin-top:10px;"></div>
 
+<div id="selection-combat-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.98); z-index:10000; overflow-y:auto; padding:20px;">
+    <button onclick="document.getElementById('selection-combat-overlay').style.display='none'" style="background:#ef4444; margin-bottom:15px; padding:10px; border-radius:8px; color:white; border:none;">✖ Fermer</button>
+    <h2 style="color:white; text-align:center;">Choisis ton champion</h2>
+    <div id="selection-list" class="cards"></div>
 </div>
+
+<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; display:flex; flex-direction:column; justify-content:center; align-items:center;"> <h2>Connecte-toi pour sauvegarder ta progression</h2>
+    <input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
+    <input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
+    <div style="margin-top:10px;">
+        <button id="loginBtn" style="margin-right:10px;">Connexion</button>
+        <button id="signupBtn">Inscription</button>
+    </div> <div id="authError" style="color:#f88;margin-top:10px;"></div>
+</div> ```
+
+
 
 
 
@@ -714,6 +738,9 @@ html, body {
 
     </div>
 </div>
+
+
+
 
 
 
@@ -951,6 +978,365 @@ function blockInput(e) {
 
 // Lancement
 disableSite(false);
+
+
+
+
+
+
+
+
+
+async function chercherPartie() {
+    const user = auth.currentUser;
+    if (!user) return alert("Connecte-toi pour jouer !");
+
+    const statusDiv = document.getElementById("status-recherche");
+    if(statusDiv) statusDiv.innerText = "Recherche d'un adversaire...";
+
+    // 1. Chercher une salle en attente
+    const snapshot = await db.collection("battles")
+        .where("status", "==", "waiting")
+        .orderBy("createdAt", "asc")
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) {
+        // 2. Créer une nouvelle salle
+        const docRef = await db.collection("battles").add({
+            player1: user.uid,
+            player1Name: user.email.split('@')[0],
+            player2: null,
+            player2Name: null,
+            card1: null,
+            card2: null,
+            status: "waiting",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        currentRoomId = docRef.id;
+        role = "player1";
+        if(statusDiv) statusDiv.innerText = "Salle créée. En attente d'un ami...";
+    } else {
+        // 3. Rejoindre la salle trouvée
+        const doc = snapshot.docs[0];
+        currentRoomId = doc.id;
+        role = "player2";
+        await db.collection("battles").doc(currentRoomId).update({
+            player2: user.uid,
+            player2Name: user.email.split('@')[0],
+            status: "ready"
+        });
+        if(statusDiv) statusDiv.innerText = "Match trouvé ! Choisissez votre carte.";
+    }
+
+    // Activer l'écouteur temps réel
+    ecouterLaPartie();
+}
+
+
+
+function ecouterLaPartie() {
+    if (!currentRoomId) return;
+
+    db.collection("battles").doc(currentRoomId).onSnapshot((doc) => {
+        const data = doc.data();
+        if (!data) return;
+
+        const opponentSlot = document.getElementById("opponent-slot");
+
+        // Si l'adversaire rejoint
+        if (data.status === "ready") {
+            document.getElementById("tapis-combat").style.display = "flex";
+            document.getElementById("btn-recherche-match").style.display = "none";
+        }
+
+        // Vérifier si l'adversaire a posé une carte
+        const opponentCard = (role === "player1") ? data.card2 : data.card1;
+        if (opponentCard && opponentSlot) {
+            // On affiche le dos de la carte (mystère) tant que le combat n'est pas lancé
+            opponentSlot.innerHTML = `<div class="card" style="background:linear-gradient(45deg, #1e293b, #334155); border:2px solid #7c3aed; height:100%; display:flex; align-items:center; justify-content:center;">
+                <span style="font-size:2rem;">❓</span>
+            </div>`;
+        }
+
+        // Si les deux ont choisi, on peut révéler
+        if (data.card1 && data.card2) {
+            document.getElementById("battle-info").innerText = "Les deux joueurs sont prêts !";
+            // Ici tu peux ajouter un bouton "Révéler" ou le faire auto
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+function ouvrirSelectionCombat() {
+    const selectionList = document.getElementById("selection-list");
+    const overlay = document.getElementById("selection-combat-overlay");
+    selectionList.innerHTML = ""; 
+
+    collection.forEach((card, index) => {
+        const cardDiv = document.createElement("div");
+        // On utilise EXACTEMENT les mêmes classes que ta collection
+        cardDiv.className = `card ${card.rarity ? card.rarity.toLowerCase() : ''}`;
+        cardDiv.style.cursor = "pointer";
+
+        cardDiv.innerHTML = `
+            <div class="card-inner">
+                <img src="${card.image}" class="card-img">
+                <div class="card-name">${card.name}</div>
+                <div class="card-power">ATK: ${getPower(card)}</div>
+            </div>
+        `;
+        
+        cardDiv.onclick = () => choisirCetteCarte(card, index);
+        selectionList.appendChild(cardDiv);
+    });
+
+    overlay.style.display = "block";
+}
+
+
+
+async function choisirCetteCarte(card, index) {
+    // --- PARTIE LOGIQUE MULTIJOUEUR (AJOUTÉE) ---
+    if (currentRoomId) {
+        const updateData = {};
+        // On vérifie si on est le joueur 1 ou 2 pour remplir le bon champ sur Firebase
+        if (role === "player1") {
+            updateData.card1 = card;
+        } else {
+            updateData.card2 = card;
+        }
+        // On envoie la carte choisie sur le serveur
+        await db.collection("battles").doc(currentRoomId).update(updateData);
+    }
+
+    // --- TON CODE D'ORIGINE (CONSERVÉ) ---
+    selectedPlayerCard = card;
+    selectedPlayerCardIndex = index;
+
+    const playerSlot = document.getElementById("player-slot");
+    
+    // On vide le slot et on injecte le MÊME design que dans le menu
+    playerSlot.innerHTML = `
+        <div class="card ${card.rarity ? card.rarity.toLowerCase() : ''}" style="width:100%; height:100%; margin:0; border:none; box-shadow: 0 0 10px rgba(124,58,237,0.5);">
+            <div class="card-inner" style="height:100%; padding: 5px;">
+                <img src="${card.image}" class="card-img" style="max-height: 70%; object-fit: contain;">
+                <div class="card-name" style="font-size: 0.7rem; margin-top: 2px;">${card.name}</div>
+                <div class="card-power" style="font-size: 0.8rem; color:#ffcc00;">${getPower(card)} ATK</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("selection-combat-overlay").style.display = "none";
+    
+    // On ne lance l'IA que si on n'est pas en mode multijoueur
+    if (!currentRoomId && typeof preparerAdversaire === 'function') {
+        preparerAdversaire();
+    }
+}
+
+
+
+
+
+
+// Variable globale pour stocker la carte de l'IA
+let currentOpponentCard = null;
+
+function preparerAdversaire() {
+    // 1. L'IA choisit une carte au hasard dans TOUTES les cartes existantes // ICI
+    const randomIndex = Math.floor(Math.random() * ALL_CARDS.length);
+    currentOpponentCard = ALL_CARDS[randomIndex];
+
+    // 2. On récupère le slot de l'IA (à droite) // ICI
+    const opponentSlot = document.getElementById("opponent-slot");
+    
+    // 3. On affiche la carte de l'IA
+    opponentSlot.innerHTML = `
+        <div class="card" style="width:100%; height:100%; margin:0; position:relative; border:2px solid #ff4444;">
+            <img src="${currentOpponentCard.image}" style="width:100%; border-radius:8px;">
+            <div style="font-size:0.7rem; font-weight:bold;">${currentOpponentCard.name}</div>
+            <div style="color:#ff4444; font-weight:bold;">ATK: ${getPower(currentOpponentCard)}</div>
+        </div>
+    `;
+
+    // 4. Une fois que l'IA a choisi, on montre enfin le bouton pour lancer le combat // ICI
+    document.getElementById("btn-start-fight").style.display = "block";
+    
+    // On peut ajouter un petit texte d'info
+    document.getElementById("battle-info").innerText = "L'IA est prête ! À l'attaque !";
+}
+
+
+
+
+
+
+
+
+async function lancerLeCombat() {
+    // 1. On vérifie que les deux cartes sont bien présentes
+    if (!selectedPlayerCard || !currentOpponentCard) {
+        alert("Il manque une carte pour combattre !");
+        return;
+    }
+
+    // 2. On récupère la puissance des deux cartes // ICI
+    const p1Power = getPower(selectedPlayerCard);
+    const p2Power = getPower(currentOpponentCard);
+    
+    // 3. Désactiver le bouton pendant le calcul pour éviter les doubles clics
+    const btn = document.getElementById("btn-start-fight");
+    btn.disabled = true;
+    btn.innerText = "Combat en cours...";
+
+    // Petit délai pour le suspense
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // 4. LE VERDICT // ICI
+    if (p1Power >= p2Power) {
+        // --- VICTOIRE ---
+        dust += 500; 
+        collection.push(currentOpponentCard); // Tu voles la carte de l'IA !
+        
+        alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a écrasé l'adversaire (${p2Power} ATK).\n\nTu gagnes +500 Dust et tu captures la carte : ${currentOpponentCard.name} !`);
+    } else {
+        // --- DÉFAITE ---
+        dust = Math.max(0, dust - 500); // On perd 500 Dust (sans descendre sous 0)
+        
+        // On retire TA carte de ta collection // ICI
+        collection.splice(selectedPlayerCardIndex, 1); 
+        
+        alert(`💀 DÉFAITE...\n\nTon champion (${p1Power} ATK) a été détruit par l'IA (${p2Power} ATK).\n\nTu perds 500 Dust et ta carte ${selectedPlayerCard.name} est perdue.`);
+    }
+
+    // 5. Mise à jour de l'interface et Sauvegarde // ICI
+    refreshDust();
+    
+    // Si tu utilises Firebase, on synchronise
+    if (typeof auth !== 'undefined' && auth.currentUser) {
+        btn.innerText = "Sauvegarde...";
+        await saveUserData(auth.currentUser.uid); 
+    }
+
+    // 6. Retour à l'état initial
+    resetArena();
+    showCollection(); // On ramène le joueur à sa collection pour voir le résultat
+}
+
+
+
+function resetArena() {
+    // 1. On vide les variables (les cartes n'existent plus dans le combat) // ICI
+    selectedPlayerCard = null;
+    selectedPlayerCardIndex = null;
+    currentOpponentCard = null;
+
+    // 2. On remet le texte "Clique ici" à gauche // ICI
+    const playerSlot = document.getElementById("player-slot");
+    playerSlot.innerHTML = `
+        <span style="color: #8da0b8; font-size: 0.8rem; text-align:center;">
+            Clique ici pour<br>choisir ta carte
+        </span>
+    `;
+
+    // 3. On remet le "?" à droite // ICI
+    const opponentSlot = document.getElementById("opponent-slot");
+    opponentSlot.innerHTML = `<span>?</span>`;
+
+    // 4. On cache le bouton de combat (il ne doit pas rester là) // ICI
+    const btnFight = document.getElementById("btn-start-fight");
+    btnFight.style.display = "none";
+    btnFight.disabled = false;
+    btnFight.innerText = "🔥 LANCER LE COMBAT ! 🔥";
+
+    // 5. On efface les messages de victoire/défaite sur l'écran
+    document.getElementById("battle-info").innerText = "";
+}
+
+
+
+
+
+
+
+
+
+
+
+// Fonction pour calculer la puissance d'une carte selon sa rareté // ICI
+function getPower(card) {
+    const powers = {
+        "Commun": 10,
+        "Rare": 20,
+        "Epic": 40,
+        "Legendary": 70,
+        "Mythic": 100,
+        "Brainrot-God": 150,
+        "Secret": 200,
+        "OG": 500
+    };
+    // Retourne la puissance basée sur la rareté, ou 5 par défaut
+    return powers[card.rarity] || 5;
+}
+
+
+
+
+
+
+
+
+
+//
+const combatSection = document.getElementById("combatSection");
+const tabCombat = document.getElementById("tabCombat");
+
+function showCombat() {
+    // 1. On cache TOUTES les sections (tes lignes d'origine)
+    homeSection.style.display = "none";
+    collectionSection.style.display = "none";
+    allCardsSection.style.display = "none";
+    shopSection.style.display = "none";
+    if (typeof accountSection !== 'undefined' && accountSection) {
+        accountSection.style.display = "none";
+    }
+    
+    // 2. On cache les éléments spécifiques "hors sections" // NOUVEAU
+    const btnPack = document.getElementById("openPack");
+    const btnReset = document.getElementById("resetCollection");
+    const textRemaining = document.getElementById("remaining");
+    const dustDisplay = document.getElementById("dustDisplay"); // Ton compteur de fragments
+
+    if (btnPack) btnPack.style.display = "none";
+    if (btnReset) btnReset.style.display = "none";
+    if (textRemaining) textRemaining.style.display = "none";
+    if (dustDisplay) dustDisplay.style.display = "none";
+
+    // 3. On affiche la section Combat
+    // On met "flex" au lieu de "block" pour activer le centrage en hauteur
+    combatSection.style.display = "flex";
+    
+    // 4. On remet l'arène à zéro (indispensable pour rejouer) // NOUVEAU
+    if (typeof resetArena === 'function') {
+        resetArena();
+    }
+}
+
+// L'événement du clic
+tabCombat.onclick = () => {
+    showCombat();
+};
+
+
+
 
 
 
@@ -1240,6 +1626,7 @@ function showShop() {
     collectionSection.style.display = "none";
     allCardsSection.style.display = "none";
     shopSection.style.display = "block";
+combatSection.style.display = "none";
     updateButtons();
 
     const shopDiv = document.getElementById("shopCards");
@@ -1643,6 +2030,7 @@ homeSection.style.display="block";
 collectionSection.style.display="none"; 
 allCardsSection.style.display="none";     
 shopSection.style.display = "none"; 
+combatSection.style.display = "none";
 updateButtons();}
 
 function showCollection(){ 
@@ -1650,6 +2038,7 @@ homeSection.style.display="none";
 collectionSection.style.display="block"; 
 allCardsSection.style.display="none"; 
 shopSection.style.display = "none"; 
+combatSection.style.display = "none";
 updateButtons();}
 
 function showAllCards() {
@@ -1658,6 +2047,7 @@ function showAllCards() {
   collectionSection.style.display = "none"; 
   allCardsSection.style.display = "block"; 
 shopSection.style.display = "none";
+combatSection.style.display = "none";
   updateButtons();
 
   const search = document.getElementById("searchCard");

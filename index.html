@@ -564,13 +564,37 @@ html, body {
 
 
 <div id="recherche-container" style="margin-bottom: 20px;">
-        <button id="btn-recherche-match" onclick="chercherPartie()" style="background: #7c3aed; padding: 15px 25px; font-weight: bold; border-radius: 10px; box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);">
-            🔍 TROUVER UN ADVERSAIRE
-        </button>
-        <div id="status-recherche" style="margin-top: 10px; color: #8da0b8; font-style: italic; font-size: 0.9rem;">
-            Connecte-toi et clique pour chercher un duel...
-        </div>
+    <button id="btn-recherche-match" onclick="ouvrirLobby()" style="background: linear-gradient(135deg, #7c3aed, #5b21b6); padding: 15px 30px; font-weight: bold; border-radius: 12px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); transition: transform 0.2s;">
+        ⚔️ LISTE DES DUELS EN LIGNE
+    </button>
+    
+    <div id="status-recherche" style="margin-top: 12px; color: #8da0b8; font-style: italic; font-size: 0.9rem;">
+        Consulte les salons ou crée le tien pour combattre !
     </div>
+</div>
+
+
+
+
+<div id="lobby-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.98); z-index:15000; padding:20px; color:white; box-sizing:border-box; overflow-y:auto;">
+    <div style="max-width:500px; margin:auto; text-align:center;">
+        <button onclick="fermerLobby()" style="background:#ef4444; padding:10px 15px; border-radius:8px; border:none; color:white; font-weight:bold; cursor:pointer; margin-bottom:20px; float:right;">✖ FERMER</button>
+        <div style="clear:both;"></div>
+        
+        <h2 style="color:#7c3aed; text-shadow: 0 0 10px rgba(124,58,237,0.5); margin-bottom:25px;">⚔️ DUELS EN LIGNE</h2>
+        
+        <div id="liste-duels" style="margin: 20px 0; min-height: 150px; background: #162037; border-radius: 15px; padding: 15px; border: 1px solid #7c3aed;">
+            <p style="color:#8da0b8;">Recherche de combattants...</p>
+        </div>
+
+        <button onclick="creerNouvellePartie()" style="width:100%; background:linear-gradient(135deg, #7c3aed, #4f46e5); color:white; padding:18px; border-radius:12px; font-weight:bold; font-size:1.1rem; border:none; cursor:pointer; box-shadow: 0 5px 15px rgba(124,58,237,0.4);">
+            ➕ CRÉER MON SALON
+        </button>
+    </div>
+</div>
+
+
+
 
 
 
@@ -979,6 +1003,115 @@ function blockInput(e) {
 // Lancement
 disableSite(false);
 
+
+
+
+
+
+
+
+
+
+// VARIABLES GLOBALES (À mettre tout en haut de ton <script> après l'init Firebase)
+let currentRoomId = null;
+let role = null;
+
+// --- FONCTIONS DU LOBBY ---
+
+function ouvrirLobby() {
+    const lobby = document.getElementById("lobby-overlay");
+    if(!lobby) return;
+    
+    lobby.style.display = "block";
+    
+    // Écouter les salons en attente
+    db.collection("battles")
+        .where("status", "==", "waiting")
+        .orderBy("createdAt", "desc")
+        .onSnapshot((snapshot) => {
+            const listeDiv = document.getElementById("liste-duels");
+            if (!listeDiv) return;
+            
+            listeDiv.innerHTML = ""; 
+
+            if (snapshot.empty) {
+                listeDiv.innerHTML = "<p style='text-align:center; color:#8da0b8; padding:20px;'>Aucun duel en attente...<br>Crée le premier salon !</p>";
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const item = document.createElement("div");
+                item.style = "display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:15px; margin-bottom:12px; border-radius:12px; border-left:5px solid #7c3aed; box-shadow: 0 4px 6px rgba(0,0,0,0.2);";
+                
+                // Formater l'heure
+                const heure = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString([], {hour: '2h', minute:'2h'}) : "À l'instant";
+
+                item.innerHTML = `
+                    <div style="text-align:left;">
+                        <strong style="color:#fff; font-size:1.1rem;">${data.player1Name}</strong>
+                        <div style="font-size:0.75rem; color:#8da0b8;">Ouvert à ${heure}</div>
+                    </div>
+                    <button onclick="rejoindreCeDuel('${doc.id}')" style="background:#4ade80; color:#0e1525; padding:10px 18px; border-radius:8px; font-weight:900; border:none; cursor:pointer; text-transform:uppercase;">Rejoindre</button>
+                `;
+                listeDiv.appendChild(item);
+            });
+        }, (error) => {
+            console.error("Erreur Lobby:", error);
+        });
+}
+
+function fermerLobby() {
+    document.getElementById("lobby-overlay").style.display = "none";
+}
+
+async function creerNouvellePartie() {
+    const user = auth.currentUser;
+    if (!user) return alert("Tu dois être connecté pour créer un duel !");
+
+    try {
+        const docRef = await db.collection("battles").add({
+            player1: user.uid,
+            player1Name: user.email.split('@')[0],
+            player2: null,
+            player2Name: null,
+            card1: null,
+            card2: null,
+            status: "waiting",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        currentRoomId = docRef.id;
+        role = "player1";
+        
+        fermerLobby();
+        document.getElementById("status-recherche").innerHTML = "<span style='color:#4ade80;'>✅ Salon créé. En attente d'un adversaire...</span>";
+        ecouterLaPartie(); 
+    } catch (e) {
+        alert("Erreur lors de la création : " + e.message);
+    }
+}
+
+async function rejoindreCeDuel(id) {
+    const user = auth.currentUser;
+    if (!user) return alert("Connecte-toi pour combattre !");
+
+    try {
+        currentRoomId = id;
+        role = "player2";
+
+        await db.collection("battles").doc(id).update({
+            player2: user.uid,
+            player2Name: user.email.split('@')[0],
+            status: "ready"
+        });
+
+        fermerLobby();
+        ecouterLaPartie();
+    } catch (e) {
+        alert("Impossible de rejoindre : " + e.message);
+    }
+}
 
 
 

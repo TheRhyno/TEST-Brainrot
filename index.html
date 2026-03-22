@@ -1043,26 +1043,38 @@ function ecouterLaPartie() {
         if (!data) return;
 
         const opponentSlot = document.getElementById("opponent-slot");
+        const battleInfo = document.getElementById("battle-info");
+        const tapis = document.getElementById("tapis-combat");
 
-        // Si l'adversaire rejoint
-        if (data.status === "ready") {
-            document.getElementById("tapis-combat").style.display = "flex";
+        // 1. Gérer l'arrivée de l'adversaire (pour le Joueur 1 qui attendait)
+        if (data.status === "ready" || data.player2) {
+            if (tapis) tapis.style.display = "flex";
             document.getElementById("btn-recherche-match").style.display = "none";
+            
+            // Afficher qui est l'adversaire
+            const nomAdversaire = (role === "player1") ? (data.player2Name || "Adversaire") : (data.player1Name || "Adversaire");
+            battleInfo.innerText = "Adversaire trouvé : " + nomAdversaire + " ! Choisissez une carte.";
         }
 
-        // Vérifier si l'adversaire a posé une carte
+        // 2. Vérifier si l'adversaire a posé une carte
         const opponentCard = (role === "player1") ? data.card2 : data.card1;
+        
         if (opponentCard && opponentSlot) {
-            // On affiche le dos de la carte (mystère) tant que le combat n'est pas lancé
-            opponentSlot.innerHTML = `<div class="card" style="background:linear-gradient(45deg, #1e293b, #334155); border:2px solid #7c3aed; height:100%; display:flex; align-items:center; justify-content:center;">
-                <span style="font-size:2rem;">❓</span>
-            </div>`;
+            // On affiche le dos de la carte (mystère)
+            opponentSlot.innerHTML = `
+                <div class="card" style="background:linear-gradient(45deg, #1e293b, #334155); border:2px solid #ff4444; height:100%; display:flex; align-items:center; justify-content:center; box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);">
+                    <span style="font-size:3rem; filter: drop-shadow(0 0 5px red);">❓</span>
+                </div>`;
         }
 
-        // Si les deux ont choisi, on peut révéler
+        // 3. Si les DEUX ont choisi, on montre le bouton de combat
         if (data.card1 && data.card2) {
-            document.getElementById("battle-info").innerText = "Les deux joueurs sont prêts !";
-            // Ici tu peux ajouter un bouton "Révéler" ou le faire auto
+            battleInfo.innerHTML = "<span style='color:#ffcc00; font-size:1.2rem;'>🔥 LES DEUX JOUEURS SONT PRÊTS ! 🔥</span>";
+            document.getElementById("btn-start-fight").style.display = "block";
+            
+            // On sauvegarde les données des cartes pour le calcul final
+            // (Utile pour la fonction lancerLeCombat)
+            window.remoteBattleData = data; 
         }
     });
 }

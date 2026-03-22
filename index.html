@@ -1045,36 +1045,43 @@ function ecouterLaPartie() {
         const opponentSlot = document.getElementById("opponent-slot");
         const battleInfo = document.getElementById("battle-info");
         const tapis = document.getElementById("tapis-combat");
+        const btnStart = document.getElementById("btn-start-fight");
 
-        // 1. Gérer l'arrivée de l'adversaire (pour le Joueur 1 qui attendait)
+        // 1. Gérer l'arrivée de l'adversaire
         if (data.status === "ready" || data.player2) {
             if (tapis) tapis.style.display = "flex";
             document.getElementById("btn-recherche-match").style.display = "none";
             
-            // Afficher qui est l'adversaire
             const nomAdversaire = (role === "player1") ? (data.player2Name || "Adversaire") : (data.player1Name || "Adversaire");
-            battleInfo.innerText = "Adversaire trouvé : " + nomAdversaire + " ! Choisissez une carte.";
+            if (data.status !== "finished") {
+                battleInfo.innerText = "Adversaire trouvé : " + nomAdversaire + " ! Choisissez une carte.";
+            }
         }
 
         // 2. Vérifier si l'adversaire a posé une carte
         const opponentCard = (role === "player1") ? data.card2 : data.card1;
         
-        if (opponentCard && opponentSlot) {
-            // On affiche le dos de la carte (mystère)
+        if (opponentCard && opponentSlot && data.status !== "finished") {
             opponentSlot.innerHTML = `
                 <div class="card" style="background:linear-gradient(45deg, #1e293b, #334155); border:2px solid #ff4444; height:100%; display:flex; align-items:center; justify-content:center; box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);">
                     <span style="font-size:3rem; filter: drop-shadow(0 0 5px red);">❓</span>
                 </div>`;
         }
 
-        // 3. Si les DEUX ont choisi, on montre le bouton de combat
-        if (data.card1 && data.card2) {
+        // 3. Si les DEUX ont choisi, on montre le bouton
+        if (data.card1 && data.card2 && data.status === "ready") {
             battleInfo.innerHTML = "<span style='color:#ffcc00; font-size:1.2rem;'>🔥 LES DEUX JOUEURS SONT PRÊTS ! 🔥</span>";
-            document.getElementById("btn-start-fight").style.display = "block";
-            
-            // On sauvegarde les données des cartes pour le calcul final
-            // (Utile pour la fonction lancerLeCombat)
-            window.remoteBattleData = data; 
+            btnStart.style.display = "block";
+        }
+
+        // --- NOUVEAU : SYNC DE LA FIN DU COMBAT ---
+        // Si le statut passe à "finished", cela veut dire que l'autre a cliqué sur "Lancer"
+        if (data.status === "finished") {
+            // Si mon bouton "Lancer" est encore visible, ça veut dire que je n'ai pas encore lancé mon calcul
+            if (btnStart.style.display !== "none") {
+                console.log("L'adversaire a lancé le combat, calcul en cours...");
+                lancerLeCombat(); 
+            }
         }
     });
 }
@@ -1267,14 +1274,19 @@ async function lancerLeCombat() {
     // --- 4. MISE À JOUR ET SAUVEGARDE ---
     refreshDust();
     
-    if (typeof auth !== 'undefined' && auth.currentUser) {
+if (typeof auth !== 'undefined' && auth.currentUser) {
         btn.innerText = "Sauvegarde...";
         await saveUserData(auth.currentUser.uid); 
         
-        // Si on était en multi, on ferme la salle
         if (currentRoomId) {
-            await db.collection("battles").doc(currentRoomId).update({ status: "finished" });
-            currentRoomId = null; // Reset pour le prochain match
+            const roomRef = db.collection("battles").doc(currentRoomId);
+            const doc = await roomRef.get();
+            
+            // SEUL celui qui n'a pas encore vu le statut "finished" le met à jour
+            // Cela évite que les deux fassent la requête en même temps
+            if (doc.exists && doc.data().status !== "finished") {
+                await roomRef.update({ status: "finished" });
+            }
         }
     }
 

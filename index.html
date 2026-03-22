@@ -500,6 +500,35 @@ html, body {
 <div id="dustDisplay" class="note">💎 Fragments : 0</div>
 
   <div id="homeSection">
+
+
+
+
+<div id="questIcon" onclick="toggleQuests()" style="position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: #7c3aed; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.6); z-index: 100; border: 3px solid #fff; visibility: visible !important; opacity: 1 !important; transition: transform 0.2s;" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
+    🎯
+</div>
+
+<div id="questOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200001; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: #162037; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; border: 2px solid #3b82f6; position: relative; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); color: white; text-align: center;">
+        
+        <button onclick="toggleQuests()" style="position: absolute; top: -15px; right: -15px; background: #ef4444; color: white; border: 2px solid #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">✕</button>
+        
+        <h2 style="color: #3b82f6; margin-top: 0; font-family: sans-serif; letter-spacing: 1px; text-transform: uppercase; font-size: 1.2em;">🎯 Quêtes du Jour</h2>
+        
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
+        <div id="questList" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+            </div>
+
+        <p style="font-size: 0.7em; color: #94a3b8; margin-top: 20px;">Les quêtes se réinitialisent chaque jour à minuit.</p>
+    </div>
+</div>
+
+
+
+
+
+
   <div id="boosterCounter" style="color:#fff;font-weight:bold;font-size:1rem;margin-bottom:10px;">
     Boosters ouverts : 0
   </div>
@@ -556,6 +585,13 @@ html, body {
 
 <div id="shopSection" class="section" style="display:none;margin-bottom:80px">
   <h2>Boutique</h2>
+
+
+<div id="timerConteneur" style="background: rgba(30, 41, 59, 0.8); color: #fbbf24; padding: 12px; border-radius: 10px; margin: 15px auto; max-width: 280px; font-weight: bold; border: 1px solid #fbbf24; text-align: center;">
+    ⏳ Reset dans : <span id="boutiqueTimerDecompte">--:--:--</span>
+</div>
+
+
   <div id="shopCards" class="cards"></div>
 </div>
 
@@ -642,28 +678,42 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
     <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 1.40</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 1.46</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    💎 <b>Boutique :</b> Réduction des prix des boosters exclusifs ! <br>
-                    🛠️ <b>Bugs :</b> Résolution des problèmes de rareté des cartes & synchronisation de la boutique pour tous.
+                    💎 <b>Boutique :</b> Un compte à rebours pour la nouvelle boutique a été ajouté ! <br>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    ⚔️ <b>Combat :</b> Tu peux maintenant affronter les autres joueurs et capturer leurs cartes grâce à l'arrène de duel !
                 </p>
             </div>
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🆙 <b>Niveaux :</b> Accumulez des cartes identiques pour augmenter leur niveau dans la collection !
+                    🎯 <b>Quêtes quotidiennes :</b> Relève de nouveaux défis chaque jour pour accumuler des fragments. <br>
+Ne rate pas tes récompenses !
                 </p>
             </div>
+
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
                     🔜 <b>À venir :</b> Les cartes Brainrot God et Secret seront bientôt disponibles !
                 </p>
             </div>
+
+
+            <div style="margin-bottom: 30px; opacity: 0.8; font-size: 0.9rem;">
+                <p style="margin: 0;">
+                    🛠️ Résolution des problèmes de synchronisation de la boutique entre les joueurs.
+                </p>
+            </div>
+
 
             <div style="margin-bottom: 30px; opacity: 0.8; font-size: 0.9rem;">
                 <p style="margin: 0;">
@@ -762,6 +812,7 @@ html, body {
 
     </div>
 </div>
+
 
 
 
@@ -920,6 +971,7 @@ const ALL_CARDS = [
 
 
 
+
   { name:"Skibidi Toilet", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-3be000d4-c396-4f70-9827-7b9f3208525e.png" },
   { name:"Headless Horseman", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-afc3dd97-67c3-4c8b-94be-e3909d345d21.png" },
   { name:"John Pork", rarity:"OG", image:"https://cdn.phototourl.com/uploads/2026-03-14-e72fbeb0-d333-45cc-afd2-f501c066d2f8.png" },
@@ -1003,6 +1055,235 @@ function blockInput(e) {
 // Lancement
 disableSite(false);
 
+
+
+
+
+
+
+
+// --- FONCTIONS DE L'INTERFACE ---
+
+function toggleQuests() {
+    const overlay = document.getElementById("questOverlay");
+    if (!overlay) {
+        console.error("L'élément questOverlay n'existe pas dans le HTML");
+        return;
+    }
+    
+    // Alterne entre 'none' et 'flex'
+    if (overlay.style.display === "none" || overlay.style.display === "") {
+        overlay.style.display = "flex";
+        // On recharge les quêtes depuis Firebase à chaque ouverture pour être à jour
+        chargerQuetesFirebase();
+    } else {
+        overlay.style.display = "none";
+    }
+}
+
+
+
+
+
+
+// --- CONFIGURATION DES QUÊTES ---
+const TOUTES_LES_QUETES = [
+    { id: 1, desc: "Ouvrir 50 boosters", cible: 50, recompense: 500, type: "open" },
+    { id: 2, desc: "Obtenir une carte Rare", cible: 1, recompense: 30, type: "rare" },
+    { id: 3, desc: "Obtenir 5 doublons", cible: 5, recompense: 100, type: "duplicate" },
+    { id: 4, desc: "Se connecter", cible: 1, recompense: 10, type: "login" },
+    { id: 5, desc: "Obtenir une carte Mythic", cible: 1, recompense: 500, type: "mythic" },
+    { id: 6, desc: "Atteindre le Niveau 5 sur une carte", cible: 5, recompense: 700, type: "lvlup" },
+];
+
+// Variable globale pour stocker les quêtes en cours
+let quetesActives = null;
+
+async function chargerQuetesFirebase() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const today = new Date().toDateString();
+    const userRef = db.collection("users").doc(user.uid);
+
+    try {
+        const doc = await userRef.get();
+        let data = doc.data();
+
+        // Cas 1 : Pas de quêtes OU Date différente (Nouveau jour) -> RESET
+        if (!data.dailyQuests || data.dailyQuests.date !== today) {
+            console.log("🌞 Nouveau jour détecté ou première connexion. Reset des quêtes...");
+            const shuffled = [...TOUTES_LES_QUETES].sort(() => 0.5 - Math.random());
+            quetesActives = {
+                date: today,
+                active: shuffled.slice(0, 3).map(q => ({ 
+                    ...q, progres: 0, fini: false, recuperee: false 
+                }))
+            };
+            // Sauvegarde immédiate du nouveau jour sur Firebase
+            await userRef.set({ dailyQuests: quetesActives }, { merge: true });
+        } else {
+            // Cas 2 : On récupère les quêtes existantes du jour
+            quetesActives = data.dailyQuests;
+        }
+        
+        if (document.getElementById("questOverlay").style.display === "flex") {
+            afficherQuetes(quetesActives.active);
+        }
+    } catch (error) {
+        console.error("Erreur lors du chargement des quêtes:", error);
+    }
+}
+
+function afficherQuetes(quetes) {
+    const list = document.getElementById("questList");
+    if (!list) return;
+    list.innerHTML = "";
+
+    quetes.forEach((q, index) => {
+        let statusHTML = "";
+        let bgColor = "#1e293b";
+        let clickAction = "";
+
+        if (q.recuperee) {
+            statusHTML = `<span style="color: #10b981;">TERMINÉ ✅</span>`;
+            bgColor = "rgba(16, 185, 129, 0.05)";
+        } else if (q.fini) {
+            statusHTML = `<button style="background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">RÉCUPÉRER</button>`;
+            bgColor = "rgba(16, 185, 129, 0.2)";
+            clickAction = `onclick="recupererCadeauFirebase(${index})"`;
+        } else {
+            statusHTML = `<span style="color: #3b82f6;">${q.progres}/${q.cible}</span>`;
+        }
+
+        list.innerHTML += `
+            <div ${clickAction} style="background: ${bgColor}; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid ${q.fini ? '#10b981' : '#3b82f6'}; margin-bottom: 8px; cursor: ${q.fini && !q.recuperee ? 'pointer' : 'default'}">
+                <div style="text-align: left;">
+                    <div style="font-weight: bold; font-size: 0.9em; color: white;">${q.desc}</div>
+                    <div style="font-size: 0.8em; color: #fbbf24;">+${q.recompense} Fragments</div>
+                </div>
+                <div>${statusHTML}</div>
+            </div>`;
+    });
+}
+
+async function recupererCadeauFirebase(index) {
+    const user = firebase.auth().currentUser;
+    if (!user || !quetesActives) return;
+
+    let q = quetesActives.active[index];
+
+    // On vérifie que la quête est finie et pas encore encaissée
+    if (q.fini && !q.recuperee) {
+        q.recuperee = true;
+        
+        // 1. Mise à jour de la variable globale
+        dust += q.recompense; 
+
+        try {
+            // 2. Sauvegarde synchronisée sur Firebase
+            await db.collection("users").doc(user.uid).set({
+                dust: dust,
+                dailyQuests: quetesActives
+            }, { merge: true });
+
+            // 3. MISE À JOUR DE L'INTERFACE (Utilise ta fonction refreshDust)
+            refreshDust(); 
+
+            // 4. Mise à jour du profil si les éléments existent
+            if (document.getElementById("profileDust")) {
+                document.getElementById("profileDust").innerText = dust;
+            }
+            
+            // 5. Rafraîchir la liste des quêtes pour afficher "TERMINÉ ✅"
+            afficherQuetes(quetesActives.active);
+            
+            alert(`🎁 +${q.recompense} Fragments récupérés !`);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de la récompense:", error);
+            alert("Erreur de connexion à Firebase. Réessaie.");
+        }
+    }
+}
+
+
+
+function avancerQuete(type, montant = 1) {
+    if (!quetesActives) return;
+
+    let aChange = false;
+    quetesActives.active.forEach(q => {
+        if (q.type === type && !q.fini) {
+            q.progres += montant;
+            if (q.progres >= q.cible) {
+                q.progres = q.cible;
+                q.fini = true;
+            }
+            aChange = true;
+        }
+    });
+
+    if (aChange) {
+        // Optionnel : tu peux sauvegarder à chaque étape ou seulement à la fin
+        // Pour éviter trop d'écritures Firebase, on sauvegarde ici :
+        const user = firebase.auth().currentUser;
+        if(user) {
+            db.collection("users").doc(user.uid).set({ dailyQuests: quetesActives }, { merge: true });
+        }
+        if (document.getElementById("questOverlay").style.display === "flex") {
+            afficherQuetes(quetesActives.active);
+        }
+    }
+}
+
+// Lancement au démarrage (Assure-toi que Firebase est prêt)
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        chargerQuetesFirebase();
+        setTimeout(() => avancerQuete("login"), 3000);
+    }
+});
+
+
+
+
+
+
+
+
+function actualiserLeTimer() {
+        const maintenant = new Date();
+        const minuit = new Date();
+        minuit.setHours(24, 0, 0, 0); // Cible 00:00:00
+        
+        const difference = minuit - maintenant;
+
+        if (difference <= 0) {
+            // Si on arrive à minuit, on rafraîchit pour la nouvelle boutique
+            location.reload();
+            return;
+        }
+
+        // Calcul des heures, minutes, secondes
+        const h = Math.floor(difference / 3600000);
+        const m = Math.floor((difference % 3600000) / 60000);
+        const s = Math.floor((difference % 60000) / 1000);
+
+        // Formatage 00:00:00
+        const format = 
+            (h < 10 ? "0" + h : h) + ":" + 
+            (m < 10 ? "0" + m : m) + ":" + 
+            (s < 10 ? "0" + s : s);
+
+        const cible = document.getElementById("boutiqueTimerDecompte");
+        if (cible) {
+            cible.innerText = format;
+        }
+    }
+
+    // Lance le calcul toutes les secondes
+    setInterval(actualiserLeTimer, 1000);
+    actualiserLeTimer(); // Appel immédiat
 
 
 
@@ -1398,16 +1679,30 @@ async function lancerLeCombat() {
     if (p1Power >= p2Power) {
         // --- VICTOIRE ---
         dust += 500; 
-        collection.push(carteAdversaire); // Tu voles la carte (IA ou Joueur !)
         
-        alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a écrasé l'adversaire (${p2Power} ATK).\n\nTu gagnes +500 Dust et tu captures la carte : ${carteAdversaire.name} !`);
+        // --- NOUVELLE LOGIQUE DOUBLON / XP ---
+        // On cherche si on a déjà cette carte dans la collection par son nom
+        const indexDoublon = collection.findIndex(c => c.name === carteAdversaire.name);
+
+        if (indexDoublon !== -1) {
+            // On a déjà la carte : on augmente l'XP de 1
+            if (!collection[indexDoublon].xp) collection[indexDoublon].xp = 1; // Sécurité
+            collection[indexDoublon].xp += 1;
+            
+            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust.\nTu possédais déjà ${carteAdversaire.name} : son XP augmente ! (Total XP: ${collection[indexDoublon].xp})`);
+        } else {
+            // Nouvelle carte : on l'ajoute avec 1 XP de base
+            carteAdversaire.xp = 1;
+            collection.push(carteAdversaire);
+            
+            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust et tu captures une NOUVELLE carte : ${carteAdversaire.name} !`);
+        }
     } else {
         // --- DÉFAITE ---
         dust = Math.max(0, dust - 500);
         
         // On retire TA carte de ta collection
-        // Attention : en multi, assure-toi que selectedPlayerCardIndex est bien défini
-        if (selectedPlayerCardIndex !== -1) {
+        if (selectedPlayerCardIndex !== -1 && selectedPlayerCardIndex !== null) {
             collection.splice(selectedPlayerCardIndex, 1); 
         }
         
@@ -1417,7 +1712,7 @@ async function lancerLeCombat() {
     // --- 4. MISE À JOUR ET SAUVEGARDE ---
     refreshDust();
     
-if (typeof auth !== 'undefined' && auth.currentUser) {
+    if (typeof auth !== 'undefined' && auth.currentUser) {
         btn.innerText = "Sauvegarde...";
         await saveUserData(auth.currentUser.uid); 
         
@@ -1426,7 +1721,6 @@ if (typeof auth !== 'undefined' && auth.currentUser) {
             const doc = await roomRef.get();
             
             // SEUL celui qui n'a pas encore vu le statut "finished" le met à jour
-            // Cela évite que les deux fassent la requête en même temps
             if (doc.exists && doc.data().status !== "finished") {
                 await roomRef.update({ status: "finished" });
             }
@@ -1439,6 +1733,7 @@ if (typeof auth !== 'undefined' && auth.currentUser) {
     resetArena();
     showCollection(); 
 }
+
 
 
 
@@ -2091,7 +2386,8 @@ function openPackSequence() {
         b.onclick = async () => {
             // Sécurité anti-spam : on vérifie le verrou global
             if (isAnyBoosterOpening) return; 
-            isAnyBoosterOpening = true; 
+            isAnyBoosterOpening = true;
+
 
             if (b.classList.contains("booster-opening")) return;
             b.classList.add("booster-opening");
@@ -2107,8 +2403,23 @@ function openPackSequence() {
                 // --- TIRAGE ---
                 currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
 
+avancerQuete("open", 1);
+
                 // --- LOGIQUE DE NIVEAUX ET EXP ---
                 currentPack.forEach(c => {
+
+
+
+if (c.rarity === "Rare") {
+                avancerQuete("rare", 1);
+            }
+
+if (c.rarity === "Mythic") {
+                avancerQuete("mythic", 1);
+            }
+
+
+
                     const existingCard = collection.find(card => card.name === c.name);
                     
                     if (!existingCard) {
@@ -2120,6 +2431,7 @@ function openPackSequence() {
                     } else {
                         // DOUBLON : On augmente l'EXP
                         c.isNew = false;
+           avancerQuete("duplicate", 1);
                         
                         // Initialisation si les propriétés n'existent pas encore
                         if (existingCard.level === undefined) existingCard.level = 1;
@@ -2149,7 +2461,14 @@ while (existingCard.exp >= needed) {
     existingCard.exp -= needed; // On consomme l'EXP
     existingCard.level += 1;    // On monte de niveau
     console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
+
+if (existingCard.level === 5) {
+        avancerQuete("lvlup", 1);
+    }
 }
+
+
+
 
                         // Gain de fragments (Dust)
                         const dustValues = {

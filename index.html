@@ -1328,7 +1328,6 @@ function actualiserLeTimer() {
 
 
 
-// VARIABLES GLOBALES (À mettre tout en haut de ton <script> après l'init Firebase)
 let currentRoomId = null;
 let role = null;
 
@@ -1710,30 +1709,44 @@ async function lancerLeCombat() {
     btn.innerText = "Combat en cours...";
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // --- 3. LE VERDICT ---
-    if (p1Power >= p2Power) {
-        // --- VICTOIRE ---
+
+// --- 3. LE VERDICT ---
+
+
+if (btn.disabled && btn.innerText === "Combat en cours...") {
+        // Cette petite vérification empêche la fonction de s'exécuter deux fois
+    }
+
+
+    // Quête : Participation (On l'incrémente peu importe le résultat)
+    if (typeof avancerQuete === "function") avancerQuete("fight", 1);
+
+    if (p1Power > p2Power) {
+        // --- VICTOIRE (Strictement supérieur) ---
+        if (typeof avancerQuete === "function") avancerQuete("win_fight", 1);
+        
         dust += 500; 
         
-        // --- NOUVELLE LOGIQUE DOUBLON / XP ---
-        // On cherche si on a déjà cette carte dans la collection par son nom
+        // Logique Doublon / XP
         const indexDoublon = collection.findIndex(c => c.name === carteAdversaire.name);
 
         if (indexDoublon !== -1) {
-            // On a déjà la carte : on augmente l'XP de 1
-            if (!collection[indexDoublon].xp) collection[indexDoublon].xp = 1; // Sécurité
+            if (!collection[indexDoublon].xp) collection[indexDoublon].xp = 1;
             collection[indexDoublon].xp += 1;
-            
-            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust.\nTu possédais déjà ${carteAdversaire.name} : son XP augmente ! (Total XP: ${collection[indexDoublon].xp})`);
+            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust.\nXP de ${carteAdversaire.name} augmenté ! (Total XP: ${collection[indexDoublon].xp})`);
         } else {
-            // Nouvelle carte : on l'ajoute avec 1 XP de base
             carteAdversaire.xp = 1;
-            collection.push(carteAdversaire);
-            
-            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust et tu captures une NOUVELLE carte : ${carteAdversaire.name} !`);
+            collection.push({...carteAdversaire}); // On push une copie pour éviter les bugs de référence
+            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust et tu captures : ${carteAdversaire.name} !`);
         }
+
+    } else if (p1Power === p2Power) {
+        // --- MATCH NUL (Égalité parfaite) ---
+        // Rien ne bouge : pas de perte de poussière, pas de perte de carte
+        alert(`🤝 MATCH NUL !\n\nLes deux champions ont la même puissance (${p1Power} ATK).\n\nPersonne ne gagne, personne ne perd rien !`);
+
     } else {
-        // --- DÉFAITE ---
+        // --- DÉFAITE (Strictement inférieur) ---
         dust = Math.max(0, dust - 500);
         
         // On retire TA carte de ta collection
@@ -1741,21 +1754,27 @@ async function lancerLeCombat() {
             collection.splice(selectedPlayerCardIndex, 1); 
         }
         
-        alert(`💀 DÉFAITE...\n\nTon champion (${p1Power} ATK) a été détruit par l'adversaire (${p2Power} ATK).\n\nTu perds 500 Dust et ta carte ${maCarte.name} est perdue.`);
+        alert(`💀 DÉFAITE...\n\nTon champion (${p1Power} ATK) a été battu par l'adversaire (${p2Power} ATK).\n\nTu perds 500 Dust et ta carte ${maCarte.name} est détruite.`);
     }
 
-    // --- 4. MISE À JOUR ET SAUVEGARDE ---
+
+// --- 4. MISE À JOUR ET SAUVEGARDE ---
+    
+    // 🛡️ SÉCURITÉ ANTI-DOUBLE : On vérifie si on est déjà en train de finir
+    if (btn.innerText === "Sauvegarde...") return; 
+
     refreshDust();
     
     if (typeof auth !== 'undefined' && auth.currentUser) {
-        btn.innerText = "Sauvegarde...";
+        btn.innerText = "Sauvegarde..."; // On change le texte tout de suite pour bloquer les autres appels
+        
         await saveUserData(auth.currentUser.uid); 
         
         if (currentRoomId) {
             const roomRef = db.collection("battles").doc(currentRoomId);
             const doc = await roomRef.get();
             
-            // SEUL celui qui n'a pas encore vu le statut "finished" le met à jour
+            // SEUL celui qui arrive ici en premier change le statut sur Firebase
             if (doc.exists && doc.data().status !== "finished") {
                 await roomRef.update({ status: "finished" });
             }
@@ -1763,11 +1782,20 @@ async function lancerLeCombat() {
     }
 
     // --- 5. RETOUR À L'ÉTAT INITIAL ---
+    // On attend un tout petit peu avant de reset pour laisser les alertes s'afficher
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     btn.disabled = false;
     btn.innerText = "🔥 LANCER LE COMBAT ! 🔥";
+    
+    // On ne reset l'arène QUE SI on a fini la sauvegarde
     resetArena();
     showCollection(); 
+    
+    // Important : on nettoie la variable de salle pour éviter de relancer au prochain snapshot
+    currentRoomId = null; 
 }
+
 
 
 

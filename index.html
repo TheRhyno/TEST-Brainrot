@@ -678,7 +678,7 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
     <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.0.0</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.0.1</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
@@ -1506,12 +1506,14 @@ function ecouterLaPartie() {
         const btnStart = document.getElementById("btn-start-fight");
 
         // 1. Gérer l'arrivée de l'adversaire
-        if (data.status === "ready" || data.player2) {
+        if (data.status === "ready" || data.player2 || data.status === "processing") {
             if (tapis) tapis.style.display = "flex";
             document.getElementById("btn-recherche-match").style.display = "none";
             
             const nomAdversaire = (role === "player1") ? (data.player2Name || "Adversaire") : (data.player1Name || "Adversaire");
-            if (data.status !== "finished") {
+            
+            // On affiche l'info seulement si le combat n'est pas fini ou en cours
+            if (data.status !== "finished" && data.status !== "processing") {
                 battleInfo.innerText = "Adversaire trouvé : " + nomAdversaire + " ! Choisissez une carte.";
             }
         }
@@ -1519,7 +1521,7 @@ function ecouterLaPartie() {
         // 2. Vérifier si l'adversaire a posé une carte
         const opponentCard = (role === "player1") ? data.card2 : data.card1;
         
-        if (opponentCard && opponentSlot && data.status !== "finished") {
+        if (opponentCard && opponentSlot && data.status !== "finished" && data.status !== "processing") {
             opponentSlot.innerHTML = `
                 <div class="card" style="background:linear-gradient(45deg, #1e293b, #334155); border:2px solid #ff4444; height:100%; display:flex; align-items:center; justify-content:center; box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);">
                     <span style="font-size:3rem; filter: drop-shadow(0 0 5px red);">❓</span>
@@ -1529,20 +1531,29 @@ function ecouterLaPartie() {
         // 3. Si les DEUX ont choisi, on montre le bouton
         if (data.card1 && data.card2 && data.status === "ready") {
             battleInfo.innerHTML = "<span style='color:#ffcc00; font-size:1.2rem;'>🔥 LES DEUX JOUEURS SONT PRÊTS ! 🔥</span>";
-            btnStart.style.display = "block";
+            if (btnStart) btnStart.style.display = "block";
         }
 
-        // --- NOUVEAU : SYNC DE LA FIN DU COMBAT ---
-        // Si le statut passe à "finished", cela veut dire que l'autre a cliqué sur "Lancer"
-        if (data.status === "finished") {
-            // Si mon bouton "Lancer" est encore visible, ça veut dire que je n'ai pas encore lancé mon calcul
-            if (btnStart.style.display !== "none") {
-                console.log("L'adversaire a lancé le combat, calcul en cours...");
-                lancerLeCombat(); 
+        // --- NOUVEAU : SYNC DU LANCEMENT (Statut "processing") ---
+        // C'est ici qu'on déclenche le calcul chez les deux joueurs en même temps
+        if (data.status === "processing") {
+            // Si le bouton est encore cliquable, on lance le calcul automatique
+            if (btnStart && !btnStart.disabled) {
+                btnStart.disabled = true; // On bloque tout de suite pour éviter le double clic
+                btnStart.style.display = "none"; // On le cache
+                console.log("Signal reçu : Lancement du calcul du combat...");
+                executerCalculCombat(); 
             }
+        }
+
+        // --- SYNC DE LA FIN DU COMBAT (Optionnel selon ta logique) ---
+        if (data.status === "finished") {
+             // Nettoyage si nécessaire ou message de fin
+             console.log("Le combat est terminé sur Firebase.");
         }
     });
 }
+
 
 
 
@@ -1659,140 +1670,112 @@ function preparerAdversaire() {
 
 
 async function lancerLeCombat() {
-    let p1Power, p2Power, maCarte, carteAdversaire;
     const btn = document.getElementById("btn-start-fight");
+    if (btn.disabled) return;
 
-    // --- 1. RÉCUPÉRATION DES DONNÉES (MULTI OU SOLO) ---
-    if (currentRoomId) {
-        // MODE MULTIJOUEUR
-        const roomRef = db.collection("battles").doc(currentRoomId);
-        const doc = await roomRef.get();
-        const data = doc.data();
-
-        if (!data.card1 || !data.card2) {
-            alert("L'adversaire n'a pas encore choisi sa carte !");
-            return;
-        }
-
-        // On définit qui est "Moi" et qui est "L'autre"
-        maCarte = (role === "player1") ? data.card1 : data.card2;
-        carteAdversaire = (role === "player1") ? data.card2 : data.card1;
-        
-        p1Power = getPower(maCarte);
-        p2Power = getPower(carteAdversaire);
-
-        // RÉVÉLATION VISUELLE de la carte adverse (enlève le "?")
-        const opponentSlot = document.getElementById("opponent-slot");
-        opponentSlot.innerHTML = `
-            <div class="card ${carteAdversaire.rarity ? carteAdversaire.rarity.toLowerCase() : ''}" style="width:100%; height:100%; margin:0; border:none;">
-                <div class="card-inner" style="height:100%; padding: 5px;">
-                    <img src="${carteAdversaire.image}" class="card-img" style="max-height: 70%; object-fit: contain;">
-                    <div class="card-name" style="font-size: 0.7rem; margin-top: 2px;">${carteAdversaire.name}</div>
-                    <div class="card-power" style="font-size: 0.8rem; color:#ffcc00;">${p2Power} ATK</div>
-                </div>
-            </div>
-        `;
-    } else {
-        // MODE SOLO (IA)
+    // --- MODE SOLO (IA) ---
+    if (!currentRoomId) {
         if (!selectedPlayerCard || !currentOpponentCard) {
             alert("Il manque une carte pour combattre !");
             return;
         }
+        executerCalculCombat(); 
+        return;
+    }
+
+    // --- MODE MULTIJOUEUR ---
+    const roomRef = db.collection("battles").doc(currentRoomId);
+    const doc = await roomRef.get();
+    const data = doc.data();
+
+    if (!data.card1 || !data.card2) {
+        alert("L'adversaire n'a pas encore choisi sa carte !");
+        return;
+    }
+
+    // On passe le statut à "processing" : c'est le signal pour les deux joueurs
+    btn.disabled = true;
+    btn.innerText = "Lancement...";
+    await roomRef.update({ status: "processing" }); 
+}
+
+
+
+async function executerCalculCombat() {
+    let p1Power, p2Power, maCarte, carteAdversaire;
+    const btn = document.getElementById("btn-start-fight");
+
+    // --- 1. RÉCUPÉRATION ---
+    if (currentRoomId) {
+        const doc = await db.collection("battles").doc(currentRoomId).get();
+        const data = doc.data();
+        maCarte = (role === "player1") ? data.card1 : data.card2;
+        carteAdversaire = (role === "player1") ? data.card2 : data.card1;
+        
+        // Révélation visuelle de l'adversaire
+        const opponentSlot = document.getElementById("opponent-slot");
+        opponentSlot.innerHTML = `
+            <div class="card ${carteAdversaire.rarity?.toLowerCase() || ''}" style="width:100%; height:100%; border:none;">
+                <div class="card-inner" style="padding: 5px;">
+                    <img src="${carteAdversaire.image}" class="card-img" style="max-height: 70%;">
+                    <div class="card-name" style="font-size: 0.7rem;">${carteAdversaire.name}</div>
+                    <div class="card-power" style="font-size: 0.8rem; color:#ffcc00;">${getPower(carteAdversaire)} ATK</div>
+                </div>
+            </div>`;
+    } else {
         maCarte = selectedPlayerCard;
         carteAdversaire = currentOpponentCard;
-        p1Power = getPower(maCarte);
-        p2Power = getPower(carteAdversaire);
     }
+
+    p1Power = getPower(maCarte);
+    p2Power = getPower(carteAdversaire);
 
     // --- 2. SUSPENSE ---
     btn.disabled = true;
     btn.innerText = "Combat en cours...";
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(r => setTimeout(r, 1000));
 
-
-// --- 3. LE VERDICT ---
-
-
-if (btn.disabled && btn.innerText === "Combat en cours...") {
-        // Cette petite vérification empêche la fonction de s'exécuter deux fois
-    }
-
-
-    // Quête : Participation (On l'incrémente peu importe le résultat)
+    // --- 3. LE VERDICT ---
     if (typeof avancerQuete === "function") avancerQuete("fight", 1);
 
     if (p1Power > p2Power) {
-        // --- VICTOIRE (Strictement supérieur) ---
+        // VICTOIRE
         if (typeof avancerQuete === "function") avancerQuete("win_fight", 1);
-        
         dust += 500; 
-        
-        // Logique Doublon / XP
-        const indexDoublon = collection.findIndex(c => c.name === carteAdversaire.name);
-
-        if (indexDoublon !== -1) {
-            if (!collection[indexDoublon].xp) collection[indexDoublon].xp = 1;
-            collection[indexDoublon].xp += 1;
-            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust.\nXP de ${carteAdversaire.name} augmenté ! (Total XP: ${collection[indexDoublon].xp})`);
+        const indexD = collection.findIndex(c => c.name === carteAdversaire.name);
+        if (indexD !== -1) {
+            collection[indexD].xp = (collection[indexD].xp || 1) + 1;
+            alert(`🏆 VICTOIRE !\n\n+500 Dust. XP de ${carteAdversaire.name} augmenté !`);
         } else {
             carteAdversaire.xp = 1;
-            collection.push({...carteAdversaire}); // On push une copie pour éviter les bugs de référence
-            alert(`🏆 VICTOIRE !\n\nTon champion (${p1Power} ATK) a gagné !\n\nTu gagnes +500 Dust et tu captures : ${carteAdversaire.name} !`);
+            collection.push({...carteAdversaire});
+            alert(`🏆 VICTOIRE !\n\n+500 Dust. Tu captures ${carteAdversaire.name} !`);
         }
-
     } else if (p1Power === p2Power) {
-        // --- MATCH NUL (Égalité parfaite) ---
-        // Rien ne bouge : pas de perte de poussière, pas de perte de carte
-        alert(`🤝 MATCH NUL !\n\nLes deux champions ont la même puissance (${p1Power} ATK).\n\nPersonne ne gagne, personne ne perd rien !`);
-
+        // MATCH NUL
+        alert(`🤝 MATCH NUL !\n\nÉgalité parfaite (${p1Power} ATK).\n\nPersonne ne gagne, personne ne perd !`);
     } else {
-        // --- DÉFAITE (Strictement inférieur) ---
+        // DÉFAITE
         dust = Math.max(0, dust - 500);
-        
-        // On retire TA carte de ta collection
-        if (selectedPlayerCardIndex !== -1 && selectedPlayerCardIndex !== null) {
-            collection.splice(selectedPlayerCardIndex, 1); 
-        }
-        
-        alert(`💀 DÉFAITE...\n\nTon champion (${p1Power} ATK) a été battu par l'adversaire (${p2Power} ATK).\n\nTu perds 500 Dust et ta carte ${maCarte.name} est détruite.`);
+        if (selectedPlayerCardIndex !== -1) collection.splice(selectedPlayerCardIndex, 1);
+        alert(`💀 DÉFAITE...\n\n-500 Dust. Ta carte ${maCarte.name} est détruite.`);
     }
 
-
-// --- 4. MISE À JOUR ET SAUVEGARDE ---
-    
-    // 🛡️ SÉCURITÉ ANTI-DOUBLE : On vérifie si on est déjà en train de finir
-    if (btn.innerText === "Sauvegarde...") return; 
-
+    // --- 4. SAUVEGARDE ---
     refreshDust();
-    
-    if (typeof auth !== 'undefined' && auth.currentUser) {
-        btn.innerText = "Sauvegarde..."; // On change le texte tout de suite pour bloquer les autres appels
-        
-        await saveUserData(auth.currentUser.uid); 
-        
-        if (currentRoomId) {
-            const roomRef = db.collection("battles").doc(currentRoomId);
-            const doc = await roomRef.get();
-            
-            // SEUL celui qui arrive ici en premier change le statut sur Firebase
-            if (doc.exists && doc.data().status !== "finished") {
-                await roomRef.update({ status: "finished" });
-            }
+    if (auth.currentUser) {
+        btn.innerText = "Sauvegarde...";
+        await saveUserData(auth.currentUser.uid);
+        if (currentRoomId && role === "player1") {
+            await db.collection("battles").doc(currentRoomId).update({ status: "finished" });
         }
     }
-
-    // --- 5. RETOUR À L'ÉTAT INITIAL ---
-    // On attend un tout petit peu avant de reset pour laisser les alertes s'afficher
-    await new Promise(resolve => setTimeout(resolve, 500));
-
+    
+    // --- 5. RESET ---
     btn.disabled = false;
     btn.innerText = "🔥 LANCER LE COMBAT ! 🔥";
-    
-    // On ne reset l'arène QUE SI on a fini la sauvegarde
     resetArena();
-    showCollection(); 
-    
-    // Important : on nettoie la variable de salle pour éviter de relancer au prochain snapshot
+    showCollection();
     currentRoomId = null; 
 }
 

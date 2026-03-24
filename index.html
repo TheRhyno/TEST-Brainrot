@@ -1649,7 +1649,13 @@ function ecouterLaPartie() {
         // --- 1. AFFICHAGE DE L'ADVERSAIRE (DÈS QU'IL REJOINT) ---
         if (data.player1 && data.player2) {
             // On détermine qui est l'adversaire par rapport à notre rôle
-            const nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
+            let nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
+            
+            // --- FIX SÉCURITÉ AFFICHAGE ---
+            // Si le nom contient un "@", on ne garde que ce qu'il y a avant pour éviter d'afficher l'email
+            if (nomAdversaire && nomAdversaire.includes("@")) {
+                nomAdversaire = nomAdversaire.split("@")[0];
+            }
             
             if (battleInfo) {
                 battleInfo.innerHTML = `⚔️ Adversaire : <span style="color:#ff4444; font-weight:bold;">${nomAdversaire || "Joueur..."}</span>`;

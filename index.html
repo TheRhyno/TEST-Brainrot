@@ -1422,6 +1422,22 @@ async function rejoindreCeDuel(id) {
     if (!user) return alert("Connecte-toi pour combattre !");
 
     try {
+        // 1. On récupère les données actuelles du salon
+        const roomDoc = await db.collection("battles").doc(id).get();
+        if (!roomDoc.exists) {
+            alert("Ce salon n'existe plus.");
+            return;
+        }
+
+        const roomData = roomDoc.data();
+
+        // 2. SÉCURITÉ : Vérifier si l'utilisateur est le créateur (Player 1)
+        if (roomData.player1 === user.uid) {
+            alert("🚫 Tu ne peux pas rejoindre ton propre salon ! Attends qu'un adversaire arrive.");
+            return; // On arrête tout ici
+        }
+
+        // 3. Si c'est bon, on rejoint la partie
         currentRoomId = id;
         role = "player2";
 
@@ -1433,7 +1449,10 @@ async function rejoindreCeDuel(id) {
 
         fermerLobby();
         ecouterLaPartie();
+        
+        console.log("Duel rejoint avec succès !");
     } catch (e) {
+        console.error("Erreur rejoindreCeDuel:", e);
         alert("Impossible de rejoindre : " + e.message);
     }
 }
@@ -1493,21 +1512,34 @@ async function chercherPartie() {
 
 
 
-let combatEnCours = false; // 🚩 Le verrou magique
+let combatEnCours = false; 
 
 function ecouterLaPartie() {
     if (!currentRoomId) return;
 
     db.collection("battles").doc(currentRoomId).onSnapshot((doc) => {
         const data = doc.data();
-        if (!data || combatEnCours) return; // Si le combat a déjà démarré localement, on ignore le reste
+        if (!data || combatEnCours) return;
 
         const btnStart = document.getElementById("btn-start-fight");
         const opponentSlot = document.getElementById("opponent-slot");
+        const battleInfo = document.getElementById("battle-info");
 
-        // --- DÉTECTION DU SIGNAL DE DÉPART ---
+        // --- 1. AFFICHAGE DE L'ADVERSAIRE (DÈS QU'IL REJOINT) ---
+        if (data.player1 && data.player2) {
+            // On détermine qui est l'adversaire par rapport à notre rôle
+            const nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
+            
+            if (battleInfo) {
+                battleInfo.innerHTML = `⚔️ Adversaire : <span style="color:#ff4444; font-weight:bold;">${nomAdversaire || "Joueur..."}</span>`;
+            }
+        } else if (data.status === "waiting") {
+            if (battleInfo) battleInfo.innerText = "En attente d'un adversaire...";
+        }
+
+        // --- 2. DÉTECTION DU SIGNAL DE DÉPART ---
         if (data.status === "processing") {
-            combatEnCours = true; // On verrouille immédiatement
+            combatEnCours = true; 
             if (btnStart) {
                 btnStart.disabled = true;
                 btnStart.style.display = "none";
@@ -1517,16 +1549,23 @@ function ecouterLaPartie() {
             return; 
         }
 
-        // --- AFFICHAGE CLASSIQUE (AVANT COMBAT) ---
+        // --- 3. SI LES DEUX ONT CHOISI UNE CARTE ---
         if (data.card1 && data.card2 && data.status === "ready") {
-            document.getElementById("battle-info").innerHTML = "<span style='color:#ffcc00;'>🔥 PRÊTS ! 🔥</span>";
+            if (battleInfo) {
+                battleInfo.innerHTML = `<span style="color:#4ade80; font-weight:bold;">🔥 LES DEUX SONT PRÊTS ! 🔥</span>`;
+            }
+            // Seul celui qui a le bouton "Lancer" le voit (Player 1 par exemple)
             if (btnStart) btnStart.style.display = "block";
         }
 
-        // Affichage du "?" pour l'adversaire
+        // Affichage du "?" pour l'adversaire (indique qu'il a choisi sa carte)
         const opponentCard = (role === "player1") ? data.card2 : data.card1;
         if (opponentCard && opponentSlot && data.status === "ready") {
-            opponentSlot.innerHTML = `<div class="card" style="background:#1e293b; border:2px solid #ff4444; height:100%; display:flex; align-items:center; justify-content:center;"><span style="font-size:3rem;">❓</span></div>`;
+            opponentSlot.innerHTML = `
+                <div class="card" style="background:#1e293b; border:2px solid #ff4444; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                    <span style="font-size:3rem;">❓</span>
+                    <span style="font-size:0.7rem; color:#ff4444;">Carte choisie</span>
+                </div>`;
         }
     });
 }

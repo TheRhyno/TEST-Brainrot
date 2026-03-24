@@ -654,7 +654,8 @@ html, body {
 </div>
 
 <div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; display:flex; flex-direction:column; justify-content:center; align-items:center;"> <h2>Connecte-toi pour sauvegarder ta progression</h2>
-    <input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
+    <input type="text" id="reg-username" placeholder="Pseudo" style="margin-bottom:10px; display:block; width:100%; padding:8px; border-radius:5px; border:none;">
+<input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
     <input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
     <div style="margin-top:10px;">
         <button id="loginBtn" style="margin-right:10px;">Connexion</button>
@@ -774,13 +775,44 @@ Ne rate pas tes récompenses !
 
 <h2 style="margin-top: 40px; margin-bottom: 20px;">Mon Profil</h2>
 
-
 <div style="background: #222; padding: 20px; border-radius: 12px; width: 95%; max-width: 400px; border: 1px solid #444; margin-bottom: 20px;">
+    
+    <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Pseudo :</p>
+    <p id="profileName" style="font-weight: bold; font-size: 1.5rem; color: #7c3aed; margin: 5px 0 10px 0;">Chargement...</p>
+
+<div id="editPseudoBox" style="margin-top: 10px; margin-bottom: 20px; display: none; text-align: center;">
+    <input type="text" id="newUsernameInput" placeholder="Nouveau pseudo" style="padding: 10px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; width: 80%; margin-bottom: 12px; outline: none; focus: border-color: #7c3aed;">
+    <br>
+    
+    <button onclick="validerNouveauPseudo()" style="padding: 8px 20px; background: #4ade80; color: #064e3b; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">
+        OK
+    </button>
+
+    <button onclick="annulerModification()" style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+        ✕
+    </button>
+</div>
+
+
+
+<button id="btnEditPseudo" 
+        onclick="document.getElementById('editPseudoBox').style.display='block'; this.style.display='none';" 
+        style="background: none; border: 1px solid #7c3aed; color: #7c3aed; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; margin: 20px auto 40px auto; display: block; width: fit-content;">
+    Modifier mon pseudo
+</button>
+
     <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Email :</p>
-    <p id="userEmail" style="font-weight: bold; margin: 5px 0 15px 0; word-break: break-all;">...</p>
+    <p id="userEmail" style="font-weight: bold; margin: 5px 0 20px 0; word-break: break-all;">...</p>
     
     <p style="margin: 0; color: #aaa; font-size: 0.8rem;">ID Utilisateur :</p>
     <p id="userIdDisplay" style="font-size: 0.7rem; color: #666; word-break: break-all; margin: 5px 0 0 0;">...</p>
+
+
+
+
+
+
+
 
     <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
 
@@ -1097,6 +1129,70 @@ disableSite(false);
 
 
 
+function annulerModification() {
+    // 1. On cache la box d'édition
+    document.getElementById('editPseudoBox').style.display = 'none';
+    
+    // 2. On réaffiche le bouton "Modifier mon pseudo"
+    document.getElementById('btnEditPseudo').style.display = 'block';
+    
+    // 3. Optionnel : On vide l'input pour la prochaine fois
+    document.getElementById('newUsernameInput').value = "";
+}
+
+
+
+
+
+async function validerNouveauPseudo() {
+    const user = auth.currentUser;
+    const nouveauNom = document.getElementById("newUsernameInput").value.trim();
+    const ancienNom = window.userPseudo; // On garde l'ancien pour le supprimer
+
+    if (!user || nouveauNom.length < 3) return alert("Pseudo trop court !");
+    if (nouveauNom === ancienNom) return alert("C'est déjà ton pseudo !");
+
+    try {
+        // 1. On tente de "réserver" le nouveau pseudo dans la liste globale
+        const nameRef = db.collection("usernames").doc(nouveauNom);
+        const nameDoc = await nameRef.get();
+
+        if (nameDoc.exists) {
+            return alert("❌ Ce pseudo est déjà pris !");
+        }
+
+        // 2. Si libre, on l'enregistre (on crée le verrou)
+        await nameRef.set({ uid: user.uid });
+
+        // 3. On met à jour le profil du joueur
+        await db.collection("users").doc(user.uid).update({
+            username: nouveauNom
+        });
+
+        // 4. ON SUPPRIME L'ANCIEN PSEUDO de la liste (pour qu'il redevienne libre)
+        if (ancienNom && ancienNom !== "Anonyme") {
+            await db.collection("usernames").doc(ancienNom).delete();
+        }
+
+        // 5. Mise à jour locale et interface
+        window.userPseudo = nouveauNom;
+        document.getElementById("profileName").innerText = nouveauNom;
+        document.getElementById("editPseudoBox").style.display = "none";
+        document.getElementById("btnEditPseudo").style.display = "block";
+        
+        alert("Pseudo mis à jour ! ✨");
+
+    } catch (e) {
+        console.error(e);
+        alert("Erreur : " + e.message);
+    }
+}
+
+
+
+
+
+
 // --- FONCTIONS DE L'INTERFACE ---
 
 function toggleQuests() {
@@ -1395,9 +1491,26 @@ async function creerNouvellePartie() {
     if (!user) return alert("Tu dois être connecté pour créer un duel !");
 
     try {
+        // --- SÉCURITÉ : VÉRIFIER SI UN SALON EXISTE DÉJÀ ---
+        // On cherche un salon créé par toi (player1) qui est toujours en "waiting"
+        const snapshot = await db.collection("battles")
+            .where("player1", "==", user.uid)
+            .where("status", "==", "waiting")
+            .get();
+
+        if (!snapshot.empty) {
+            alert("⚠️ Tu as déjà un salon en attente ! Attends qu'un adversaire le rejoigne.");
+            fermerLobby();
+            return; // On stoppe la création ici
+        }
+        // --------------------------------------------------
+
+        // UTILISATION DU PSEUDO (On utilise window.userPseudo chargé dans loadUserData)
+        const monPseudo = window.userPseudo || user.email.split('@')[0];
+
         const docRef = await db.collection("battles").add({
             player1: user.uid,
-            player1Name: user.email.split('@')[0],
+            player1Name: monPseudo, // REMPLACÉ : Utilise le vrai pseudo maintenant
             player2: null,
             player2Name: null,
             card1: null,
@@ -1410,12 +1523,20 @@ async function creerNouvellePartie() {
         role = "player1";
         
         fermerLobby();
-        document.getElementById("status-recherche").innerHTML = "<span style='color:#4ade80;'>✅ Salon créé. En attente d'un adversaire...</span>";
+        
+        const statusDiv = document.getElementById("status-recherche");
+        if (statusDiv) {
+            statusDiv.innerHTML = "<span style='color:#4ade80;'>✅ Salon créé. En attente d'un adversaire...</span>";
+        }
+        
         ecouterLaPartie(); 
     } catch (e) {
+        console.error("Erreur création salon:", e);
         alert("Erreur lors de la création : " + e.message);
     }
 }
+
+
 
 async function rejoindreCeDuel(id) {
     const user = auth.currentUser;
@@ -2928,6 +3049,7 @@ auth.onAuthStateChanged(user => {
 loginBtn.onclick = () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
+    
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
             const uid = userCredential.user.uid;
@@ -2937,24 +3059,34 @@ loginBtn.onclick = () => {
             logoutBtn.style.display = "block";
             authError.textContent = "";
         })
-        .catch(err => authError.textContent = err.message);
+        .catch(err => authError.textContent = "Erreur de connexion : " + err.message);
 };
 
 // --- Inscription ---
 signupBtn.onclick = () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
+    // On récupère le pseudo
+    const username = document.getElementById("usernameInput").value.trim();
+
+    // Vérification si le pseudo est rempli
+    if (!username || username.length < 3) {
+        authError.textContent = "Choisis un pseudo d'au moins 3 caractères !";
+        return;
+    }
+
     auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
             const uid = userCredential.user.uid;
 
-            // Crée le document Firestore pour le nouvel utilisateur
+            // Crée le document Firestore avec le PSEUDO
             db.collection("users").doc(uid).set({
+                username: username,      // Enregistrement du pseudo choisi
                 boostersOpened: 0,
                 collection: [],
                 dust: 0
             }).then(() => {
-                console.log("Document utilisateur créé !");
+                console.log("Document utilisateur créé avec pseudo :", username);
                 loadUserData(uid);
                 loadBoosterCounter(uid);
                 authOverlay.style.display = "none";
@@ -2967,6 +3099,8 @@ signupBtn.onclick = () => {
         })
         .catch(err => authError.textContent = err.message);
 };
+
+
 
 // --- Déconnexion ---
 logoutBtn.onclick = () => {
@@ -3016,6 +3150,10 @@ function loadUserData(uid) {
     if (doc.exists) {
       const data = doc.data();
 
+      // --- AJOUT : Récupération du Pseudo ---
+      // On stocke le pseudo dans une variable globale pour l'utiliser dans les salons
+      window.userPseudo = data.username || "Anonyme";
+
       // --- RÉPARATION DES DONNÉES (Fix Level/Exp) ---
       // On parcourt la collection récupérée du serveur
       let rawCollection = data.collection || [];
@@ -3051,6 +3189,10 @@ function loadUserData(uid) {
         profileCardsEl.innerText = `${collection.length} / ${ALL_CARDS.length}`;
       }
 
+      // --- AJOUT : Affichage du Pseudo dans le profil (si l'élément existe) ---
+      const profileNameEl = document.getElementById("profileName");
+      if (profileNameEl) profileNameEl.innerText = window.userPseudo;
+
     } else {
       // Si l'utilisateur n'a pas de document, on le crée
       saveUserData(uid);
@@ -3059,7 +3201,6 @@ function loadUserData(uid) {
     console.error("Erreur lors du chargement des données :", err);
   });
 }
-
 
 
 

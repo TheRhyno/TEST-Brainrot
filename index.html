@@ -1486,13 +1486,14 @@ function fermerLobby() {
     document.getElementById("lobby-overlay").style.display = "none";
 }
 
+
+
 async function creerNouvellePartie() {
     const user = auth.currentUser;
     if (!user) return alert("Tu dois être connecté pour créer un duel !");
 
     try {
         // --- SÉCURITÉ : VÉRIFIER SI UN SALON EXISTE DÉJÀ ---
-        // On cherche un salon créé par toi (player1) qui est toujours en "waiting"
         const snapshot = await db.collection("battles")
             .where("player1", "==", user.uid)
             .where("status", "==", "waiting")
@@ -1501,16 +1502,19 @@ async function creerNouvellePartie() {
         if (!snapshot.empty) {
             alert("⚠️ Tu as déjà un salon en attente ! Attends qu'un adversaire le rejoigne.");
             fermerLobby();
-            return; // On stoppe la création ici
+            return; 
         }
-        // --------------------------------------------------
 
-        // UTILISATION DU PSEUDO (On utilise window.userPseudo chargé dans loadUserData)
+        // --- NOUVEAUTÉ : TIRAGE DES 3 CARTES DÈS LA CRÉATION ---
+        // On génère le tirage fixe pour le créateur (Player 1)
+        genererTirageCombat();
+
+        // UTILISATION DU PSEUDO
         const monPseudo = window.userPseudo || user.email.split('@')[0];
 
         const docRef = await db.collection("battles").add({
             player1: user.uid,
-            player1Name: monPseudo, // REMPLACÉ : Utilise le vrai pseudo maintenant
+            player1Name: monPseudo,
             player2: null,
             player2Name: null,
             card1: null,
@@ -1538,6 +1542,7 @@ async function creerNouvellePartie() {
 
 
 
+
 async function rejoindreCeDuel(id) {
     const user = auth.currentUser;
     if (!user) return alert("Connecte-toi pour combattre !");
@@ -1555,23 +1560,30 @@ async function rejoindreCeDuel(id) {
         // 2. SÉCURITÉ : Vérifier si l'utilisateur est le créateur (Player 1)
         if (roomData.player1 === user.uid) {
             alert("🚫 Tu ne peux pas rejoindre ton propre salon ! Attends qu'un adversaire arrive.");
-            return; // On arrête tout ici
+            return; 
         }
+
+        // --- NOUVEAUTÉ : TIRAGE DES 3 CARTES POUR LE JOUEUR 2 ---
+        // On génère le tirage fixe au moment de rejoindre
+        genererTirageCombat();
 
         // 3. Si c'est bon, on rejoint la partie
         currentRoomId = id;
         role = "player2";
 
+        // Utilisation du pseudo global si disponible, sinon l'email
+        const monPseudo = window.userPseudo || user.email.split('@')[0];
+
         await db.collection("battles").doc(id).update({
             player2: user.uid,
-            player2Name: user.email.split('@')[0],
+            player2Name: monPseudo,
             status: "ready"
         });
 
         fermerLobby();
         ecouterLaPartie();
         
-        console.log("Duel rejoint avec succès !");
+        console.log("Duel rejoint avec succès ! Tirage généré pour le combat.");
     } catch (e) {
         console.error("Erreur rejoindreCeDuel:", e);
         alert("Impossible de rejoindre : " + e.message);
@@ -1649,13 +1661,7 @@ function ecouterLaPartie() {
         // --- 1. AFFICHAGE DE L'ADVERSAIRE (DÈS QU'IL REJOINT) ---
         if (data.player1 && data.player2) {
             // On détermine qui est l'adversaire par rapport à notre rôle
-            let nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
-            
-            // --- FIX SÉCURITÉ AFFICHAGE ---
-            // Si le nom contient un "@", on ne garde que ce qu'il y a avant pour éviter d'afficher l'email
-            if (nomAdversaire && nomAdversaire.includes("@")) {
-                nomAdversaire = nomAdversaire.split("@")[0];
-            }
+            const nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
             
             if (battleInfo) {
                 battleInfo.innerHTML = `⚔️ Adversaire : <span style="color:#ff4444; font-weight:bold;">${nomAdversaire || "Joueur..."}</span>`;
@@ -1711,22 +1717,47 @@ function ouvrirSelectionCombat() {
     const overlay = document.getElementById("selection-combat-overlay");
     selectionList.innerHTML = ""; 
 
-    collection.forEach((card, index) => {
-        const cardDiv = document.createElement("div");
-        // On utilise EXACTEMENT les mêmes classes que ta collection
-        cardDiv.className = `card ${card.rarity ? card.rarity.toLowerCase() : ''}`;
-        cardDiv.style.cursor = "pointer";
+    if (mes3CartesCombat.length === 0) {
+        // Si le tirage n'a pas été fait, on le fait maintenant (sécurité)
+        genererTirageCombat();
+    }
 
-        cardDiv.innerHTML = `
-            <div class="card-inner">
-                <img src="${card.image}" class="card-img">
-                <div class="card-name">${card.name}</div>
-                <div class="card-power">ATK: ${getPower(card)}</div>
-            </div>
-        `;
-        
-        cardDiv.onclick = () => choisirCetteCarte(card, index);
-        selectionList.appendChild(cardDiv);
+    // On affiche les cartes stockées dans mes3CartesCombat
+    mes3CartesCombat.forEach(c => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "card-wrapper";
+        wrapper.style.position = "relative";
+        wrapper.style.cursor = "pointer";
+
+        // --- BADGE DE NIVEAU (Identique collection) ---
+        const levelBadge = document.createElement("div");
+        levelBadge.style.cssText = `position:absolute; top:-5px; right:-5px; background:linear-gradient(135deg,#ffd700,#ffa500); color:#000; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:bold; z-index:5; box-shadow:0 2px 4px rgba(0,0,0,0.3); border:1px solid #fff; display:flex; flex-direction:column; align-items:center;`;
+        levelBadge.innerHTML = `<span>Niv. ${c.level || 1}</span>`;
+        if (c.rarity === "OG") {
+            levelBadge.innerHTML += `<span style="font-size:0.6rem; opacity:0.8; margin-top:-2px;">${c.exp || 0}/2</span>`;
+        }
+        wrapper.appendChild(levelBadge);
+
+        const cardDiv = document.createElement("div");
+        if (c.rarity === "OG") {
+            cardDiv.className = "card";
+            cardDiv.style.cssText = "position:relative; border:none; padding:0; background:none; overflow:hidden;";
+            cardDiv.innerHTML = `<img src="${c.image}" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+        } else {
+            cardDiv.className = "card r-" + c.rarity.replace(/ /g, "-");
+            cardDiv.innerHTML = `
+                <div style="font-size:0.8rem;color:#ccc;margin-bottom:4px;">${c.rarity}</div>
+                <img src="${c.image}" alt="${c.name}" style="width:100%;border-radius:8px;margin-bottom:8px">
+                <strong>${c.name}</strong>
+            `;
+        }
+
+        wrapper.appendChild(cardDiv);
+        wrapper.onclick = () => {
+            choisirCetteCarte(c, c.originalIndex);
+            overlay.style.display = 'none';
+        };
+        selectionList.appendChild(wrapper);
     });
 
     overlay.style.display = "block";
@@ -1734,8 +1765,37 @@ function ouvrirSelectionCombat() {
 
 
 
+
+
+let mes3CartesCombat = [];
+
+function genererTirageCombat() {
+    if (collection.length === 0) {
+        alert("Ta collection est vide, tu ne peux pas combattre !");
+        return;
+    }
+
+    // On vide l'ancien tirage
+    mes3CartesCombat = [];
+
+    let tirage = collection.map((card, index) => ({...card, originalIndex: index}));
+    
+    for (let i = tirage.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tirage[i], tirage[j]] = [tirage[j], tirage[i]];
+    }
+
+    mes3CartesCombat = tirage.slice(0, 3);
+    console.log("🎲 Tirage de combat généré :", mes3CartesCombat);
+}
+
+
+
+
+
+
 async function choisirCetteCarte(card, index) {
-    // --- PARTIE LOGIQUE MULTIJOUEUR (AJOUTÉE) ---
+    // --- PARTIE LOGIQUE MULTIJOUEUR ---
     if (currentRoomId) {
         const updateData = {};
         // On vérifie si on est le joueur 1 ou 2 pour remplir le bon champ sur Firebase
@@ -1748,23 +1808,26 @@ async function choisirCetteCarte(card, index) {
         await db.collection("battles").doc(currentRoomId).update(updateData);
     }
 
-    // --- TON CODE D'ORIGINE (CONSERVÉ) ---
+    // --- MISE À JOUR DES VARIABLES LOCALES ---
     selectedPlayerCard = card;
     selectedPlayerCardIndex = index;
 
     const playerSlot = document.getElementById("player-slot");
     
-    // On vide le slot et on injecte le MÊME design que dans le menu
+    // On applique la rareté pour la bordure (ex: r-Legendary)
+    const rarityClass = `r-${card.rarity.replace(/\s+/g, '-')}`;
+    
+    // On injecte le design SANS l'ATK
     playerSlot.innerHTML = `
-        <div class="card ${card.rarity ? card.rarity.toLowerCase() : ''}" style="width:100%; height:100%; margin:0; border:none; box-shadow: 0 0 10px rgba(124,58,237,0.5);">
-            <div class="card-inner" style="height:100%; padding: 5px;">
-                <img src="${card.image}" class="card-img" style="max-height: 70%; object-fit: contain;">
-                <div class="card-name" style="font-size: 0.7rem; margin-top: 2px;">${card.name}</div>
-                <div class="card-power" style="font-size: 0.8rem; color:#ffcc00;">${getPower(card)} ATK</div>
+        <div class="card ${rarityClass}" style="width:100%; height:100%; margin:0; border:none; box-shadow: 0 0 15px rgba(124,58,237,0.4);">
+            <div class="card-inner" style="height:100%; padding: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <img src="${card.image}" class="card-img" style="max-height: 85%; width: auto; object-fit: contain; border-radius: 5px;">
+                <div class="card-name" style="font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #fff;">${card.name}</div>
             </div>
         </div>
     `;
 
+    // On ferme l'overlay de sélection
     document.getElementById("selection-combat-overlay").style.display = "none";
     
     // On ne lance l'IA que si on n'est pas en mode multijoueur
@@ -2603,16 +2666,16 @@ if (c.rarity === "Mythic") {
                         if (existingCard.level === undefined) existingCard.level = 1;
                         if (existingCard.exp === undefined) existingCard.exp = 0;
 
-// --- DANS openPackSequence (Logique Doublon) ---
+
 const expTable = {
  "Commun": 15, 
 "Rare": 12, 
 "Epic": 10, 
-"Legendary": 8,
-"Mythic": 5, 
-"Brainrot God": 4, 
-"Secret": 3, 
-"OG": 2 
+"Legendary": 7,
+"Mythic": 4, 
+"Brainrot God": 3, 
+"Secret": 2, 
+"OG": 1 
 };
 
 // 1. On ajoute l'EXP
@@ -2801,11 +2864,11 @@ function refreshCollection(cardsToShow) {
         "Commun": 15, 
         "Rare": 12, 
         "Epic": 10, 
-        "Legendary": 8,
-        "Mythic": 5, 
-        "Brainrot God": 4, 
-        "Secret": 3, 
-        "OG": 2
+        "Legendary": 7,
+        "Mythic": 4, 
+        "Brainrot God": 3, 
+        "Secret": 2, 
+        "OG": 1
     };
 
     // --- COMPTEUR cartes obtenues / total ---

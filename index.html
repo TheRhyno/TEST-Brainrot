@@ -1664,71 +1664,99 @@ async function lancerLeCombat() {
 
 
 async function executerCalculCombat() {
-    combatEnCours = true; // Sécurité supplémentaire
+    combatEnCours = true; 
     const btn = document.getElementById("btn-start-fight");
     let p1Power, p2Power, maCarte, carteAdversaire;
 
-    // 1. RÉCUPÉRATION (Directement depuis la base pour être sûr)
-    const doc = await db.collection("battles").doc(currentRoomId).get();
-    const data = doc.data();
-    if (!data) return;
+    // --- 1. RÉCUPÉRATION DES DONNÉES ---
+    if (currentRoomId) {
+        // MODE MULTI
+        const doc = await db.collection("battles").doc(currentRoomId).get();
+        const data = doc.data();
+        if (!data) return;
+        maCarte = (role === "player1") ? data.card1 : data.card2;
+        carteAdversaire = (role === "player1") ? data.card2 : data.card1;
+    } else {
+        // MODE SOLO (IA)
+        maCarte = selectedPlayerCard;
+        carteAdversaire = currentOpponentCard;
+    }
 
-    maCarte = (role === "player1") ? data.card1 : data.card2;
-    carteAdversaire = (role === "player1") ? data.card2 : data.card1;
+    if (!maCarte || !carteAdversaire) return;
+
     p1Power = getPower(maCarte);
     p2Power = getPower(carteAdversaire);
 
     // Révélation visuelle
-    document.getElementById("opponent-slot").innerHTML = `
-        <div class="card ${carteAdversaire.rarity?.toLowerCase()}">
-            <div class="card-inner">
-                <img src="${carteAdversaire.image}" class="card-img">
-                <div class="card-name">${carteAdversaire.name}</div>
-                <div class="card-power">${p2Power} ATK</div>
-            </div>
-        </div>`;
+    const oppSlot = document.getElementById("opponent-slot");
+    if (oppSlot) {
+        oppSlot.innerHTML = `
+            <div class="card ${carteAdversaire.rarity?.toLowerCase()}">
+                <div class="card-inner">
+                    <img src="${carteAdversaire.image}" class="card-img">
+                    <div class="card-name">${carteAdversaire.name}</div>
+                    <div class="card-power">${p2Power} ATK</div>
+                </div>
+            </div>`;
+    }
 
-    // 2. SUSPENSE
+    // --- 2. SUSPENSE ---
     btn.style.display = "block";
     btn.disabled = true;
     btn.innerText = "Calcul du gagnant...";
     await new Promise(r => setTimeout(r, 1500));
 
-    // 3. VERDICT (XP / DUST)
-    const nomAdversaire = carteAdversaire.name.trim().toLowerCase();
+    // --- 3. VERDICT (XP / DUST) ---
+    const nomAdversaireCible = carteAdversaire.name.trim().toLowerCase();
+    
     if (p1Power > p2Power) {
         dust += 500;
-        const indexD = collection.findIndex(c => c.name.trim().toLowerCase() === nomAdversaire);
+        
+        // RECHERCHE DANS LA COLLECTION
+        // On cherche si on possède déjà la carte gagnée
+        const indexD = collection.findIndex(c => c.name.trim().toLowerCase() === nomAdversaireCible);
+
         if (indexD !== -1) {
-            collection[indexD].xp = (parseInt(collection[indexD].xp) || 1) + 1;
-            alert(`🏆 VICTOIRE ! +500 Dust. XP de ${collection[indexD].name} : ${collection[indexD].xp}`);
+            // ON A DÉJÀ LA CARTE : On augmente l'XP
+            // On s'assure que l'XP actuelle est un nombre, sinon on part de 1
+            let xpActuelle = parseInt(collection[indexD].xp) || 1;
+            collection[indexD].xp = xpActuelle + 1;
+            
+            alert(`🏆 VICTOIRE ! +500 Dust.\nTon ${collection[indexD].name} monte en expérience ! (XP: ${collection[indexD].xp})`);
         } else {
-            collection.push({ ...carteAdversaire, xp: 1 });
-            alert(`🏆 VICTOIRE ! +500 Dust. Tu as capturé ${carteAdversaire.name} !`);
+            // NOUVELLE CARTE : On l'ajoute avec 1 XP
+            const nouvelleCarte = { ...carteAdversaire, xp: 1 };
+            collection.push(nouvelleCarte);
+            alert(`🏆 VICTOIRE ! +500 Dust.\nTu as capturé : ${carteAdversaire.name} !`);
         }
     } else if (p1Power < p2Power) {
         dust = Math.max(0, dust - 500);
-        if (selectedPlayerCardIndex !== -1) collection.splice(selectedPlayerCardIndex, 1);
-        alert(`💀 DÉFAITE ! -500 Dust. Ta carte ${maCarte.name} est détruite.`);
+        if (selectedPlayerCardIndex !== -1 && selectedPlayerCardIndex !== null) {
+            collection.splice(selectedPlayerCardIndex, 1);
+        }
+        alert(`💀 DÉFAITE ! -500 Dust.\nTa carte ${maCarte.name} est détruite.`);
     } else {
         alert("🤝 MATCH NUL ! Personne ne perd rien.");
     }
 
-    // 4. SAUVEGARDE LOCALE UNIQUEMENT
+    // --- 4. SAUVEGARDE ET SYNC ---
     refreshDust();
     if (auth.currentUser) {
+        // Crucial : on attend que la sauvegarde soit finie sur Firebase
         await saveUserData(auth.currentUser.uid);
     }
 
-    // 5. RESET FINAL
-    combatEnCours = false; // On libère le verrou pour le prochain match
+    // --- 5. RESET FINAL ---
+    combatEnCours = false; 
     btn.style.display = "none";
-    resetArena();
-    showCollection();
     
-    // On quitte la salle seulement à la toute fin
+    // On rafraîchit l'affichage de la collection pour voir l'XP augmenter
+    if (typeof showCollection === 'function') showCollection();
+    
+    resetArena();
     currentRoomId = null; 
 }
+
 
 
 

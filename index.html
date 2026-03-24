@@ -1694,33 +1694,30 @@ async function executerCalculCombat() {
     btn.innerText = "Calcul du gagnant...";
     await new Promise(r => setTimeout(r, 1500));
 
-    // 3. VERDICT (LOGIQUE IDENTIQUE AUX BOOSTERS)
+    // --- 3. VERDICT (LOGIQUE FRAGMENTS) ---
     if (p1Power > p2Power) {
+        // Gain de base pour la victoire
         dust += 500;
         
-        // Utilisation de la même méthode de recherche que dans ouvrirPack
-        const indexDoublon = collection.findIndex(c => c.name === carteAdversaire.name);
+        // On vérifie si on possède déjà la carte
+        const possèdeDéjà = collection.some(c => c.name === carteAdversaire.name);
 
-        if (indexDoublon !== -1) {
-            // C'EST UN DOUBLON : On augmente l'XP (on initialise à 1 si absent)
-            let xpActuel = parseInt(collection[indexDoublon].xp) || 1;
-            collection[indexDoublon].xp = xpActuel + 1;
-            
-            alert(`🏆 VICTOIRE ! Doublon de ${collection[indexDoublon].name}.\nXP : ${collection[indexDoublon].xp}`);
+        if (possèdeDéjà) {
+            // BONUS DOUBLON : +1000 fragments
+            dust += 1000;
+            alert(`🏆 VICTOIRE ! +500 Dust.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Dust ! (Total: 1500)`);
         } else {
-            // NOUVELLE CARTE : On ajoute la carte avec XP = 1
-            // On fait une copie propre pour garder toutes les propriétés (image, rarity, etc)
-            let nouvelleCarte = { ...carteAdversaire, xp: 1 };
-            collection.push(nouvelleCarte);
-            
-            alert(`🏆 VICTOIRE ! Tu as capturé ${carteAdversaire.name} !`);
+            // NOUVELLE CARTE : On l'ajoute normalement
+            collection.push({ ...carteAdversaire });
+            alert(`🏆 VICTOIRE ! +500 Dust.\nNouveau champion capturé : ${carteAdversaire.name} !`);
         }
     } else if (p1Power < p2Power) {
+        // DÉFAITE
         dust = Math.max(0, dust - 500);
         if (selectedPlayerCardIndex !== -1) collection.splice(selectedPlayerCardIndex, 1);
-        alert(`💀 DÉFAITE ! Ta carte ${maCarte.name} est détruite.`);
+        alert(`💀 DÉFAITE ! -500 Dust. Ta carte ${maCarte.name} est détruite.`);
     } else {
-        alert("🤝 MATCH NUL !");
+        alert("🤝 MATCH NUL ! Personne ne perd rien.");
     }
 
     // 4. SAUVEGARDE
@@ -1733,7 +1730,7 @@ async function executerCalculCombat() {
     combatEnCours = false; 
     btn.style.display = "none";
     resetArena();
-    showCollection(); // Relance l'affichage pour voir les changements
+    showCollection(); 
     currentRoomId = null; 
 }
 
@@ -2566,49 +2563,13 @@ shopSection.style.display = "none";
 combatSection.style.display = "none";
 updateButtons();}
 
-
-
-function showCollection() {
-    // Tes lignes d'origine (inchangées)
-    homeSection.style.display = "none";
-    collectionSection.style.display = "block";
-    allCardsSection.style.display = "none";
-    shopSection.style.display = "none";
-    combatSection.style.display = "none";
-    updateButtons();
-
-    // AJOUT : Rafraîchissement visuel de la collection avec l'XP
-    const collectionDiv = document.querySelector("#collectionSection .cards");
-    if (!collectionDiv) return;
-
-    collectionDiv.innerHTML = ""; // On vide pour reconstruire
-    collection.forEach((card, index) => {
-        const cardDiv = document.createElement("div");
-        // On garde tes classes de rareté
-        cardDiv.className = `card ${card.rarity ? card.rarity.toLowerCase() : ''}`;
-        
-        // On injecte le HTML (Assure-toi que les noms de classes correspondent à ton CSS)
-        cardDiv.innerHTML = `
-            <div class="card-inner">
-                <img src="${card.image}" class="card-img">
-                <div class="card-name">${card.name}</div>
-                <div class="card-power">ATK: ${getPower(card)}</div>
-                <div class="card-xp" style="font-size:0.75rem; color:#fbbf24; font-weight:bold; margin-top:5px;">
-                    XP: ${card.xp || 1}
-                </div>
-            </div>
-        `;
-        
-        // On garde la possibilité de cliquer pour agrandir si tu as cette fonction
-        cardDiv.onclick = () => {
-            if (typeof showBigCard === "function") showBigCard(card, index);
-        };
-        
-        collectionDiv.appendChild(cardDiv);
-    });
-}
-
-
+function showCollection(){ 
+homeSection.style.display="none"; 
+collectionSection.style.display="block"; 
+allCardsSection.style.display="none"; 
+shopSection.style.display = "none"; 
+combatSection.style.display = "none";
+updateButtons();}
 
 function showAllCards() {
   // Affiche uniquement la section "Chances d'obtention"

@@ -764,6 +764,10 @@ Ne rate pas tes récompenses !
 
 
 
+<div id="streak-container" style="position: fixed; top: 54px; left: 10px; z-index: 1000; background: rgba(124, 58, 237, 0.2); padding: 5px 12px; border-radius: 20px; border: 1px solid #7c3aed; backdrop-filter: blur(4px); white-space: nowrap;">
+    <span id="streak-info" style="font-size: 0.8rem; font-weight: bold;">🔥 Streak: 0 jour</span>
+</div>
+
 
 
 <button id="accountBtn" style="display:none; position: fixed; top: 10px; right: 10px; z-index: 1000; width: 34px; height: 34px; padding: 0; background: rgba(30, 41, 59, 0.8); color: white; border-radius: 8px; border: 1px solid #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; backdrop-filter: blur(4px);"> 
@@ -1124,6 +1128,121 @@ disableSite(false);
 
 
 
+
+
+
+
+let userStreakCount = 0;
+let userLastOpenDate = null;
+
+
+function refreshStreakUI() {
+    const streakInfo = document.getElementById("streak-info");
+    if (!streakInfo) return;
+    
+    const currentStreak = parseInt(localStorage.getItem("streakCount")) || 0;
+    const lastDate = localStorage.getItem("lastOpenDate");
+    
+    // Vérification : si on a raté plus de 24h, on reset visuellement
+    if (lastDate) {
+        const now = new Date();
+        const lastDateObj = new Date(lastDate);
+        const diffDays = Math.floor((now - lastDateObj) / (1000 * 60 * 60 * 24));
+        if (diffDays > 1) {
+            localStorage.setItem("streakCount", 0);
+            streakInfo.innerText = `🔥 Streak: 0`;
+            return;
+        }
+    }
+    
+    streakInfo.innerText = `🔥 Streak: ${currentStreak}`;
+}
+
+// Appeler au chargement de la page
+window.addEventListener('load', refreshStreakUI);
+
+
+
+
+
+
+
+function initStreakDisplay() {
+    const streakInfo = document.getElementById("streak-info");
+    if (!streakInfo) return;
+
+    // On récupère les infos sauvegardées
+    let currentStreak = parseInt(localStorage.getItem("streakCount")) || 0;
+    let lastDate = localStorage.getItem("lastOpenDate");
+
+    if (lastDate) {
+        const now = new Date();
+        const lastDateObj = new Date(lastDate);
+        const diffTime = now - lastDateObj;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        // Si le joueur a raté plus d'un jour (24h+), la streak retombe à 0
+        if (diffDays > 1) {
+            currentStreak = 0;
+            localStorage.setItem("streakCount", 0);
+        }
+    }
+
+    // Mise à jour de l'affichage
+    streakInfo.innerText = `🔥 Streak: ${currentStreak} ${currentStreak > 1 ? 'jours' : 'jour'}`;
+}
+
+// APPEL DE LA FONCTION AU CHARGEMENT
+initStreakDisplay();
+
+
+
+
+
+function updateStreak() {
+    const now = new Date();
+    // On récupère la date au format "2024-05-20" pour ignorer l'heure
+    const todayStr = now.toISOString().split('T')[0];
+    
+    // On récupère les données sauvegardées (ou valeurs par défaut)
+    let lastDate = localStorage.getItem("lastOpenDate"); // ou depuis ton objet user
+    let currentStreak = parseInt(localStorage.getItem("streakCount")) || 0;
+
+    if (!lastDate) {
+        // Première fois que le joueur ouvre un booster
+        currentStreak = 1;
+    } else {
+        const lastDateObj = new Date(lastDate);
+        const diffTime = now - lastDateObj;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+            // Déjà ouvert aujourd'hui, on ne change rien à la streak
+            return currentStreak;
+        } else if (diffDays === 1) {
+            // C'était hier ! La streak continue
+            currentStreak += 1;
+        } else {
+            // Plus de 24h d'écart... Streak brisée
+            currentStreak = 1; 
+        }
+    }
+
+    // On sauvegarde les nouvelles valeurs
+    localStorage.setItem("lastOpenDate", todayStr);
+    localStorage.setItem("streakCount", currentStreak);
+    
+    // Optionnel : Sauvegarde sur Firebase si l'user est connecté
+    const user = auth.currentUser;
+    if (user) {
+        db.collection("users").doc(user.uid).set({
+            streakCount: currentStreak,
+            lastOpenDate: todayStr
+        }, { merge: true });
+    }
+
+    return currentStreak;
+}
 
 
 
@@ -2206,7 +2325,7 @@ function pickBoostedCard(tier) {
     return ALL_CARDS[0];
 }
 
-// --- 2. Fonction d'ouverture (Ton bloc propre) ---
+// --- 2. Fonction d'ouverture 
 function openSpecialPack(type) {
     let pack = [];
 
@@ -2224,18 +2343,41 @@ function openSpecialPack(type) {
         pack.push(pickSpecificRarity("OG"));
     }
 
+    // --- AJOUT : Tableau des paliers pour l'EXP ---
+    const expTable = {
+        "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7,
+        "Mythic": 4, "Brainrot God": 3, "Secret": 2, "OG": 1 
+    };
+
     pack.forEach(c => {
-        const exists = collection.some(card => card.name === c.name);
-        if (!exists) {
+        // On cherche la carte précise dans la collection pour modifier son EXP
+        const cardInCollection = collection.find(card => card.name === c.name);
+
+        if (!cardInCollection) {
+            // --- TON CODE ORIGINE (Nouvelle carte) ---
             c.isNew = true;
+            c.exp = 0;      // Ajout de l'exp par défaut
+            c.level = 1;    // Ajout du niveau par défaut
             collection.push({ ...c });
         } else {
+            // --- TON CODE ORIGINE (Doublon) ---
             c.isNew = false;
             const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 1000 };
             dust += (dustValues[c.rarity] || 1);
+
+            // --- AJOUT : LOGIQUE EXP/NIVEAU ---
+            cardInCollection.exp = (cardInCollection.exp || 0) + 1;
+            const expNeeded = expTable[cardInCollection.rarity] || 10;
+
+            if (cardInCollection.exp >= expNeeded) {
+                cardInCollection.level = (cardInCollection.level || 1) + 1;
+                cardInCollection.exp = 0; // Reset l'exp pour le prochain niveau
+                console.log(`Niveau supérieur pour ${cardInCollection.name} !`);
+            }
         }
     });
 
+    // --- TON CODE ORIGINE (Sauvegardes) ---
     save("collection", collection);
     save("dust", dust);
     refreshDust();
@@ -2249,6 +2391,7 @@ function openSpecialPack(type) {
     currentCardIndex = 0;
     showBigCard();
 }
+
 
 function pickSpecificRarity(rarityName) {
     const possible = ALL_CARDS.filter(c => c.rarity === rarityName);
@@ -2607,19 +2750,50 @@ function openPackSequence() {
      </div>`
     ).join("");
 
-    // On attache les événements immédiatement après avoir créé le HTML
     document.querySelectorAll(".booster").forEach(b => {
         b.onmouseenter = () => b.style.transform = "scale(1.08)";
         b.onmouseleave = () => b.style.transform = "scale(1)";
 
         b.onclick = async () => {
-            // Sécurité anti-spam : on vérifie le verrou global
             if (isAnyBoosterOpening) return; 
             isAnyBoosterOpening = true;
 
-
             if (b.classList.contains("booster-opening")) return;
             b.classList.add("booster-opening");
+
+            // --- LOGIQUE DE STREAK SYNCHRONISÉE SERVEUR ---
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            // On utilise les variables globales que loadUserData a récupéré du serveur
+            // Si elles n'existent pas encore, on se rabat sur le local (sécurité)
+            let lastDate = window.serverLastDate || localStorage.getItem("lastOpenDate");
+            let currentStreak = window.serverStreak !== undefined ? window.serverStreak : (parseInt(localStorage.getItem("streakCount")) || 0);
+
+            if (!lastDate) {
+                currentStreak = 1;
+            } else if (lastDate !== todayStr) { 
+                // On ne calcule que si c'est un nouveau jour par rapport au serveur
+                const lastDateObj = new Date(lastDate);
+                const diffTime = now - lastDateObj;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                    currentStreak += 1; // +1 car c'est le jour suivant
+                } else if (diffDays > 1) {
+                    currentStreak = 1;  // Reset car on a sauté un jour
+                }
+            }
+            
+            // Mise à jour des références pour le prochain clic sans recharger
+            window.serverLastDate = todayStr;
+            window.serverStreak = currentStreak;
+            localStorage.setItem("lastOpenDate", todayStr);
+            localStorage.setItem("streakCount", currentStreak);
+
+            // --- MISE À JOUR VISUELLE ---
+            const streakInfo = document.getElementById("streak-info");
+            if (streakInfo) streakInfo.innerText = `🔥 Streak: ${currentStreak}`;
 
             const flash = document.createElement("div");
             flash.className = "flash-effect";
@@ -2629,77 +2803,48 @@ function openPackSequence() {
             setTimeout(() => {
                 chooseArea.style.display = "none";
 
-                // --- TIRAGE ---
                 currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
 
-avancerQuete("open", 1);
+                if (typeof avancerQuete === "function") avancerQuete("open", 1);
 
-                // --- LOGIQUE DE NIVEAUX ET EXP ---
                 currentPack.forEach(c => {
-
-
-
-if (c.rarity === "Rare") {
-                avancerQuete("rare", 1);
-            }
-
-if (c.rarity === "Mythic") {
-                avancerQuete("mythic", 1);
-            }
-
-
+                    if (typeof avancerQuete === "function") {
+                        if (c.rarity === "Rare") avancerQuete("rare", 1);
+                        if (c.rarity === "Mythic") avancerQuete("mythic", 1);
+                    }
 
                     const existingCard = collection.find(card => card.name === c.name);
                     
                     if (!existingCard) {
-                        // NOUVELLE CARTE
                         c.isNew = true;
                         c.level = 1;
                         c.exp = 0;
                         collection.push({ ...c });
                     } else {
-                        // DOUBLON : On augmente l'EXP
                         c.isNew = false;
-           avancerQuete("duplicate", 1);
+                        if (typeof avancerQuete === "function") avancerQuete("duplicate", 1);
                         
-                        // Initialisation si les propriétés n'existent pas encore
                         if (existingCard.level === undefined) existingCard.level = 1;
                         if (existingCard.exp === undefined) existingCard.exp = 0;
 
+                        const expTable = {
+                            "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7,
+                            "Mythic": 4, "Brainrot God": 3, "Secret": 2, "OG": 1 
+                        };
 
-const expTable = {
- "Commun": 15, 
-"Rare": 12, 
-"Epic": 10, 
-"Legendary": 7,
-"Mythic": 4, 
-"Brainrot God": 3, 
-"Secret": 2, 
-"OG": 1 
-};
+                        existingCard.exp = (existingCard.exp || 0) + 1;
+                        let needed = expTable[existingCard.rarity] || 10;
 
-// 1. On ajoute l'EXP
-existingCard.exp = (existingCard.exp || 0) + 1;
-if (!existingCard.level) existingCard.level = 1;
+                        while (existingCard.exp >= needed) {
+                            existingCard.exp -= needed;
+                            existingCard.level += 1;
+                            console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
 
-// 2. On récupère le palier selon la rareté
-let needed = expTable[existingCard.rarity] || 10;
+                            if (existingCard.level === 5 && typeof avancerQuete === "function") {
+                                avancerQuete("lvlup", 1);
+                            }
+                        }
 
-// 3. Boucle de Level Up : tant qu'on a assez d'EXP, on monte de niveau
-while (existingCard.exp >= needed) {
-    existingCard.exp -= needed; // On consomme l'EXP
-    existingCard.level += 1;    // On monte de niveau
-    console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
-
-if (existingCard.level === 5) {
-        avancerQuete("lvlup", 1);
-    }
-}
-
-
-
-
-                        // Gain de fragments (Dust)
                         const dustValues = {
                             "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20,
                             "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 10000
@@ -2708,17 +2853,17 @@ if (existingCard.level === 5) {
                     }
                 });
 
-                // Sauvegardes locales
                 save("collection", collection);
                 save("dust", dust);
                 refreshDust();
 
-                // --- FIREBASE ET COMPTEURS ---
                 const user = firebase.auth().currentUser;
                 if (user) {
                     db.collection("users").doc(user.uid).set({
                         collection: collection,
                         dust: dust,
+                        streakCount: currentStreak,
+                        lastOpenDate: todayStr,
                         boostersOpened: firebase.firestore.FieldValue.increment(1)
                     }, { merge: true })
                     .then(() => {
@@ -2730,6 +2875,8 @@ if (existingCard.level === 5) {
                         if (document.getElementById("profileBoosters")) document.getElementById("profileBoosters").innerText = (parseInt(document.getElementById("profileBoosters").innerText) || 0) + 1;
                         if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
                         if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
+                        
+                        if (streakInfo) streakInfo.innerText = `🔥 Streak: ${currentStreak}`;
                     })
                     .catch(err => {
                         console.error("Erreur Firebase:", err);
@@ -2740,14 +2887,13 @@ if (existingCard.level === 5) {
                 currentCardIndex = 0;
                 showBigCard();
                 b.classList.remove("booster-opening");
-                
-                // On libère le verrou après l'ouverture
                 isAnyBoosterOpening = false; 
 
-            }, 500); // Fin du setTimeout d'ouverture
-        }; // Fin du b.onclick
-    }); // Fin du forEach
-} // Fin de la fonction openPackSequence
+            }, 500);
+        };
+    });
+}
+
 
 
 // Liaison du bouton principal
@@ -3220,24 +3366,31 @@ function loadUserData(uid) {
       const data = doc.data();
 
       // --- AJOUT : Récupération du Pseudo ---
-      // On stocke le pseudo dans une variable globale pour l'utiliser dans les salons
       window.userPseudo = data.username || "Anonyme";
 
       // --- RÉPARATION DES DONNÉES (Fix Level/Exp) ---
-      // On parcourt la collection récupérée du serveur
       let rawCollection = data.collection || [];
       collection = rawCollection.map(card => {
         return {
           ...card,
-          // Si level n'existe pas ou est null, on met 1
           level: (card.level !== undefined && card.level !== null) ? card.level : 1,
-          // Si exp n'existe pas ou est null, on met 0
           exp: (card.exp !== undefined && card.exp !== null) ? card.exp : 0
         };
       });
 
       dust = data.dust || 0;
       daily = data.daily || { date: null, opened: 0 };
+
+      // --- AJOUT : RÉCUPÉRATION DE LA STREAK (Firebase uniquement) ---
+      // On stocke dans des variables globales pour que openPackSequence puisse les utiliser
+      window.serverStreak = data.streakCount || 0;
+      window.serverLastDate = data.lastOpenDate || null;
+      
+      // On met à jour l'affichage immédiatement sous l'icône son
+      const streakInfo = document.getElementById("streak-info");
+      if (streakInfo) {
+          streakInfo.innerText = `${window.serverStreak} 🔥`;
+      }
 
       // Sauvegarde locale pour synchroniser
       save("collection", collection);
@@ -3258,7 +3411,7 @@ function loadUserData(uid) {
         profileCardsEl.innerText = `${collection.length} / ${ALL_CARDS.length}`;
       }
 
-      // --- AJOUT : Affichage du Pseudo dans le profil (si l'élément existe) ---
+      // --- AJOUT : Affichage du Pseudo dans le profil ---
       const profileNameEl = document.getElementById("profileName");
       if (profileNameEl) profileNameEl.innerText = window.userPseudo;
 
@@ -3270,7 +3423,6 @@ function loadUserData(uid) {
     console.error("Erreur lors du chargement des données :", err);
   });
 }
-
 
 
 

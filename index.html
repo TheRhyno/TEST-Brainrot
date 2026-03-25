@@ -765,7 +765,7 @@ Ne rate pas tes récompenses !
 
 
 <div id="streak-container" style="position: fixed; top: 54px; left: 10px; z-index: 1000; background: rgba(124, 58, 237, 0.2); padding: 5px 12px; border-radius: 20px; border: 1px solid #7c3aed; backdrop-filter: blur(4px); white-space: nowrap;">
-    <span id="streak-info" style="font-size: 0.8rem; font-weight: bold;">🔥 Streak: 0 jour</span>
+    <span id="streak-info" style="font-size: 0.8rem; font-weight: bold;">0 jour 🔥</span>
 </div>
 
 
@@ -1150,12 +1150,12 @@ function refreshStreakUI() {
         const diffDays = Math.floor((now - lastDateObj) / (1000 * 60 * 60 * 24));
         if (diffDays > 1) {
             localStorage.setItem("streakCount", 0);
-            streakInfo.innerText = `🔥 Streak: 0`;
+            streakInfo.innerText = `0 🔥`;
             return;
         }
     }
     
-    streakInfo.innerText = `🔥 Streak: ${currentStreak}`;
+    streakInfo.innerText = `${currentStreak} 🔥`;
 }
 
 // Appeler au chargement de la page
@@ -1189,7 +1189,7 @@ function initStreakDisplay() {
     }
 
     // Mise à jour de l'affichage
-    streakInfo.innerText = `🔥 Streak: ${currentStreak} ${currentStreak > 1 ? 'jours' : 'jour'}`;
+    streakInfo.innerText = `${currentStreak} ${currentStreak > 1 ? 'jours' : 'jour'} 🔥`;
 }
 
 // APPEL DE LA FONCTION AU CHARGEMENT
@@ -2793,7 +2793,7 @@ function openPackSequence() {
 
             // --- MISE À JOUR VISUELLE ---
             const streakInfo = document.getElementById("streak-info");
-            if (streakInfo) streakInfo.innerText = `🔥 Streak: ${currentStreak}`;
+            if (streakInfo) streakInfo.innerText = `${currentStreak} 🔥`;
 
             const flash = document.createElement("div");
             flash.className = "flash-effect";
@@ -2876,7 +2876,7 @@ function openPackSequence() {
                         if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
                         if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
                         
-                        if (streakInfo) streakInfo.innerText = `🔥 Streak: ${currentStreak}`;
+                        if (streakInfo) streakInfo.innerText = `${currentStreak} 🔥`;
                     })
                     .catch(err => {
                         console.error("Erreur Firebase:", err);

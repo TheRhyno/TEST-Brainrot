@@ -683,6 +683,13 @@ html, body {
         
         <div style="text-align:left; color:#e8eef7;">
             
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    👤 <b>Profil</b> Choisis ton Pseudo en le modifiant dans le Profil ! <br>
+            </div>
+
+
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
                     💎 <b>Boutique :</b> Un compte à rebours pour la nouvelle boutique a été ajouté ! <br>
@@ -705,13 +712,6 @@ Ne rate pas tes récompenses !
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
                     🔜 <b>À venir :</b> Les cartes Brainrot God et Secret seront bientôt disponibles !
-                </p>
-            </div>
-
-
-            <div style="margin-bottom: 30px; opacity: 0.8; font-size: 0.9rem;">
-                <p style="margin: 0;">
-                    🛠️ Résolution des problèmes de synchronisation de la boutique entre les joueurs.
                 </p>
             </div>
 
@@ -1220,11 +1220,14 @@ function toggleQuests() {
 // --- CONFIGURATION DES QUÊTES ---
 const TOUTES_LES_QUETES = [
     { id: 1, desc: "Ouvrir 50 boosters", cible: 50, recompense: 500, type: "open" },
-    { id: 2, desc: "Obtenir une carte Rare", cible: 1, recompense: 30, type: "rare" },
+    { id: 2, desc: "Obtenir une carte Rare", cible: 1, recompense: 100, type: "rare" },
     { id: 3, desc: "Obtenir 5 doublons", cible: 5, recompense: 100, type: "duplicate" },
-    { id: 4, desc: "Se connecter", cible: 1, recompense: 10, type: "login" },
-    { id: 5, desc: "Obtenir une carte Mythic", cible: 1, recompense: 500, type: "mythic" },
+    { id: 4, desc: "Se connecter", cible: 1, recompense: 30, type: "login" },
+    { id: 5, desc: "Obtenir une carte Mythic", cible: 1, recompense: 700, type: "mythic" },
     { id: 6, desc: "Atteindre le Niveau 5 sur une carte", cible: 5, recompense: 700, type: "lvlup" },
+    { id: 7, desc: "Faire 3 combats", cible: 3, recompense: 600, type: "combat" },
+    { id: 8, desc: "Gagner 2 combats", cible: 2, recompense: 700, type: "win_combat" },
+    { id: 9, desc: "Acheter un booster dans la boutique", cible: 1, recompense: 1000, type: "shop_booster" },
 ];
 
 // Variable globale pour stocker les quêtes en cours
@@ -1884,6 +1887,12 @@ async function lancerLeCombat() {
     btn.disabled = true;
     btn.innerText = "Envoi du signal...";
 
+    // --- AJOUT QUÊTE ---
+    if (typeof progresserQuete === "function") {
+        progresserQuete("combat", 1);
+    }
+    // -------------------
+
     // On envoie juste le statut "processing"
     // L'écouteur (onSnapshot) recevra l'info et lancera executerCalculCombat() pour TOUT LE MONDE
     await roomRef.update({ status: "processing" });
@@ -1923,8 +1932,14 @@ async function executerCalculCombat() {
     btn.innerText = "Calcul du gagnant...";
     await new Promise(r => setTimeout(r, 1500));
 
-    // --- 3. VERDICT (LOGIQUE FRAGMENTS) ---
+    // --- 3. VERDICT (LOGIQUE FRAGMENTS ET QUÊTES) ---
     if (p1Power > p2Power) {
+        // --- AJOUT QUÊTE VICTOIRE ---
+        if (typeof progresserQuete === "function") {
+            progresserQuete("win_combat", 1);
+        }
+        // ----------------------------
+
         // Gain de base pour la victoire
         dust += 500;
         
@@ -1962,8 +1977,6 @@ async function executerCalculCombat() {
     showCollection(); 
     currentRoomId = null; 
 }
-
-
 
 
 
@@ -2210,6 +2223,11 @@ function pickBoostedCard(tier) {
 function openSpecialPack(type) {
     let pack = [];
 
+    // --- AJOUT : Progression Quête (Achat Booster Spécial) ---
+    if (typeof progresserQuete === "function") {
+        progresserQuete("shop_booster", 1);
+    }
+
     if (type === "gold") {
         pack.push(pickBoostedCard("gold"));
         pack.push(pickBoostedCard("gold"));
@@ -2231,6 +2249,12 @@ function openSpecialPack(type) {
     };
 
     pack.forEach(c => {
+        // --- AJOUT : Progression Quêtes de Rareté (Rare / Mythic) ---
+        if (typeof progresserQuete === "function") {
+            if (c.rarity === "Rare") progresserQuete("rare", 1);
+            if (c.rarity === "Mythic") progresserQuete("mythic", 1);
+        }
+
         // On cherche la carte précise dans la collection pour modifier son EXP
         const cardInCollection = collection.find(card => card.name === c.name);
 
@@ -2241,6 +2265,11 @@ function openSpecialPack(type) {
             c.level = 1;    // Ajout du niveau par défaut
             collection.push({ ...c });
         } else {
+            // --- AJOUT : Progression Quête (Doublons) ---
+            if (typeof progresserQuete === "function") {
+                progresserQuete("duplicate", 1);
+            }
+
             // --- TON CODE ORIGINE (Doublon) ---
             c.isNew = false;
             const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 1000 };
@@ -2266,12 +2295,19 @@ function openSpecialPack(type) {
     const user = firebase.auth().currentUser;
     if (user) {
         db.collection("users").doc(user.uid).set({ collection, dust }, { merge: true });
+        
+        // --- AJOUT : Progression Quête (Total Dust) ---
+        if (typeof progresserQuete === "function") {
+            progresserQuete("dust_total", dust);
+        }
     }
 
     currentPack = pack;
     currentCardIndex = 0;
     showBigCard();
 }
+
+
 
 
 function pickSpecificRarity(rarityName) {

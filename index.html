@@ -1003,7 +1003,10 @@ Ne rate pas tes récompenses !
         <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Collection</p>
     </div>
 
-
+<div>
+    <p style="margin: 0; color: #ff9f43; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileStreak">0</p>
+    <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Streak</p>
+</div>
 
 
 </div>
@@ -4203,6 +4206,10 @@ const userIdText = document.getElementById("userIdDisplay");
 // Ouvrir la page compte
 if (accountBtn) {
     accountBtn.onclick = () => {
+
+document.getElementById("profileCards").innerText = collection.length + " / " + ALL_CARDS.length;
+document.getElementById("profileStreak").innerText = (typeof streakCount !== 'undefined') ? streakCount : 0;
+
         // On cache les sections du jeu
         homeSection.style.display = "none";
         collectionSection.style.display = "none";

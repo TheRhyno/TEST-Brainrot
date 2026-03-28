@@ -806,8 +806,8 @@ html, body {
 
 
 
-<div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
-    <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);">
+<div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; display:flex; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
+<div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
         <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.1.0</h2>
         
@@ -1262,6 +1262,7 @@ function blockInput(e) {
 
 // Lancement
 disableSite(false);
+
 
 
 
@@ -3402,16 +3403,17 @@ updateStreak();
                 // --- FIREBASE ET COMPTEURS ---
                 const user = firebase.auth().currentUser;
                 if (user) {
-                    db.collection("users").doc(user.uid).set({
-                        collection: collection,
-                        dust: dust,
-                        boostersOpened: firebase.firestore.FieldValue.increment(1),
-
-streakCount: streakCount,
-        lastOpenDate: lastOpenDate
-
-
-                    }, { merge: true })
+db.collection("users").doc(user.uid).set({
+    collection: collection,
+    dust: dust,
+    boostersOpened: firebase.firestore.FieldValue.increment(1),
+    
+    // ON ENVOIE L'HEURE DU SERVEUR (Indispensable pour tes règles)
+    lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
+    
+    // On envoie le nouveau chiffre de la streak
+    streakCount: streakCount 
+}, { merge: true })
                     .then(() => {
                         const counterEl = document.getElementById("boosterCounter");
                         if (counterEl) {
@@ -3914,59 +3916,52 @@ function loadUserData(uid) {
     if (doc.exists) {
       const data = doc.data();
 
-      // --- AJOUT : Récupération du Pseudo ---
-      // On stocke le pseudo dans une variable globale pour l'utiliser dans les salons
+      // --- Pseudo ---
       window.userPseudo = data.username || "Anonyme";
 
-      // --- RÉPARATION DES DONNÉES (Fix Level/Exp) ---
-      // On parcourt la collection récupérée du serveur
+      // --- STREAK & DATE (Adaptation au Timestamp) ---
+      streakCount = data.streakCount || 0;
+      
+      // On convertit le Timestamp Google en format YYYY-MM-DD pour le code local
+      if (data.lastOpenDate && typeof data.lastOpenDate.toDate === 'function') {
+          lastOpenDate = data.lastOpenDate.toDate().toISOString().split('T')[0];
+      } else {
+          lastOpenDate = data.lastOpenDate || ""; // Cas des anciennes données string
+      }
+
+
+      localStorage.setItem("streakCount", streakCount);
+      localStorage.setItem("lastOpenDate", lastOpenDate);
+      
+      if (typeof renderStreak === "function") renderStreak(streakCount);
+
+      // --- LE RESTE DE TA FONCTION (Inchangé) ---
       let rawCollection = data.collection || [];
-      collection = rawCollection.map(card => {
-        return {
+      collection = rawCollection.map(card => ({
           ...card,
-          // Si level n'existe pas ou est null, on met 1
-          level: (card.level !== undefined && card.level !== null) ? card.level : 1,
-          // Si exp n'existe pas ou est null, on met 0
-          exp: (card.exp !== undefined && card.exp !== null) ? card.exp : 0
-        };
-      });
+          level: (card.level ?? 1),
+          exp: (card.exp ?? 0)
+      }));
 
       dust = data.dust || 0;
       daily = data.daily || { date: null, opened: 0 };
 
-      // Sauvegarde locale pour synchroniser
       save("collection", collection);
       save("dust", dust);
       save("daily", daily);
 
-      // Mise à jour de l'interface
       refreshCollection();
       refreshDust();
       refreshLimit();
 
-      // --- Mise à jour du menu Profil ---
-      const profileDustEl = document.getElementById("profileDust");
-      if (profileDustEl) profileDustEl.innerText = dust;
-
-      const profileCardsEl = document.getElementById("profileCards");
-      if (profileCardsEl) {
-        profileCardsEl.innerText = `${collection.length} / ${ALL_CARDS.length}`;
-      }
-
-      // --- AJOUT : Affichage du Pseudo dans le profil (si l'élément existe) ---
-      const profileNameEl = document.getElementById("profileName");
-      if (profileNameEl) profileNameEl.innerText = window.userPseudo;
+      if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
+      if (document.getElementById("profileName")) document.getElementById("profileName").innerText = window.userPseudo;
 
     } else {
-      // Si l'utilisateur n'a pas de document, on le crée
       saveUserData(uid);
     }
-  }).catch(err => {
-    console.error("Erreur lors du chargement des données :", err);
-  });
+  }).catch(err => console.error("❌ Erreur chargement :", err));
 }
-
-
 
 
 

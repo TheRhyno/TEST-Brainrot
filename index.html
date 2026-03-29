@@ -1357,20 +1357,17 @@ function toggleXPBar() {
 }
 
 async function ajouterXP(montant) {
-    console.log("🚀 Début ajouterXP : +" + montant + " XP demandés.");
     
     let niveauAvant = calculerNiveau(xp);
     xp += montant;
     
     // 1. Sauvegarde Locale
     localStorage.setItem("xp", xp); 
-    console.log("💾 LocalStorage mis à jour. Nouvelle XP totale :", xp);
     
     // 2. SAUVEGARDE SUR FIREBASE
     const user = auth.currentUser;
     
     if (user) {
-        console.log("📡 Tentative d'envoi à Firebase pour l'utilisateur :", user.uid);
         try {
             // On calcule le niveau actuel pour l'envoyer aussi (plus propre pour ta base)
             let niveauActuel = calculerNiveau(xp);
@@ -1381,7 +1378,6 @@ async function ajouterXP(montant) {
                 dust: dust 
             }, { merge: true });
 
-            console.log("✅ SUCCÈS : Données synchronisées sur le serveur (XP & Level créés/mis à jour).");
 
         } catch (error) {
             console.error("❌ ERREUR Firebase : La sauvegarde a échoué. Vérifie tes Rules !", error);
@@ -1406,7 +1402,6 @@ async function ajouterXP(montant) {
     }
 
     // 4. Actualisation visuelle
-    console.log("🖥️ Actualisation du profil visuel...");
     actualiserProfil(); 
 }
 
@@ -2255,8 +2250,47 @@ function avancerQuete(type, montant = 1) {
 // Lancement au démarrage (Assure-toi que Firebase est prêt)
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
+        console.log("Utilisateur connecté : synchronisation en cours...");
+
+        // 1. Récupération des données globales du joueur
+        db.collection("users").doc(user.uid).get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+
+                // SYNCHRONISATION DES VARIABLES GLOBALES
+                // On remplace le 0 local par la valeur du serveur
+                dust = data.dust || 0;
+                xp = data.xp || 0;
+                level = data.level || 1; // Si tu as une variable level
+                
+                // Si tu as une collection de cartes, on la synchronise aussi
+                if (data.collection) {
+                    collection = data.collection;
+                }
+
+                // 2. MISE À JOUR DE L'INTERFACE
+                // On appelle tes fonctions d'affichage pour que les chiffres changent sur l'écran
+                if (typeof refreshDust === "function") refreshDust();
+                
+                // Met à jour les textes dans ton menu profil/accueil
+                const profileDust = document.getElementById("profileDust");
+                if (profileDust) profileDust.innerText = dust;
+
+                console.log("Données chargées depuis le serveur avec succès !");
+            } else {
+                console.log("Nouveau compte détecté sur le serveur.");
+            }
+        }).catch((error) => {
+            console.error("Erreur de synchronisation :", error);
+        });
+
+        // 3. Lancement des quêtes (ton code original)
         chargerQuetesFirebase();
         setTimeout(() => avancerQuete("login"), 3000);
+        
+    } else {
+        console.log("Utilisateur non connecté.");
+        // Optionnel : masquer les éléments du jeu
     }
 });
 

@@ -1818,35 +1818,51 @@ function fermerVente() {
 
 // 2. Confirmer la mise en vente
 document.getElementById('confirmSellBtn').onclick = async () => {
-    const price = parseInt(document.getElementById('sellPriceInput').value);
-    if (!price || price <= 0) return alert("Prix invalide !");
+    const price = parseInt(document.getElementById('sellPriceInput').value);
+    if (!price || price <= 0) return alert("Prix invalide !");
 
-if (typeof avancerQuete === "function") {
+    if (typeof avancerQuete === "function") {
         avancerQuete("sell_card", 1);
     }
 
-    const card = collection[cardToSellIndex];
-    
-    // Retirer de la collection locale
-    collection.splice(cardToSellIndex, 1);
-    
-    // Ajouter au marché Firestore
-    await db.collection("market").add({
-        sellerId: auth.currentUser.uid,
-        sellerName: document.getElementById('profileName').innerText || "Joueur",
-        card: card,
-        price: price,
-        date: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-
-    saveToFirebase(auth.currentUser.uid); 
+    const card = collection[cardToSellIndex];
     
-    // Fermeture du menu et rafraîchissement
-    fermerVente();
-    showCollection(); // Rafraîchit l'onglet collection
+    // --- ÉTAPE 1 : RETRAIT LOCAL IMMÉDIAT ---
+    // On retire la carte de la variable globale
+    collection.splice(cardToSellIndex, 1);
     
-    alert("Annonce publiée !");
+    try {
+        // --- ÉTAPE 2 : AJOUT AU MARCHÉ ---
+        await db.collection("market").add({
+            sellerId: auth.currentUser.uid,
+            sellerName: document.getElementById('profileName').innerText || "Joueur",
+            card: card,
+            price: price,
+            date: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // --- ÉTAPE 3 : SAUVEGARDE FORCÉE (LE CORRECTIF) ---
+        // On écrase la collection sur Firebase avec la nouvelle (sans la carte)
+        await db.collection("users").doc(auth.currentUser.uid).update({
+            collection: collection
+        });
+
+        // On met à jour le LocalStorage pour que le refresh ne ramène pas la carte
+        localStorage.setItem("collection", JSON.stringify(collection));
+
+        // --- ÉTAPE 4 : MISE À JOUR INTERFACE ---
+        fermerVente();
+        
+        // On vérifie quelle fonction de rafraîchissement tu utilises
+        if (typeof showCollection === "function") showCollection();
+        if (typeof displayCollection === "function") displayCollection();
+        
+        alert("Annonce publiée ! La carte a été retirée de votre inventaire.");
+
+    } catch (error) {
+        console.error("Erreur lors de la mise en vente:", error);
+        alert("Une erreur est survenue. La carte n'a pas été vendue.");
+    }
 };
 
 

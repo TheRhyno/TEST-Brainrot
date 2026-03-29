@@ -656,14 +656,25 @@ html, body {
 <div id="selectCardOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:200002; overflow-y:auto; padding:20px; box-sizing:border-box;">
     <button onclick="fermerSelecteur()" style="background:#ef4444; margin-bottom:20px;">✖ Annuler</button>
     <h2 style="color:#10b981">Quelle carte voulez-vous vendre ?</h2>
+
+<input type="text" id="searchSellCard" placeholder="Rechercher une carte à vendre..." style="padding:10px; border-radius:8px; border:none; margin-bottom:20px; width:90%; max-width:300px; display:block; margin-left:auto; margin-right:auto;">
+
     <div id="selectCardGrid" class="cards">
         </div>
+
+
+
+<p id="noCardMessage" style="display:none; color:#ef4444; margin-top:20px; font-weight:bold;">
+        Aucune carte ne correspond à votre recherche. 🧐
+    </p>
+
+
 </div>
 
 <div id="sellOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:200003; justify-content:center; align-items:center;">
     <div style="background:#162037; padding:25px; border-radius:15px; border:2px solid #10b981; text-align:center; width:280px;">
         <h3 id="sellCardName">Vendre</h3>
-        <input type="number" id="sellPriceInput" placeholder="Prix en Dust" style="padding:12px; border-radius:8px; width:100%; margin-bottom:15px; border:none; outline:none; background:#0e1525; color:white;">
+        <input type="number" id="sellPriceInput" placeholder="Prix en Fragments" style="padding:12px; border-radius:8px; width:100%; margin-bottom:15px; border:none; outline:none; background:#0e1525; color:white;">
         <div style="display:flex; gap:10px;">
             <button id="confirmSellBtn" style="background:#10b981; flex:1;">Mettre en vente</button>
             <button onclick="fermerVente()" style="background:#ef4444; flex:1;">Annuler</button>
@@ -1009,7 +1020,31 @@ Ne rate pas tes récompenses !
 </div>
 
 
+<div>
+        <p style="margin: 0; color: #60a5fa; font-size: 1rem; font-weight: bold; line-height: 1.2;" id="profileLevelStat">1</p>
+        <p style="margin: 0; color: #aaa; font-size: 0.55rem; text-transform: uppercase;">Niveau</p>
+    </div>
+
 </div>
+
+
+
+<div id="xpProgressionContainer" style="display: block; margin-top: 20px; padding-top: 15px; border-top: 1px solid #2d3748;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="color: #7c3aed; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Progression du Niveau</span>
+            <span id="xpPercent" style="color: #7c3aed; font-size: 0.8rem; font-weight: bold;">0%</span>
+        </div>
+        
+        <div style="background: #0e1525; width: 100%; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid #333;">
+            <div id="profileXpBar" style="background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%; transition: width 0.8s ease-out;"></div>
+        </div>
+        
+        <p id="profileXpText" style="margin: 8px 0 0 0; color: #8da0b8; font-size: 0.7rem; text-align: center;">0 / 100 XP pour le prochain niveau</p>
+    </div>
+
+
+
+
 
 
 
@@ -1297,6 +1332,180 @@ disableSite(false);
 
 
 
+
+
+
+
+
+
+
+
+// --- SYSTÈME DE NIVEAU ---
+let xp = parseInt(localStorage.getItem("xp")) || 0;
+
+// Calcule le niveau (Niveau 1 = 0 XP, Niveau 2 = 100 XP, Niveau 3 = 400 XP...)
+function calculerNiveau(points) {
+    return Math.floor(Math.sqrt(points / 500)) + 1;
+}
+
+// Fonction pour afficher/cacher la barre d'XP
+function toggleXPBar() {
+    const container = document.getElementById("xpProgressionContainer");
+    if (container) {
+        container.style.display = (container.style.display === "none") ? "block" : "none";
+    }
+}
+
+async function ajouterXP(montant) {
+    console.log("🚀 Début ajouterXP : +" + montant + " XP demandés.");
+    
+    let niveauAvant = calculerNiveau(xp);
+    xp += montant;
+    
+    // 1. Sauvegarde Locale
+    localStorage.setItem("xp", xp); 
+    console.log("💾 LocalStorage mis à jour. Nouvelle XP totale :", xp);
+    
+    // 2. SAUVEGARDE SUR FIREBASE
+    const user = auth.currentUser;
+    
+    if (user) {
+        console.log("📡 Tentative d'envoi à Firebase pour l'utilisateur :", user.uid);
+        try {
+            // On calcule le niveau actuel pour l'envoyer aussi (plus propre pour ta base)
+            let niveauActuel = calculerNiveau(xp);
+
+            await db.collection("users").doc(user.uid).set({
+                xp: xp,
+                level: niveauActuel, // On l'ajoute ici pour qu'il soit créé sur le serveur
+                dust: dust 
+            }, { merge: true });
+
+            console.log("✅ SUCCÈS : Données synchronisées sur le serveur (XP & Level créés/mis à jour).");
+
+        } catch (error) {
+            console.error("❌ ERREUR Firebase : La sauvegarde a échoué. Vérifie tes Rules !", error);
+        }
+    } else {
+        console.warn("⚠️ ATTENTION : Aucun utilisateur connecté. L'XP est uniquement locale (perdue au refresh).");
+    }
+    
+    // 3. Logique de passage de niveau
+    let niveauApres = calculerNiveau(xp);
+    if (niveauApres > niveauAvant) {
+        console.log("🎊 Passage de niveau détecté ! Niveau " + niveauAvant + " -> " + niveauApres);
+        alert("🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant Niveau " + niveauApres);
+        dust += 100; 
+        save("dust", dust);
+        if(typeof refreshDust === "function") refreshDust();
+        
+        if (user) {
+            db.collection("users").doc(user.uid).set({ dust: dust }, { merge: true })
+              .then(() => console.log("🎁 Cadeau de niveau (Dust) synchronisé."));
+        }
+    }
+
+    // 4. Actualisation visuelle
+    console.log("🖥️ Actualisation du profil visuel...");
+    actualiserProfil(); 
+}
+
+
+
+
+function actualiserProfil() {
+    
+    // 1. Calcul du niveau
+    const niveau = calculerNiveau(xp);
+
+    // 2. Mise à jour du chiffre du RANG (On essaie plusieurs IDs au cas où)
+    const lvlStat = document.getElementById("profileLevelStat");
+    const lvlSimple = document.getElementById("profileLevel");
+    if (lvlStat) lvlStat.innerText = niveau;
+    if (lvlSimple) lvlSimple.innerText = niveau;
+
+    // 3. Calcul et mise à jour de la BARRE
+    try {
+        const xpPalierActuel = Math.pow(niveau - 1, 2) * 500;
+        const xpPalierSuivant = Math.pow(niveau, 2) * 500;
+        const xpDansLeNiveau = xp - xpPalierActuel;
+        const xpRequisPourNiveau = xpPalierSuivant - xpPalierActuel;
+        const pourcentage = Math.min(Math.floor((xpDansLeNiveau / xpRequisPourNiveau) * 100), 100);
+
+        if (document.getElementById("profileXpBar")) document.getElementById("profileXpBar").style.width = pourcentage + "%";
+        if (document.getElementById("xpPercent")) document.getElementById("xpPercent").innerText = pourcentage + "%";
+        if (document.getElementById("profileXpText")) document.getElementById("profileXpText").innerText = Math.floor(xpDansLeNiveau) + " / " + xpRequisPourNiveau + " XP";
+    } catch(e) { console.log("Erreur calcul barre:", e); }
+
+    // 4. Mise à jour des autres stats (avec protections)
+    if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = (typeof dust !== 'undefined') ? dust : 0;
+    
+    // Gestion sécurisée de la collection (évite le plantage si ALL_CARDS est mal nommé)
+    let totalPossible = 0;
+    if (typeof ALL_CARDS !== 'undefined') totalPossible = ALL_CARDS.length;
+    else if (typeof allCards !== 'undefined') totalPossible = allCards.length;
+
+    const cardsEl = document.getElementById("profileCards") || document.getElementById("profileCardsText");
+    if (cardsEl) cardsEl.innerText = collection.length + " / " + totalPossible;
+
+    if (document.getElementById("profileStreak")) {
+        document.getElementById("profileStreak").innerText = (typeof streakCount !== 'undefined') ? streakCount : 0;
+    }
+   
+}
+
+
+
+
+
+
+
+
+
+// Écouteur d'événement
+document.getElementById('searchSellCard').addEventListener('input', function(e) {
+    const searchTerms = e.target.value.toLowerCase();
+    filtrerCartesVente(searchTerms);
+});
+
+function filtrerCartesVente(filtre) {
+    const grid = document.getElementById('selectCardGrid');
+    const toutesLesCartes = grid.querySelectorAll('.card'); 
+    const messageAucunResultat = document.getElementById('noCardMessage');
+    
+    let cartesTrouvees = 0; // Compteur
+
+    toutesLesCartes.forEach(card => {
+        const nameTag = card.querySelector('strong');
+        if (nameTag) {
+            const cardName = nameTag.innerText.toLowerCase();
+            
+            if (cardName.includes(filtre)) {
+                card.style.display = ""; // On remet le style d'origine
+                cartesTrouvees++; // On a trouvé une carte !
+            } else {
+                card.style.display = "none";
+            }
+        }
+    });
+
+    // On affiche le message seulement si aucune carte n'est visible
+    if (cartesTrouvees === 0 && filtre !== "") {
+        messageAucunResultat.style.display = "block";
+    } else {
+        messageAucunResultat.style.display = "none";
+    }
+}
+
+
+
+function ouvrirSelecteurVente() {
+    document.getElementById('searchSellCard').value = ""; 
+    document.getElementById('noCardMessage').style.display = "none"; // On cache le message
+    
+    document.getElementById('selectCardOverlay').style.display = 'block';
+    chargerMesCartesPourVente(); 
+}
 
 
 
@@ -1832,7 +2041,6 @@ async function validerNouveauPseudo() {
 
 
 
-// --- FONCTIONS DE L'INTERFACE ---
 
 function toggleQuests() {
     const overlay = document.getElementById("questOverlay");
@@ -1914,6 +2122,25 @@ function afficherQuetes(quetes) {
     if (!list) return;
     list.innerHTML = "";
 
+    // --- AJOUT DU BANDEAU DE PROGRESSION DU BONUS ---
+    const nbRecuperees = quetes.filter(q => q.recuperee).length;
+    const bonusFinalDonne = (typeof quetesActives !== 'undefined' && quetesActives.bonusFinalDonne);
+    
+    let bonusHTML = `
+        <div style="background: #1e1b4b; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #4338ca; text-align: center;">
+            <div style="font-weight: bold; color: #fbbf24; font-size: 0.9em;">
+                🏆 OBJECTIF DU JOUR : ${nbRecuperees}/3
+            </div>
+            <div style="font-size: 0.75em; color: #a5b4fc; margin-top: 4px;">
+                ${bonusFinalDonne ? "✨ Bonus de 2000 💎 récupéré !" : "Complétez tout pour recevoir +2000 💎"}
+            </div>
+            <div style="width: 100%; background: #312e81; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                <div style="width: ${(nbRecuperees / 3) * 100}%; background: #fbbf24; height: 100%; transition: width 0.3s;"></div>
+            </div>
+        </div>
+    `;
+    list.innerHTML = bonusHTML;
+
     quetes.forEach((q, index) => {
         let statusHTML = "";
         let bgColor = "#1e293b";
@@ -1941,6 +2168,7 @@ function afficherQuetes(quetes) {
     });
 }
 
+
 async function recupererCadeauFirebase(index) {
     const user = firebase.auth().currentUser;
     if (!user || !quetesActives) return;
@@ -1955,6 +2183,19 @@ async function recupererCadeauFirebase(index) {
         dust += q.recompense; 
 
         try {
+            // --- AJOUT DU BONUS FINAL ---
+            // On vérifie si les 3 quêtes sont maintenant récupérées
+            const toutesRecuperees = quetesActives.active.every(quest => quest.recuperee === true);
+            let messageBonus = "";
+
+            if (toutesRecuperees && !quetesActives.bonusFinalDonne) {
+                const MONTANT_BONUS = 2000; // Ton montant de bonus ici
+                dust += MONTANT_BONUS;
+                quetesActives.bonusFinalDonne = true; // Marqueur pour ne pas le donner deux fois
+                messageBonus = `\n\n🌟 BONUS QUOTIDIEN : +${MONTANT_BONUS} Fragments !`;
+            }
+   
+
             // 2. Sauvegarde synchronisée sur Firebase
             await db.collection("users").doc(user.uid).set({
                 dust: dust,
@@ -1972,7 +2213,8 @@ async function recupererCadeauFirebase(index) {
             // 5. Rafraîchir la liste des quêtes pour afficher "TERMINÉ ✅"
             afficherQuetes(quetesActives.active);
             
-            alert(`🎁 +${q.recompense} Fragments récupérés !`);
+            alert(`🎁 +${q.recompense} Fragments récupérés !${messageBonus}`);
+            
         } catch (error) {
             console.error("Erreur lors de la récupération de la récompense:", error);
             alert("Erreur de connexion à Firebase. Réessaie.");
@@ -2576,9 +2818,13 @@ async function executerCalculCombat() {
     btn.innerText = "Calcul du gagnant...";
     await new Promise(r => setTimeout(r, 1500));
 
+let xpGagne = 20;
+
     // --- 3. VERDICT (LOGIQUE FRAGMENTS ET QUÊTES) ---
     if (p1Power > p2Power) {
-        // --- AJOUT QUÊTE VICTOIRE ---
+
+xpGagne = 100;
+
 if (typeof avancerQuete === "function") {
             avancerQuete("win_combat", 1);
         }
@@ -2593,19 +2839,24 @@ if (typeof avancerQuete === "function") {
         if (possèdeDéjà) {
             // BONUS DOUBLON : +1000 fragments
             dust += 1000;
-            alert(`🏆 VICTOIRE ! +500 Dust.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Dust ! (Total: 1500)`);
+            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Dust.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Dust ! (Total: 1500)`);
         } else {
             // NOUVELLE CARTE : On l'ajoute normalement
             collection.push({ ...carteAdversaire });
-            alert(`🏆 VICTOIRE ! +500 Dust.\nNouveau champion capturé : ${carteAdversaire.name} !`);
+            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Dust.\nNouveau champion capturé : ${carteAdversaire.name} !`);
         }
     } else if (p1Power < p2Power) {
         // DÉFAITE
         dust = Math.max(0, dust - 500);
         if (selectedPlayerCardIndex !== -1) collection.splice(selectedPlayerCardIndex, 1);
-        alert(`💀 DÉFAITE ! -500 Dust. Ta carte ${maCarte.name} est détruite.`);
+        alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Dust. Ta carte ${maCarte.name} est détruite.`);
     } else {
-        alert("🤝 MATCH NUL ! Personne ne perd rien.");
+        alert(`🤝 MATCH NUL !\n+${xpGagne} XP gagnés.`);
+    }
+
+
+if (typeof ajouterXP === "function") {
+        await ajouterXP(xpGagne);
     }
 
     // 4. SAUVEGARDE
@@ -3348,6 +3599,7 @@ function openPackSequence() {
                 currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
 
 avancerQuete("open", 1);
+ajouterXP(50);
 
                 // --- LOGIQUE DE NIVEAUX ET EXP ---
                 currentPack.forEach(c => {
@@ -3360,6 +3612,7 @@ if (c.rarity === "Rare") {
 
 if (c.rarity === "Mythic") {
                 avancerQuete("mythic", 1);
+ajouterXP(25);
             }
 
 
@@ -3372,6 +3625,7 @@ if (c.rarity === "Mythic") {
                         c.level = 1;
                         c.exp = 0;
                         collection.push({ ...c });
+ajouterXP(20);
                     } else {
                         // DOUBLON : On augmente l'EXP
                         c.isNew = false;
@@ -4206,6 +4460,8 @@ const userIdText = document.getElementById("userIdDisplay");
 // Ouvrir la page compte
 if (accountBtn) {
     accountBtn.onclick = () => {
+
+actualiserProfil();
 
 document.getElementById("profileCards").innerText = collection.length + " / " + ALL_CARDS.length;
 document.getElementById("profileStreak").innerText = (typeof streakCount !== 'undefined') ? streakCount : 0;

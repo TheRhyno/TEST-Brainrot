@@ -1920,62 +1920,59 @@ async function acheterCarte(id, price, sellerId) {
     const ref = db.collection("market").doc(id);
 
     try {
-        // 1. RÉCUPÉRATION DES DONNÉES AVANT SUPPRESSION
         const snap = await ref.get();
         if(!snap.exists) {
-            alert("Désolé, cette carte a déjà été vendue !");
-            if (typeof chargerMarche === "function") chargerMarche();
+            alert("Désolé, cette carte n'est plus disponible !");
             return;
         }
 
         const item = snap.data();
         const purchasedCard = item.card;
 
-        // 2. SUPPRESSION IMMÉDIATE DU MARCHÉ (Sécurité anti-double achat)
-        // On le fait avant de donner la carte pour être sûr qu'un seul joueur l'obtienne
+        // 1. SUPPRESSION DU MARCHÉ
         await ref.delete();
 
-        // --- LOGIQUE DE NIVEAU SI DOUBLON ---
-        // On cherche si une carte avec le même nom existe déjà dans ta collection
+        // 2. LOGIQUE DE NIVEAU / DOUBLON
         let existingCard = collection.find(c => c.name === purchasedCard.name);
 
         if (existingCard) {
-            // Si elle existe, on augmente son niveau de 1 instantanément
+            // On augmente le niveau
             existingCard.level = (existingCard.level || 1) + 1;
             alert(`Doublon ! Votre ${purchasedCard.name} monte au niveau ${existingCard.level} !`);
         } else {
-            // Si tu ne l'as pas, on l'ajoute normalement
+            // On ajoute la nouvelle carte avec un niveau 1 par défaut
+            purchasedCard.level = 1;
             collection.push(purchasedCard);
         }
 
-        // Mise à jour de ton argent
+        // 3. MISE À JOUR DU DUST LOCAL
         dust -= price;
 
-        // 3. TRANSFERT DE FRAGMENTS AU VENDEUR
+        // 4. SAUVEGARDE SUR FIREBASE (On force l'envoi des nouvelles valeurs)
+        // On met à jour l'acheteur (Toi)
+        await db.collection("users").doc(auth.currentUser.uid).set({
+            dust: dust,
+            collection: collection
+        }, { merge: true });
+
+        // 5. TRANSFERT AU VENDEUR
         await db.collection("users").doc(sellerId).update({
             dust: firebase.firestore.FieldValue.increment(price)
         });
 
-        // 4. SAUVEGARDE DE TON PROFIL (Dust + Collection)
-        await saveToFirebase(auth.currentUser.uid);
-
-        // ✅ MISE À JOUR VISUELLE (SANS REFRESH)
+        // ✅ MISE À JOUR VISUELLE
         if (typeof displayCollection === "function") displayCollection();
-        
-        // Si tu utilises le système onSnapshot, chargerMarche se mettra à jour tout seul,
-        // sinon on l'appelle manuellement ici :
-        if (typeof chargerMarche === "function") chargerMarche();
-        
         refreshDust();
         if (typeof updateButtons === "function") updateButtons();
         
         alert("Achat effectué !");
 
     } catch (error) {
-        console.error("Erreur lors de l'achat:", error);
-        alert("Une erreur est survenue ou la carte n'est plus disponible.");
+        console.error("Erreur achat:", error);
+        alert("Une erreur est survenue lors de la transaction.");
     }
 }
+
 
 
 // 5. Annuler une vente

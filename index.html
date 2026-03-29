@@ -4243,7 +4243,20 @@ function refreshCollection(cardsToShow) {
     const collectionDiv = document.getElementById("collection");
     collectionDiv.innerHTML = "";
 
-    const cards = cardsToShow || collection;
+    // --- FILTRE : On ignore les Lucky Blocks pour ne pas fausser la collection ---
+    const listLucky = [
+        "Mythic Lucky Block", 
+        "Brainrot God Lucky Block", 
+        "Secret Lucky Block", 
+        "Admin Lucky Block"
+    ];
+
+    // On filtre la collection possédée et la base totale pour le compteur
+    const filteredCollection = collection.filter(c => !listLucky.includes(c.rarity));
+    const filteredAllCards = ALL_CARDS.filter(c => !listLucky.includes(c.rarity));
+    
+    // On filtre les cartes à afficher
+    const cards = (cardsToShow || collection).filter(c => !listLucky.includes(c.rarity));
 
     // --- TABLEAU DE RÉFÉRENCE ---
     const expTable = {
@@ -4276,7 +4289,8 @@ function refreshCollection(cardsToShow) {
         }
     }
 
-    compteurDiv.innerText = `Cartes obtenues : ${collection.length} / ${ALL_CARDS.length}`;
+    // Utilisation des versions filtrées pour le compteur
+    compteurDiv.innerText = `Cartes obtenues : ${filteredCollection.length} / ${filteredAllCards.length}`;
 
     // --- Affichage des cartes ---
     cards.forEach(c => {
@@ -4372,7 +4386,6 @@ function refreshCollection(cardsToShow) {
         searchWrapper.style.marginBottom = "10px";
     }
 }
-
 
 
 

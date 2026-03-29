@@ -1736,22 +1736,29 @@ function quitterMarche() {
 
 
 function quitterMarche() {
-    // 1. Cacher le marché
-    document.getElementById('marketSection').style.display = 'none';
+    // --- AJOUT : Arrêter l'écoute en temps réel du marché ---
+    if (typeof marketUnsubscribe === "function") {
+        marketUnsubscribe();
+        marketUnsubscribe = null;
+        console.log("Écouteur du marché arrêté.");
+    }
 
-    // 2. Réafficher la navigation du bas
-    const nav = document.querySelector('nav');
-    if (nav) nav.style.display = 'flex';
+    // 1. Cacher le marché
+    document.getElementById('marketSection').style.display = 'none';
 
-    // 3. Réafficher le bouton profil
-    const accBtn = document.getElementById('accountBtn');
-    if (accBtn) accBtn.style.display = 'block';
+    // 2. Réafficher la navigation du bas
+    const nav = document.querySelector('nav');
+    if (nav) nav.style.display = 'flex';
 
-    // 4. Réafficher le bouton flottant
-    document.getElementById('tabMarket').style.display = 'flex';
+    // 3. Réafficher le bouton profil
+    const accBtn = document.getElementById('accountBtn');
+    if (accBtn) accBtn.style.display = 'block';
 
-    // 5. Revenir à l'accueil proprement
-    showHome();
+    // 4. Réafficher le bouton flottant
+    document.getElementById('tabMarket').style.display = 'flex';
+
+    // 5. Revenir à l'accueil proprement
+    showHome();
 }
 
 
@@ -1844,53 +1851,65 @@ if (typeof avancerQuete === "function") {
 
 
 // 3. Charger le marché
+let marketUnsubscribe = null;
+
 async function chargerMarche() {
     const marketDiv = document.getElementById('marketCards');
-    marketDiv.innerHTML = "Chargement...";
+    marketDiv.innerHTML = "Chargement en temps réel...";
     
-    const snapshot = await db.collection("market").orderBy("date", "desc").get();
-    marketDiv.innerHTML = "";
-
-    // --- AJOUT : Compteur pour vérifier si la liste est vide ---
-    let count = 0;
-
-    snapshot.forEach(doc => {
-        const item = doc.data();
-        const isMine = item.sellerId === auth.currentUser.uid;
-
-        if (currentMarketTab === 'buy' && isMine) return;
-        if (currentMarketTab === 'mySales' && !isMine) return;
-
-        // Si on arrive ici, c'est qu'une carte va être affichée
-        count++;
-
-        const cardEl = document.createElement('div');
-        cardEl.className = `card r-${item.card.rarity}`;
-        cardEl.innerHTML = `
-            <img src="${item.card.image}" style="width:100%">
-            <strong>${item.card.name}</strong>
-            <div class="market-price-tag">${item.price} 💎</div>
-            ${isMine 
-                ? `<button onclick="annulerVente('${doc.id}')" style="background:#ef4444; width:100%">Annuler</button>`
-                : `<button onclick="acheterCarte('${doc.id}', ${item.price}, '${item.sellerId}')" style="background:#10b981; width:100%">Acheter</button>`
-            }
-        `;
-        marketDiv.appendChild(cardEl);
-    });
-
-    // --- AJOUT : Affichage du message si aucune carte n'est trouvée ---
-    if (count === 0) {
-        const message = currentMarketTab === 'mySales' 
-            ? "Vous n'avez aucune vente en cours." 
-            : "Aucune carte n'est disponible sur le marché.";
-            
-        marketDiv.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94a3b8; border: 2px dashed #4b5563; border-radius: 15px;">
-                <div style="font-size: 40px; margin-bottom: 10px;">📭</div>
-                <p>${message}</p>
-            </div>
-        `;
+    // --- NOUVEAU : Arrêter l'ancien écouteur s'il existe déjà ---
+    if (marketUnsubscribe) {
+        marketUnsubscribe();
     }
+
+    // --- TRANSFORMATION EN TEMPS RÉEL (onSnapshot) ---
+    marketUnsubscribe = db.collection("market").orderBy("date", "desc").onSnapshot(snapshot => {
+        marketDiv.innerHTML = "";
+
+        // --- AJOUT : Compteur pour vérifier si la liste est vide ---
+        let count = 0;
+
+        snapshot.forEach(doc => {
+            const item = doc.data();
+            const isMine = item.sellerId === auth.currentUser.uid;
+
+            if (currentMarketTab === 'buy' && isMine) return;
+            if (currentMarketTab === 'mySales' && !isMine) return;
+
+            // Si on arrive ici, c'est qu'une carte va être affichée
+            count++;
+
+            const cardEl = document.createElement('div');
+            cardEl.className = `card r-${item.card.rarity}`;
+            cardEl.innerHTML = `
+                <img src="${item.card.image}" style="width:100%">
+                <strong>${item.card.name}</strong>
+                <div class="market-price-tag">${item.price} 💎</div>
+                ${isMine 
+                    ? `<button onclick="annulerVente('${doc.id}')" style="background:#ef4444; width:100%">Annuler</button>`
+                    : `<button onclick="acheterCarte('${doc.id}', ${item.price}, '${item.sellerId}')" style="background:#10b981; width:100%">Acheter</button>`
+                }
+            `;
+            marketDiv.appendChild(cardEl);
+        });
+
+        // --- AJOUT : Affichage du message si aucune carte n'est trouvée ---
+        if (count === 0) {
+            const message = currentMarketTab === 'mySales' 
+                ? "Vous n'avez aucune vente en cours." 
+                : "Aucune carte n'est disponible sur le marché.";
+                
+            marketDiv.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94a3b8; border: 2px dashed #4b5563; border-radius: 15px;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📭</div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+    }, error => {
+        console.error("Erreur lors de l'écoute du marché:", error);
+        marketDiv.innerHTML = "Erreur de connexion au marché.";
+    });
 }
 
 
@@ -1899,46 +1918,63 @@ async function acheterCarte(id, price, sellerId) {
     if (dust < price) return alert("Pas assez de fragments !");
     
     const ref = db.collection("market").doc(id);
-    const snap = await ref.get();
-    if(!snap.exists) return alert("Déjà vendue !");
 
-    const item = snap.data();
-    const purchasedCard = item.card;
+    try {
+        // 1. RÉCUPÉRATION DES DONNÉES AVANT SUPPRESSION
+        const snap = await ref.get();
+        if(!snap.exists) {
+            alert("Désolé, cette carte a déjà été vendue !");
+            if (typeof chargerMarche === "function") chargerMarche();
+            return;
+        }
 
-    // --- LOGIQUE DE NIVEAU SI DOUBLON ---
-    // On cherche si une carte avec le même nom existe déjà dans ta collection
-    let existingCard = collection.find(c => c.name === purchasedCard.name);
+        const item = snap.data();
+        const purchasedCard = item.card;
 
-    if (existingCard) {
-        // Si elle existe, on augmente son niveau de 1 instantanément
-        existingCard.level = (existingCard.level || 1) + 1;
-        alert(`Doublon ! Votre ${purchasedCard.name} monte au niveau ${existingCard.level} !`);
-    } else {
-        // Si tu ne l'as pas, on l'ajoute normalement
-        collection.push(purchasedCard);
+        // 2. SUPPRESSION IMMÉDIATE DU MARCHÉ (Sécurité anti-double achat)
+        // On le fait avant de donner la carte pour être sûr qu'un seul joueur l'obtienne
+        await ref.delete();
+
+        // --- LOGIQUE DE NIVEAU SI DOUBLON ---
+        // On cherche si une carte avec le même nom existe déjà dans ta collection
+        let existingCard = collection.find(c => c.name === purchasedCard.name);
+
+        if (existingCard) {
+            // Si elle existe, on augmente son niveau de 1 instantanément
+            existingCard.level = (existingCard.level || 1) + 1;
+            alert(`Doublon ! Votre ${purchasedCard.name} monte au niveau ${existingCard.level} !`);
+        } else {
+            // Si tu ne l'as pas, on l'ajoute normalement
+            collection.push(purchasedCard);
+        }
+
+        // Mise à jour de ton argent
+        dust -= price;
+
+        // 3. TRANSFERT DE FRAGMENTS AU VENDEUR
+        await db.collection("users").doc(sellerId).update({
+            dust: firebase.firestore.FieldValue.increment(price)
+        });
+
+        // 4. SAUVEGARDE DE TON PROFIL (Dust + Collection)
+        await saveToFirebase(auth.currentUser.uid);
+
+        // ✅ MISE À JOUR VISUELLE (SANS REFRESH)
+        if (typeof displayCollection === "function") displayCollection();
+        
+        // Si tu utilises le système onSnapshot, chargerMarche se mettra à jour tout seul,
+        // sinon on l'appelle manuellement ici :
+        if (typeof chargerMarche === "function") chargerMarche();
+        
+        refreshDust();
+        if (typeof updateButtons === "function") updateButtons();
+        
+        alert("Achat effectué !");
+
+    } catch (error) {
+        console.error("Erreur lors de l'achat:", error);
+        alert("Une erreur est survenue ou la carte n'est plus disponible.");
     }
-
-
-    dust -= price;
-
-    // Transfert de fragments au vendeur
-    await db.collection("users").doc(sellerId).update({
-        dust: firebase.firestore.FieldValue.increment(price)
-    });
-
-    await ref.delete();
-
-
-    saveToFirebase(auth.currentUser.uid);
-
-    // ✅ MISE À JOUR VISUELLE (SANS REFRESH)
-    if (typeof displayCollection === "function") displayCollection();
-    if (typeof chargerMarche === "function") chargerMarche();
-    
-    refreshDust();
-    updateButtons();
-    
-    alert("Achat effectué !");
 }
 
 
@@ -2127,7 +2163,7 @@ function afficherQuetes(quetes) {
                 🏆 OBJECTIF DU JOUR : ${nbRecuperees}/3
             </div>
             <div style="font-size: 0.75em; color: #a5b4fc; margin-top: 4px;">
-                ${bonusFinalDonne ? "✨ Bonus de 2000 💎 récupéré !" : "Complétez tout pour recevoir +2000 💎"}
+                ${bonusFinalDonne ? "✨ Bonus de 1000 💎 récupéré !" : "Complétez tout pour recevoir +1000 💎"}
             </div>
             <div style="width: 100%; background: #312e81; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
                 <div style="width: ${(nbRecuperees / 3) * 100}%; background: #fbbf24; height: 100%; transition: width 0.3s;"></div>
@@ -2184,7 +2220,7 @@ async function recupererCadeauFirebase(index) {
             let messageBonus = "";
 
             if (toutesRecuperees && !quetesActives.bonusFinalDonne) {
-                const MONTANT_BONUS = 2000; // Ton montant de bonus ici
+                const MONTANT_BONUS = 1000;
                 dust += MONTANT_BONUS;
                 quetesActives.bonusFinalDonne = true; // Marqueur pour ne pas le donner deux fois
                 messageBonus = `\n\n🌟 BONUS QUOTIDIEN : +${MONTANT_BONUS} Fragments !`;

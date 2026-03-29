@@ -371,6 +371,56 @@ html, body {
 
 
 
+
+/* --- Contours pour les 4 Lucky Blocks (Petites Cartes) --- */
+.r-Mythic-Lucky-Block { border-color: #FF8C00; box-shadow: 0 0 10px #FF8C00; }
+.r-Brainrot-God-Lucky-Block { border-color: #FF4500; box-shadow: 0 0 15px #FF4500; }
+.r-Secret-Lucky-Block { border-color: #DA70D6; box-shadow: 0 0 20px #DA70D6; animation: glow-white 2s infinite alternate; }
+.r-Admin-Lucky-Block { border-color: #ff0000; box-shadow: 0 0 25px #ff0000; animation: glitch-admin 0.4s infinite; }
+
+/* --- Couleurs du texte (Petites Cartes) --- */
+.r-Mythic-Lucky-Block strong { color: #FF8C00; }
+.r-Brainrot-God-Lucky-Block strong { color: #FF4500; }
+.r-Secret-Lucky-Block strong { color: #DA70D6; text-shadow: 0 0 5px #DA70D6; }
+.r-Admin-Lucky-Block strong { color: #ff0000; text-shadow: 0 0 8px #ff0000; }
+
+/* --- Bordures pour Grandes Cartes (Ouverture Booster) --- */
+.big-Mythic-Lucky-Block { border-color: #FF8C00; box-shadow: 0 0 30px #FF8C00; }
+.big-Brainrot-God-Lucky-Block { border-color: #FF4500; box-shadow: 0 0 40px #FF4500; }
+.big-Secret-Lucky-Block { border-color: #DA70D6; box-shadow: 0 0 50px #DA70D6; }
+.big-Admin-Lucky-Block { border-color: #ff0000; box-shadow: 0 0 60px #ff0000; }
+
+/* --- Texte pour Grandes Cartes --- */
+.big-Mythic-Lucky-Block strong { color: #FF8C00; }
+.big-Brainrot-God-Lucky-Block strong { color: #FF4500; }
+.big-Secret-Lucky-Block strong { color: #DA70D6; }
+.big-Admin-Lucky-Block strong { color: #ff0000; }
+
+/* --- Badges de rareté --- */
+.rarity-indicator.r-Mythic-Lucky-Block { background: #FF8C00; color: #000; }
+.rarity-indicator.r-Brainrot-God-Lucky-Block { background: #FF4500; color: #fff; }
+.rarity-indicator.r-Secret-Lucky-Block { background: #DA70D6; color: #000; }
+.rarity-indicator.r-Admin-Lucky-Block { background: #ff0000; color: #fff; }
+
+/* --- Animations Spéciales --- */
+@keyframes glow-white {
+    from { box-shadow: 0 0 5px #DA70D6; }
+    to { box-shadow: 0 0 25px #DA70D6; }
+}
+
+@keyframes glitch-admin {
+    0% { transform: translate(0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0); }
+}
+
+
+
+
+
+
 /* Animation OG avec overlay qui bloque tout */
 #ogAnimation {
   position: fixed;
@@ -593,6 +643,10 @@ html, body {
   <div id="homeSection">
 
 
+
+
+
+
 <div id="streakDisplay" style="position: fixed; top: 55px; left: 10px; z-index: 1000; 
      background: rgba(22, 32, 55, 0.85); padding: 5px 12px; border-radius: 20px; 
      font-weight: bold; color: #ff9f43; border: 2px solid #ff9f43; 
@@ -688,6 +742,22 @@ html, body {
   <div id="boosterCounter" style="color:#fff;font-weight:bold;font-size:1rem;margin-bottom:10px;">
     Boosters ouverts : 0
   </div>
+
+
+
+<div id="luckyBlockUI" style="display:none; margin-top: 15px; padding: 12px; background: rgba(30, 27, 75, 0.8); border: 2px solid #fbbf24; border-radius: 10px; text-align: center; transition: all 0.3s;">
+    <div id="luckyBlockType" style="font-weight: bold; margin-bottom: 5px; color: #fff; font-size: 1em;">
+        Lucky Block
+    </div>
+
+    <div id="luckyTimerDisplay" style="color: #fbbf24; font-weight: bold; font-size: 0.9em;">
+        🍀 Le Lucky Block s'ouvre dans : --:--:--
+    </div>
+
+    <button id="btnRecupereLucky" onclick="ouvrirCadeauLuckyBlock()" style="display:none; margin-top: 8px; background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        🎁 RÉCUPÉRER !
+    </button>
+</div>
 
 
 
@@ -1209,7 +1279,7 @@ const ALL_CARDS = [
   {name:"Zibra Zubra Zibralini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Zibra_Zubra_Zibralini-151x300.webp"},
   {name:"Tigrilini Watermelini", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Tigrilini_Watermelini1-216x300.webp"},
   {name:"Avocadorilla", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Avocadorilla.webp"},
-  {name:"Mythic Lucky Block", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Mythic_Lucky_Block.webp"},
+
   {name:"Cavallo Virtuoso", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Cavallo_Virtuoso-221x300.webp"},
   {name:"Gorillo Subwoofero", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/gorillo-subwoofero-248x300.webp"},
   {name:"Gorillo Watermelondrillo", rarity:"Mythic", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Gorillo-Watermelondrillo.webp"},
@@ -1255,10 +1325,16 @@ const ALL_CARDS = [
 
 
 
+  {name:"Mythic Lucky Block", rarity:"Mythic Lucky Block", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Mythic_Lucky_Block.webp"},
+  {name:"Brainrot God Lucky Block", rarity:"Brainrot God Lucky Block", image:"https://cdn.salla.sa/jDznl/055f835a-5b83-4d15-80c1-18252dc910e6-1000x1000-DEmFSHFtiyojCAST96F8MOmiMD9gjRpPDDYPsBJa.png"},
+  {name:"Secret Lucky Block", rarity:"Secret Lucky Block", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/11/SecretLuckyBlock-300x265.webp"},
+  {name:"Admin Lucky Block", rarity:"Admin Lucky Block", image:"https://static.wikia.nocookie.net/stealabr/images/7/7c/AdminLuckyBlock.png/revision/latest?cb=20251007132226"},
+
 ];
 
 
-const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03 };
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 1, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.05, 'Admin Lucky Block': 0.005 };
+
 
 const BOOSTER_IMAGES = [
   "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png",
@@ -1334,6 +1410,115 @@ disableSite(false);
 
 
 
+
+
+
+
+
+let luckyInterval; // Pour éviter les doublons d'intervalles
+
+function updateLuckyTimer(unlockTime, type) {
+    const ui = document.getElementById("luckyBlockUI");
+    const timerText = document.getElementById("luckyTimerDisplay");
+    const btn = document.getElementById("btnRecupereLucky");
+    // AJOUT : On récupère l'élément qui affiche le nom du bloc
+    const typeText = document.getElementById("luckyBlockType");
+
+    if (!unlockTime) {
+        ui.style.display = "none";
+        if (luckyInterval) clearInterval(luckyInterval);
+        return;
+    }
+
+    ui.style.display = "block";
+
+    // AJOUT : On met à jour le nom du bloc s'il est fourni
+    if (typeText && type) {
+        typeText.innerText = type;
+    }
+
+    if (luckyInterval) clearInterval(luckyInterval);
+
+    luckyInterval = setInterval(() => {
+        const maintenant = Date.now();
+        const reste = unlockTime - maintenant;
+
+        if (reste <= 0) {
+            // LE TEMPS EST ÉCOULÉ
+            clearInterval(luckyInterval);
+            timerText.innerHTML = "✨ Ton cadeau est prêt !";
+            timerText.style.color = "#10b981";
+            btn.style.display = "inline-block"; // On montre le bouton
+            ui.style.borderColor = "#10b981";   // Le cadre devient vert
+        } else {
+            // ON AFFICHE LE DÉCOMPTE
+            const h = Math.floor(reste / 3600000);
+            const m = Math.floor((reste % 3600000) / 60000);
+            const s = Math.floor((reste % 60000) / 1000);
+            
+            // On garde ton texte original
+            timerText.innerHTML = `🍀 Le Lucky Block s'ouvre dans : ${h}h ${m}m ${s}s`;
+            btn.style.display = "none";
+            timerText.style.color = "#fbbf24";
+            ui.style.borderColor = "#fbbf24";
+        }
+    }, 1000);
+}
+
+
+
+async function ouvrirCadeauLuckyBlock() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    // 1. On récupère les données pour savoir quel type de cadeau c'est
+    const doc = await db.collection("users").doc(user.uid).get();
+    const data = doc.data();
+
+    if (data && data.luckyBlockUnlockTime) {
+        // Sécurité : on vérifie encore l'heure
+        if (Date.now() < data.luckyBlockUnlockTime) return;
+
+        // 2. Calcul des gains selon les 4 types
+        let gainDust = 5000;
+        let gainXP = 500;
+
+        // On ajuste selon le type stocké dans Firebase
+        if (data.luckyBlockType === "Brainrot God Lucky Block") {
+            gainDust = 15000; 
+            gainXP = 1500;
+        } else if (data.luckyBlockType === "Secret Lucky Block") {
+            gainDust = 50000; 
+            gainXP = 5000;
+        } else if (data.luckyBlockType === "Admin Lucky Block") {
+            gainDust = 250000; 
+            gainXP = 25000;
+        } else {
+            // Par défaut (Mythic Lucky Block)
+            gainDust = 5000;
+            gainXP = 500;
+        }
+
+        // 3. Mise à jour locale
+        dust += gainDust;
+        if (typeof ajouterXP === "function") await ajouterXP(gainXP);
+        refreshDust();
+
+        // 4. Nettoyage Firebase (On remet tout à null pour pouvoir en re-piocher un)
+        await db.collection("users").doc(user.uid).update({
+            luckyBlockUnlockTime: null,
+            luckyBlockType: null,
+            luckyBlockReady: false,
+            dust: dust
+        });
+
+        // 5. UI
+        const uiContainer = document.getElementById("luckyBlockUI");
+        if (uiContainer) uiContainer.style.display = "none";
+        
+        alert(`🎉 BOOM !\nTon ${data.luckyBlockType} contenait :\n💰 +${gainDust} Dust\n✨ +${gainXP} XP !`);
+    }
+}
 
 
 
@@ -1828,7 +2013,6 @@ document.getElementById('confirmSellBtn').onclick = async () => {
     const card = collection[cardToSellIndex];
     
     // --- ÉTAPE 1 : RETRAIT LOCAL IMMÉDIAT ---
-    // On retire la carte de la variable globale
     collection.splice(cardToSellIndex, 1);
     
     try {
@@ -1841,29 +2025,40 @@ document.getElementById('confirmSellBtn').onclick = async () => {
             date: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // --- ÉTAPE 3 : SAUVEGARDE FORCÉE (LE CORRECTIF) ---
-        // On écrase la collection sur Firebase avec la nouvelle (sans la carte)
+        // --- ÉTAPE 3 : GAIN D'XP ---
+        const xpVente = 50; 
+        if (typeof ajouterXP === "function") {
+            // On attend que l'XP soit traité
+            await ajouterXP(xpVente);
+        }
+
+        // --- ÉTAPE 4 : SAUVEGARDE FORCÉE ---
+        // On utilise .update pour modifier uniquement la collection
         await db.collection("users").doc(auth.currentUser.uid).update({
             collection: collection
         });
 
-        // On met à jour le LocalStorage pour que le refresh ne ramène pas la carte
+        // Mise à jour du LocalStorage pour éviter les doublons au refresh
         localStorage.setItem("collection", JSON.stringify(collection));
 
-        // --- ÉTAPE 4 : MISE À JOUR INTERFACE ---
+        // --- ÉTAPE 5 : MISE À JOUR INTERFACE ---
         fermerVente();
         
-        // On vérifie quelle fonction de rafraîchissement tu utilises
         if (typeof showCollection === "function") showCollection();
         if (typeof displayCollection === "function") displayCollection();
         
-        alert("Annonce publiée ! La carte a été retirée de votre inventaire.");
+        // Message plus complet pour le joueur
+        alert(`Annonce publiée ! 💎\nLa carte a été mise en vente et vous avez gagné +${xpVente} XP.`);
 
     } catch (error) {
         console.error("Erreur lors de la mise en vente:", error);
         alert("Une erreur est survenue. La carte n'a pas été vendue.");
+        
+        // Optionnel : Recharger la collection si erreur pour éviter de "perdre" la carte localement
+        if (typeof showCollection === "function") showCollection();
     }
 };
+
 
 
 // 3. Charger le marché
@@ -1931,6 +2126,7 @@ async function chargerMarche() {
 
 // 4. Acheter une carte
 async function acheterCarte(id, price, sellerId) {
+    // Vérification initiale du solde
     if (dust < price) return alert("Pas assez de fragments !");
     
     const ref = db.collection("market").doc(id);
@@ -1961,15 +2157,26 @@ async function acheterCarte(id, price, sellerId) {
             collection.push(purchasedCard);
         }
 
+        // --- AJOUT XP DE COMPTE ---
+        const xpGagne = 50; // Tu peux varier selon le prix si tu veux
+        if (typeof ajouterXP === "function") {
+            // On attend que l'XP soit ajouté (et sauvegardé via ta fonction ajouterXP)
+            await ajouterXP(xpGagne);
+        }
+
         // 3. MISE À JOUR DU DUST LOCAL
         dust -= price;
 
-        // 4. SAUVEGARDE SUR FIREBASE (On force l'envoi des nouvelles valeurs)
-        // On met à jour l'acheteur (Toi)
+        // 4. SAUVEGARDE SUR FIREBASE (Acheteur)
+        // On utilise .set avec { merge: true } comme dans ton code d'origine
         await db.collection("users").doc(auth.currentUser.uid).set({
             dust: dust,
             collection: collection
         }, { merge: true });
+
+        // --- MISE À JOUR DU STOCKAGE LOCAL (pour éviter le bug du refresh) ---
+        localStorage.setItem("collection", JSON.stringify(collection));
+        localStorage.setItem("dust", dust);
 
         // 5. TRANSFERT AU VENDEUR
         await db.collection("users").doc(sellerId).update({
@@ -1978,16 +2185,18 @@ async function acheterCarte(id, price, sellerId) {
 
         // ✅ MISE À JOUR VISUELLE
         if (typeof displayCollection === "function") displayCollection();
+        if (typeof showCollection === "function") showCollection(); // Rafraîchit l'affichage si l'onglet est ouvert
         refreshDust();
         if (typeof updateButtons === "function") updateButtons();
         
-        alert("Achat effectué !");
+        alert(`Achat effectué ! +${xpGagne} XP gagnés.`);
 
     } catch (error) {
         console.error("Erreur achat:", error);
         alert("Une erreur est survenue lors de la transaction.");
     }
 }
+
 
 
 
@@ -2170,13 +2379,17 @@ function afficherQuetes(quetes) {
     const nbRecuperees = quetes.filter(q => q.recuperee).length;
     const bonusFinalDonne = (typeof quetesActives !== 'undefined' && quetesActives.bonusFinalDonne);
     
+    // On définit les montants d'XP pour l'affichage
+    const xpParQuete = 100;
+    const xpBonusFinal = 400;
+
     let bonusHTML = `
         <div style="background: #1e1b4b; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #4338ca; text-align: center;">
             <div style="font-weight: bold; color: #fbbf24; font-size: 0.9em;">
                 🏆 OBJECTIF DU JOUR : ${nbRecuperees}/3
             </div>
             <div style="font-size: 0.75em; color: #a5b4fc; margin-top: 4px;">
-                ${bonusFinalDonne ? "✨ Bonus de 1000 💎 récupéré !" : "Complétez tout pour recevoir +1000 💎"}
+                ${bonusFinalDonne ? `✨ Bonus de 1000 💎 et ${xpBonusFinal} XP récupérés !` : `Complétez tout pour : +1000 💎 | ✨ +${xpBonusFinal} XP`}
             </div>
             <div style="width: 100%; background: #312e81; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
                 <div style="width: ${(nbRecuperees / 3) * 100}%; background: #fbbf24; height: 100%; transition: width 0.3s;"></div>
@@ -2204,13 +2417,22 @@ function afficherQuetes(quetes) {
         list.innerHTML += `
             <div ${clickAction} style="background: ${bgColor}; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid ${q.fini ? '#10b981' : '#3b82f6'}; margin-bottom: 8px; cursor: ${q.fini && !q.recuperee ? 'pointer' : 'default'}">
                 <div style="text-align: left;">
-                    <div style="font-weight: bold; font-size: 0.9em; color: white;">${q.desc}</div>
-                    <div style="font-size: 0.8em; color: #fbbf24;">+${q.recompense} 💎</div>
+                    <div style="font-weight: bold; font-size: 0.9em; color: white; line-height: 1.2;">${q.desc}</div>
+                    
+                    <div style="font-size: 0.8em; display: flex; align-items: center; gap: 10px; margin-top: 5px; line-height: 1;">
+                        <span style="color: #fbbf24; display: flex; align-items: center; gap: 3px;">
+                            +${q.recompense} 💎
+                        </span>
+                        <span style="color: #4fc3f7; font-weight: bold; display: flex; align-items: center; gap: 3px;">
+                            +${xpParQuete} XP
+                        </span>
+                    </div>
                 </div>
                 <div>${statusHTML}</div>
             </div>`;
     });
 }
+
 
 
 async function recupererCadeauFirebase(index) {
@@ -2268,38 +2490,51 @@ async function recupererCadeauFirebase(index) {
 
 
 
-function avancerQuete(type, montant = 1) {
+async function avancerQuete(type, montant = 1) {
     if (!quetesActives) return;
 
     let aChange = false;
-    quetesActives.active.forEach(q => {
+    // On passe sur chaque quête pour voir si elle correspond
+    for (const q of quetesActives.active) {
         if (q.type === type && !q.fini) {
             q.progres += montant;
+            
+            // --- DÉTECTION QUÊTE TERMINÉE ---
             if (q.progres >= q.cible) {
                 q.progres = q.cible;
                 q.fini = true;
+
+                // --- GAIN D'XP ---
+                const xpQuete = 100; // Bonus d'XP par quête finie
+                if (typeof ajouterXP === "function") {
+                    // On utilise await pour être sûr que le niveau est calculé avant la suite
+                    await ajouterXP(xpQuete);
+                    console.log(`✨ +${xpQuete} XP gagnés via la quête : ${q.nom}`);
+                }
             }
             aChange = true;
         }
-    });
+    }
 
     if (aChange) {
-        // Optionnel : tu peux sauvegarder à chaque étape ou seulement à la fin
-        // Pour éviter trop d'écritures Firebase, on sauvegarde ici :
         const user = firebase.auth().currentUser;
         if(user) {
+            // Sauvegarde de l'état des quêtes
+            // Note : l'XP est déjà géré par ajouterXP()
             db.collection("users").doc(user.uid).set({ dailyQuests: quetesActives }, { merge: true });
         }
-        if (document.getElementById("questOverlay").style.display === "flex") {
+        
+        if (document.getElementById("questOverlay") && document.getElementById("questOverlay").style.display === "flex") {
             afficherQuetes(quetesActives.active);
         }
     }
 }
 
+
+
 // Lancement au démarrage (Assure-toi que Firebase est prêt)
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
-        console.log("Utilisateur connecté : synchronisation en cours...");
 
         // 1. Récupération des données globales du joueur
         db.collection("users").doc(user.uid).get().then((doc) => {
@@ -2307,23 +2542,35 @@ firebase.auth().onAuthStateChanged((user) => {
                 const data = doc.data();
 
                 // SYNCHRONISATION DES VARIABLES GLOBALES
-                // On remplace le 0 local par la valeur du serveur
                 dust = data.dust || 0;
                 xp = data.xp || 0;
-                level = data.level || 1; // Si tu as une variable level
+                level = data.level || 1; 
                 
-                // Si tu as une collection de cartes, on la synchronise aussi
                 if (data.collection) {
                     collection = data.collection;
                 }
 
+                // --- 🎁 SYNCHRONISATION DU LUCKY BLOCK (RÉTABLISSEMENT DU TIMER) ---
+                if (data.luckyBlockUnlockTime) {
+                    // Si un temps de déblocage existe, on relance le chrono visuel
+                    if (typeof updateLuckyTimer === "function") {
+                        // MODIFICATION : On ajoute data.luckyBlockType pour mettre à jour le nom à l'écran
+                        updateLuckyTimer(data.luckyBlockUnlockTime, data.luckyBlockType);
+                    }
+                } else {
+                    // Si aucun chrono n'est actif, on cache l'interface par sécurité
+                    const luckyUI = document.getElementById("luckyBlockUI");
+                    if (luckyUI) luckyUI.style.display = "none";
+                }
+
                 // 2. MISE À JOUR DE L'INTERFACE
-                // On appelle tes fonctions d'affichage pour que les chiffres changent sur l'écran
                 if (typeof refreshDust === "function") refreshDust();
                 
-                // Met à jour les textes dans ton menu profil/accueil
                 const profileDust = document.getElementById("profileDust");
                 if (profileDust) profileDust.innerText = dust;
+
+                // Mise à jour visuelle de l'XP/Level au chargement
+                if (typeof updateXPBar === "function") updateXPBar();
 
                 console.log("Données chargées depuis le serveur avec succès !");
             } else {
@@ -2333,16 +2580,16 @@ firebase.auth().onAuthStateChanged((user) => {
             console.error("Erreur de synchronisation :", error);
         });
 
-        // 3. Lancement des quêtes (ton code original)
+        // 3. Lancement des quêtes
         chargerQuetesFirebase();
+        
+        // Petit délai pour laisser le temps aux données de charger avant d'avancer la quête login
         setTimeout(() => avancerQuete("login"), 3000);
         
     } else {
         console.log("Utilisateur non connecté.");
-        // Optionnel : masquer les éléments du jeu
     }
 });
-
 
 
 
@@ -3666,7 +3913,6 @@ function openPackSequence() {
             if (isAnyBoosterOpening) return; 
             isAnyBoosterOpening = true;
 
-
             if (b.classList.contains("booster-opening")) return;
             b.classList.add("booster-opening");
 
@@ -3681,24 +3927,105 @@ function openPackSequence() {
                 // --- TIRAGE ---
                 currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
 
-avancerQuete("open", 1);
-ajouterXP(50);
+                avancerQuete("open", 1);
+                ajouterXP(50);
 
                 // --- LOGIQUE DE NIVEAUX ET EXP ---
-                currentPack.forEach(c => {
+currentPack.forEach(c => {
 
+    // --- 🎁 CAS SPÉCIAL : LUCKY BLOCKS (4 TYPES : Mythic, Brainrot, Secret, Admin) ---
+    const listLucky = [
+        "Mythic Lucky Block", 
+        "Brainrot God Lucky Block", 
+        "Secret Lucky Block", 
+        "Admin Lucky Block"
+    ];
 
+    if (listLucky.includes(c.rarity)) {
+        
+        // 🛡️ SÉCURITÉ & HIÉRARCHIE : On vérifie si un Lucky Block est déjà actif
+        const uiLucky = document.getElementById("luckyBlockUI");
+        if (uiLucky && uiLucky.style.display !== "none") {
+            
+            // Définition de la puissance (plus c'est haut, plus c'est rare)
+            const luckyPower = {
+                "Mythic Lucky Block": 1,
+                "Brainrot God Lucky Block": 2,
+                "Secret Lucky Block": 3,
+                "Admin Lucky Block": 4
+            };
 
-if (c.rarity === "Rare") {
-                avancerQuete("rare", 1);
+            // On récupère le nom du block actuel via le texte de l'interface
+            const currentLuckyName = document.getElementById("luckyBlockType")?.innerText || "";
+            
+            let activePower = 0;
+            if (currentLuckyName.includes("Mythic")) activePower = 1;
+            else if (currentLuckyName.includes("Brainrot")) activePower = 2;
+            else if (currentLuckyName.includes("Secret")) activePower = 3;
+            else if (currentLuckyName.includes("Admin")) activePower = 4;
+
+            const newPower = luckyPower[c.rarity];
+
+            // --- LE CHANGEMENT EST ICI ---
+            // Si le nouveau est STRICTEMENT plus puissant, on écrase.
+            // Si c'est identique ou plus faible, on annule (return).
+            if (newPower > activePower) {
+                console.log(`🔥 Remplacement : Le ${c.rarity} remplace le bloc actuel plus faible.`);
+                alert(`🚀 INCROYABLE ! Ton Lucky Block a été amélioré en ${c.rarity} !`);
+                // On laisse le code continuer pour écraser
+            } else {
+                console.log(`🚫 Annulation : Un Lucky Block de rareté identique ou supérieure est déjà en cours.`);
+                return; // Annule le nouveau bloc
             }
+        }
+        
+        // Détermination du temps d'attente selon la rareté
+        let heures = 1;
+        if (c.rarity === "Brainrot God Lucky Block") heures = 6;
+        if (c.rarity === "Secret Lucky Block") heures = 12;
+        if (c.rarity === "Admin Lucky Block") heures = 24;
 
-if (c.rarity === "Mythic") {
-                avancerQuete("mythic", 1);
-ajouterXP(25);
-            }
+        const delai = heures * 60 * 60 * 1000; 
+        const dateDeblocage = Date.now() + delai;
+        
+        const user = firebase.auth().currentUser;
+        if (user) {
+            // .set avec { merge: true } : Crée le champ s'il est absent, le modifie s'il existe.
+            db.collection("users").doc(user.uid).set({
+                luckyBlockUnlockTime: dateDeblocage,
+                luckyBlockType: c.rarity,
+                luckyBlockReady: false
+            }, { merge: true })
+            .then(() => {
+                console.log(`✅ Chrono ${c.rarity} initialisé dans Firebase.`);
+                // On lance le compte à rebours visuel immédiatement avec le TYPE
+                if (typeof updateLuckyTimer === "function") {
+                    updateLuckyTimer(dateDeblocage, c.rarity);
+                }
+            });
+        }
+
+        // On n'affiche l'alerte de base que si ce n'était pas un remplacement
+        if (!(uiLucky && uiLucky.style.display !== "none")) {
+            alert(`🍀 ${c.name} ! Cadeau débloqué dans ${heures}h.`);
+        }
+        return;
+    }
+    
 
 
+                    if (c.rarity === "Rare") {
+                        avancerQuete("rare", 1);
+                    }
+
+                    if (c.rarity === "Mythic") {
+                        avancerQuete("mythic", 1);
+                        ajouterXP(25);
+                    }
+
+                    if (c.rarity === "OG") {
+                        ajouterXP(500);
+                    }
 
                     const existingCard = collection.find(card => card.name === c.name);
                     
@@ -3708,48 +4035,44 @@ ajouterXP(25);
                         c.level = 1;
                         c.exp = 0;
                         collection.push({ ...c });
-ajouterXP(20);
+                        ajouterXP(20);
                     } else {
                         // DOUBLON : On augmente l'EXP
                         c.isNew = false;
-           avancerQuete("duplicate", 1);
+                        avancerQuete("duplicate", 1);
                         
                         // Initialisation si les propriétés n'existent pas encore
                         if (existingCard.level === undefined) existingCard.level = 1;
                         if (existingCard.exp === undefined) existingCard.exp = 0;
 
+                        const expTable = {
+                            "Commun": 15, 
+                            "Rare": 12, 
+                            "Epic": 10, 
+                            "Legendary": 7,
+                            "Mythic": 4, 
+                            "Brainrot God": 3, 
+                            "Secret": 2, 
+                            "OG": 1 
+                        };
 
-const expTable = {
- "Commun": 15, 
-"Rare": 12, 
-"Epic": 10, 
-"Legendary": 7,
-"Mythic": 4, 
-"Brainrot God": 3, 
-"Secret": 2, 
-"OG": 1 
-};
+                        // 1. On ajoute l'EXP
+                        existingCard.exp = (existingCard.exp || 0) + 1;
+                        if (!existingCard.level) existingCard.level = 1;
 
-// 1. On ajoute l'EXP
-existingCard.exp = (existingCard.exp || 0) + 1;
-if (!existingCard.level) existingCard.level = 1;
+                        // 2. On récupère le palier selon la rareté
+                        let needed = expTable[existingCard.rarity] || 10;
 
-// 2. On récupère le palier selon la rareté
-let needed = expTable[existingCard.rarity] || 10;
+                        // 3. Boucle de Level Up : tant qu'on a assez d'EXP, on monte de niveau
+                        while (existingCard.exp >= needed) {
+                            existingCard.exp -= needed; // On consomme l'EXP
+                            existingCard.level += 1;    // On monte de niveau
+                            console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
 
-// 3. Boucle de Level Up : tant qu'on a assez d'EXP, on monte de niveau
-while (existingCard.exp >= needed) {
-    existingCard.exp -= needed; // On consomme l'EXP
-    existingCard.level += 1;    // On monte de niveau
-    console.log(`🚀 ${existingCard.name} monte au niveau ${existingCard.level} !`);
-
-if (existingCard.level === 5) {
-        avancerQuete("lvlup", 1);
-    }
-}
-
-
-
+                            if (existingCard.level === 5) {
+                                avancerQuete("lvlup", 1);
+                            }
+                        }
 
                         // Gain de fragments (Dust)
                         const dustValues = {
@@ -3765,23 +4088,20 @@ if (existingCard.level === 5) {
                 save("dust", dust);
                 refreshDust();
 
-
-updateStreak();
+                updateStreak();
 
                 // --- FIREBASE ET COMPTEURS ---
                 const user = firebase.auth().currentUser;
                 if (user) {
-db.collection("users").doc(user.uid).set({
-    collection: collection,
-    dust: dust,
-    boostersOpened: firebase.firestore.FieldValue.increment(1),
-    
-    // ON ENVOIE L'HEURE DU SERVEUR (Indispensable pour tes règles)
-    lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
-    
-    // On envoie le nouveau chiffre de la streak
-    streakCount: streakCount 
-}, { merge: true })
+                    db.collection("users").doc(user.uid).set({
+                        collection: collection,
+                        dust: dust,
+                        xp: xp, // Synchronisation de l'XP de compte
+                        level: level, // Synchronisation du niveau de compte
+                        boostersOpened: firebase.firestore.FieldValue.increment(1),
+                        lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
+                        streakCount: streakCount 
+                    }, { merge: true })
                     .then(() => {
                         const counterEl = document.getElementById("boosterCounter");
                         if (counterEl) {
@@ -3809,6 +4129,7 @@ db.collection("users").doc(user.uid).set({
         }; // Fin du b.onclick
     }); // Fin du forEach
 } // Fin de la fonction openPackSequence
+
 
 
 // Liaison du bouton principal

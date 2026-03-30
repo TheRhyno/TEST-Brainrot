@@ -613,79 +613,68 @@ html, body {
 
 
 
-/* --- CONFIGURATION ÉCRAN DE COMBAT --- */
-/* --- SECTION COMBAT (FLUX NORMAL) --- */
 #combatSection {
-    display: none; /* Activé en 'flex' par le JS */
+    display: none; 
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Aligne tout vers le haut */
-    
-    /* On utilise le flux normal pour ne pas cacher le titre/profil */
+    justify-content: flex-start;
     width: 100%;
-    max-width: 600px; 
+    max-width: 600px;
     margin: 0 auto;
+
+    /* --- ON REMONTE TOUT ICI --- */
+    margin-top: -20px; /* Force le bloc à monter vers le titre */
+    padding-top: 0;    /* Supprime l'espace interne en haut */
     
-    /* On ajuste l'espace pour éviter que le bouton sorte de l'écran */
-    padding: 10px;
-    padding-bottom: 120px; /* Marge de sécurité pour les onglets du bas */
+    height: auto; 
+    padding-bottom: 100px; 
     box-sizing: border-box;
 }
 
-/* L'arène (Tapis de cartes) */
+/* On réduit l'espace entre le titre et l'arène */
+#battle-info {
+    font-size: 0.85rem;
+    margin: 2px 0 8px 0; /* Marge très petite */
+    font-weight: bold;
+    color: #4ade80;
+}
+
 .arena-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
-    margin: 10px 0; /* Espace réduit pour remonter le bouton */
+    
+    /* On réduit la taille de l'arène pour qu'elle prenne moins de place verticale */
+    height: 160px; 
+    margin: 0 auto; /* Pas de marge en haut/bas pour coller au titre */
 }
 
-/* Les slots de cartes (Taille optimisée pour mobile) */
 #player-slot, #opponent-slot {
-    width: 130px; 
-    height: 180px; 
+    width: 120px;
+    height: 160px; 
     border: 2px dashed #4b5563;
-    border-radius: 15px;
+    border-radius: 12px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: rgba(22, 32, 55, 0.6);
-    position: relative;
-    transition: transform 0.2s;
 }
 
-/* Style du bouton "Lancer le combat" */
 #btn-start-fight {
-    width: 85%;
+    width: 90%;
     max-width: 300px;
-    height: 50px;
-    font-size: 1rem;
+    height: 48px;
+    margin-top: 15px; /* Juste un petit espace après les cartes */
+    
+    background: linear-gradient(135deg, #ef4444, #7c3aed);
+    border: 2px solid #fff;
+    border-radius: 10px;
     font-weight: 900;
     text-transform: uppercase;
-    background: linear-gradient(135deg, #ef4444, #7c3aed);
-    color: white;
-    border: 3px solid #fff;
-    border-radius: 12px;
     cursor: pointer;
-    margin-top: 5px; /* Collé au tapis pour rester visible */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    z-index: 10;
 }
-
-/* Texte d'info au-dessus du bouton */
-#battle-info {
-    font-size: 0.85rem;
-    color: #4ade80;
-    margin-top: 5px;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-}
-
-
-
 
 
 

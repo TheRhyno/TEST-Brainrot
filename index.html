@@ -983,7 +983,7 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
 <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.1.0</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.1.1</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
@@ -1202,7 +1202,7 @@ html, body {
         padding-top: 15px;
         width: 80%;
     ">
-        <span id="app-version">v2.1.0</span><br>
+        <span id="app-version">v2.1.1</span><br>
         <span>© 2026 BRAINROT TCG</span>
     </div>
 </div>
@@ -1398,7 +1398,7 @@ const ALL_CARDS = [
 ];
 
 
-const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 90, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.05, 'Admin Lucky Block': 0.005 };
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 1, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.05, 'Admin Lucky Block': 0.005 };
 
 
 const BOOSTER_IMAGES = [
@@ -1476,27 +1476,29 @@ disableSite(false);
 
 
 
-
-
-
-let luckyInterval; // Pour éviter les doublons d'intervalles
+// --- DÉCLARATIONS GLOBALES (Indispensable pour éviter les ReferenceError) ---
+let luckyInterval; 
+let luckyBlockUnlockTime = null; 
+let luckyBlockReady = false; 
 
 function updateLuckyTimer(unlockTime, type) {
+    // On synchronise la variable globale avec la valeur reçue de Firebase
+    luckyBlockUnlockTime = unlockTime;
+
     const ui = document.getElementById("luckyBlockUI");
     const timerText = document.getElementById("luckyTimerDisplay");
     const btn = document.getElementById("btnRecupereLucky");
-    // AJOUT : On récupère l'élément qui affiche le nom du bloc
     const typeText = document.getElementById("luckyBlockType");
 
     if (!unlockTime) {
-        ui.style.display = "none";
+        if (ui) ui.style.display = "none";
+        luckyBlockReady = false; 
         if (luckyInterval) clearInterval(luckyInterval);
         return;
     }
 
-    ui.style.display = "block";
+    if (ui) ui.style.display = "block";
 
-    // AJOUT : On met à jour le nom du bloc s'il est fourni
     if (typeText && type) {
         typeText.innerText = type;
     }
@@ -1509,18 +1511,19 @@ function updateLuckyTimer(unlockTime, type) {
 
         if (reste <= 0) {
             // LE TEMPS EST ÉCOULÉ
+            luckyBlockReady = true; 
             clearInterval(luckyInterval);
             timerText.innerHTML = "✨ Ton cadeau est prêt !";
             timerText.style.color = "#10b981";
-            btn.style.display = "inline-block"; // On montre le bouton
-            ui.style.borderColor = "#10b981";   // Le cadre devient vert
+            btn.style.display = "inline-block"; 
+            ui.style.borderColor = "#10b981";   
         } else {
             // ON AFFICHE LE DÉCOMPTE
+            luckyBlockReady = false;
             const h = Math.floor(reste / 3600000);
             const m = Math.floor((reste % 3600000) / 60000);
             const s = Math.floor((reste % 60000) / 1000);
             
-            // On garde ton texte original
             timerText.innerHTML = `🍀 Le Lucky Block s'ouvre dans : ${h}h ${m}m ${s}s`;
             btn.style.display = "none";
             timerText.style.color = "#fbbf24";
@@ -1529,25 +1532,20 @@ function updateLuckyTimer(unlockTime, type) {
     }, 1000);
 }
 
-
-
 async function ouvrirCadeauLuckyBlock() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    // 1. On récupère les données pour savoir quel type de cadeau c'est
     const doc = await db.collection("users").doc(user.uid).get();
     const data = doc.data();
 
+    // On vérifie que la donnée existe ET que le temps est bien passé
     if (data && data.luckyBlockUnlockTime) {
-        // Sécurité : on vérifie encore l'heure
         if (Date.now() < data.luckyBlockUnlockTime) return;
 
-        // 2. Calcul des gains selon les 4 types
         let gainDust = 5000;
         let gainXP = 500;
 
-        // On ajuste selon le type stocké dans Firebase
         if (data.luckyBlockType === "Brainrot God Lucky Block") {
             gainDust = 15000; 
             gainXP = 1500;
@@ -1557,22 +1555,18 @@ async function ouvrirCadeauLuckyBlock() {
         } else if (data.luckyBlockType === "Admin Lucky Block") {
             gainDust = 250000; 
             gainXP = 25000;
-        } else {
-            // Par défaut (Mythic Lucky Block)
-            gainDust = 5000;
-            gainXP = 500;
         }
 
-        // 3. Mise à jour locale
+        // Ajout des gains
         dust += gainDust;
         if (typeof ajouterXP === "function") await ajouterXP(gainXP);
         refreshDust();
 
-        // 4. Nettoyage Firebase (On remet tout à null pour pouvoir en re-piocher un)
+        // 4. Nettoyage complet pour permettre d'en re-piocher un nouveau sans bug
         await db.collection("users").doc(user.uid).update({
             luckyBlockUnlockTime: null,
             luckyBlockType: null,
-            luckyBlockReady: false,
+            luckyBlockReady: false, // On remet à false ici aussi
             dust: dust
         });
 
@@ -1580,11 +1574,9 @@ async function ouvrirCadeauLuckyBlock() {
         const uiContainer = document.getElementById("luckyBlockUI");
         if (uiContainer) uiContainer.style.display = "none";
         
-        alert(`🎉 BOOM !\nTon ${data.luckyBlockType} contenait :\n💰 +${gainDust} Fragments\n✨ +${gainXP} XP !`);
+        alert(`🎉 BOOM !\nTon ${data.luckyBlockType} contenait :\n💰 +${gainDust} Dust\n✨ +${gainXP} XP !`);
     }
 }
-
-
 
 
 
@@ -2319,9 +2311,21 @@ async function annulerVente(id) {
     const snap = await ref.get();
 
     if(snap.exists) {
-        // 1. On récupère la carte localement
+        // 1. On récupère la carte du marché
         const cardToRecover = snap.data().card;
-        collection.push(cardToRecover);
+
+        // --- GESTION DU DOUBLON (Booster vs Marché) ---
+        // On cherche si la carte a été obtenue via un booster pendant la vente
+        const indexExistante = collection.findIndex(c => c.name === cardToRecover.name);
+
+        if (indexExistante !== -1) {
+            // Si elle existe déjà, on remplace la carte actuelle par celle du marché 
+            // (qui contient ton ancien niveau et XP)
+            collection[indexExistante] = cardToRecover;
+        } else {
+            // Si elle n'est pas là, on l'ajoute normalement
+            collection.push(cardToRecover);
+        }
         
         try {
             // 2. On attend la CONFIRMATION du serveur avant de supprimer l'annonce
@@ -2340,8 +2344,10 @@ async function annulerVente(id) {
             alert("Carte récupérée dans ta collection !");
         } catch (error) {
             console.error("Erreur critique lors de l'annulation :", error);
-            // Si ça échoue, on retire la carte du local pour rester synchro
-            collection.pop();
+            // Si ça échoue, on retire ou on restaure pour rester synchro
+            if (indexExistante === -1) {
+                collection.pop(); 
+            }
             alert("Erreur de connexion. La carte est restée sur le marché.");
         }
     } else {
@@ -4112,7 +4118,8 @@ function openPackSequence() {
                             
                             // MISE À JOUR DES VARIABLES GLOBALES
                             luckyBlockUnlockTime = Date.now() + delai;
-                            luckyBlockType = c.rarity;
+                            // SÉCURITÉ : On s'assure que c'est du texte, pas la DIV
+                            luckyBlockType = String(c.rarity); 
                             luckyBlockReady = false;
 
                             if (activePower > 0) {
@@ -4183,9 +4190,10 @@ function openPackSequence() {
                         streakCount: streakCount,
                         boostersOpened: firebase.firestore.FieldValue.increment(1),
                         lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
-                        // On inclut les variables de Lucky Block ici pour qu'elles ne soient jamais écrasées par null
+                        // On inclut les variables de Lucky Block ici
                         luckyBlockUnlockTime: luckyBlockUnlockTime || null,
-                        luckyBlockType: luckyBlockType || null,
+                        // PROTECTION : On s'assure d'envoyer du texte pur à Firebase
+                        luckyBlockType: (typeof luckyBlockType === "string") ? luckyBlockType : (luckyBlockType?.innerText || null),
                         luckyBlockReady: luckyBlockReady || false
                     }, { merge: true })
                     .then(() => {
@@ -4216,6 +4224,7 @@ function openPackSequence() {
 
 
 
+
 // Liaison du bouton principal
 document.getElementById("openPack").onclick = openPackSequence;
 
@@ -4223,19 +4232,19 @@ document.getElementById("openPack").onclick = openPackSequence;
 
 // Fonction dédiée pour envoyer les données à Firestore
 function saveToFirebase(uid) {
-  db.collection("users").doc(uid).set({
-    collection: collection,
-    dust: dust,
-    streakCount: streakCount,
-    lastOpenDate: lastOpenDate,
-    // On ajoute ces deux-là pour ton nouveau système :
-    xp: typeof xp !== 'undefined' ? xp : 0,
-    level: typeof level !== 'undefined' ? level : 1,
+  db.collection("users").doc(uid).set({
+    collection: collection,
+    dust: dust,
+    streakCount: streakCount,
+    lastOpenDate: lastOpenDate,
+    // On ajoute ces deux-là pour ton nouveau système :
+    xp: typeof xp !== 'undefined' ? xp : 0,
+    level: typeof level !== 'undefined' ? level : 1,
 
-    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true })
-  .then(() => console.log("✅ Sauvegarde Firebase (Collection, Streak & Niveau) réussie !"))
-  .catch(err => console.error("❌ Erreur Firebase :", err));
+    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true })
+  .then(() => console.log("✅ Sauvegarde Firebase (Collection, Streak & Niveau) réussie !"))
+  .catch(err => console.error("❌ Erreur Firebase :", err));
 }
 
 

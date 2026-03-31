@@ -457,6 +457,52 @@ html, body {
 
 
 
+
+/* L'overlay qui prend tout l'écran et bloque les clics */
+#secretAnimation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Fond violet très sombre transparent */
+  background: rgba(40, 0, 80, 0.9); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30000; /* Encore plus haut que tout le reste */
+  pointer-events: all; /* Bloque les interactions avec le reste du site */
+  user-select: none;
+}
+
+/* Le texte Secret avec l'effet néon violet/blanc */
+#secretText {
+  font-size: 80px;
+  font-weight: bold;
+  color: #ff00ff; /* Magenta électrique */
+  text-align: center;
+  text-shadow:
+    0 0 20px #ff00ff,
+    0 0 40px #ff00ff,
+    0 0 80px #ffffff;
+  /* Utilise la même animation que ton OG pour l'entrée */
+  animation: secretEntry 1.5s ease-out;
+}
+
+/* On reprend la même logique d'animation que pour l'OG */
+@keyframes secretEntry {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+
+
+
+
+
 #maintenanceOverlay {
     display: none; /* Caché par défaut */
     position: fixed; 
@@ -678,6 +724,46 @@ html, body {
 
 
 
+
+#scrollToBottom {
+    position: fixed !important;
+    bottom: 110px !important; 
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    
+    /* Fond totalement invisible au repos */
+    background-color: rgba(255, 255, 255, 0.05) !important; 
+    color: rgba(255, 255, 255, 0.3) !important; /* Flèche très discrète */
+    
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    
+    z-index: 9999999 !important; 
+    font-size: 1.5rem !important;
+    
+    /* Une bordure presque invisible pour le deviner */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    
+    /* Effet de flou derrière pour qu'il reste lisible peu importe la carte */
+    backdrop-filter: blur(4px); 
+    
+    transition: all 0.2s ease;
+}
+
+/* Il s'allume seulement quand tu passes dessus */
+#scrollToBottom:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -848,7 +934,14 @@ html, body {
   </div>
 
     <div id="collection" class="cards"></div>
-  </div>
+
+<div id="scrollToBottom" onclick="descendreToutEnBas()">
+    ↓
+</div>
+
+
+
+
 
 
 
@@ -983,7 +1076,7 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
 <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.0</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.1</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
@@ -996,7 +1089,7 @@ html, body {
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🆕 <b>Nouvelles cartes :</b> Les Brainrot God et les Secret sont désormais disponibles !
+                    🍀 <b>Nouvelles cartes :</b> Les Brainrot God et les Secret sont désormais disponibles !
                 </p>
             </div>
 
@@ -1208,7 +1301,7 @@ html, body {
         padding-top: 15px;
         width: 80%;
     ">
-        <span id="app-version">v2.2.0</span><br>
+        <span id="app-version">v2.2.1</span><br>
         <span>© 2026 BRAINROT TCG</span>
     </div>
 </div>
@@ -1228,8 +1321,6 @@ html, body {
 
     </div>
 </div>
-
-
 
 
 
@@ -1758,6 +1849,77 @@ disableSite(false);
 
 
 
+
+function descendreToutEnBas() {
+    console.log("--- TENTATIVE FORCE BRUTE ---");
+    
+    // On récupère la div qui contient vraiment les cartes
+    const listeCartes = document.getElementById("collection"); 
+    const sectionComplete = document.getElementById("collectionSection");
+
+    if (sectionComplete) {
+        // On force le scroll de la fenêtre ET de la section
+        window.scrollTo({
+            top: 100000, // On balance un chiffre énorme pour forcer le bas
+            behavior: 'smooth'
+        });
+
+        // Si ta section est en "fixed" ou "absolute" avec son propre scroll :
+        sectionComplete.scrollTo({
+            top: sectionComplete.scrollHeight,
+            behavior: 'smooth'
+        });
+        
+        console.log("Scroll envoyé à 100.000px");
+    }
+}
+
+
+
+
+
+
+function declencherEventSecret() {
+    let secretDiv = document.getElementById('secretAnimation');
+    if (!secretDiv) {
+        secretDiv = document.createElement('div');
+        secretDiv.id = 'secretAnimation';
+        Object.assign(secretDiv.style, {
+            position: "fixed",
+            top: "0", left: "0",
+            width: "100vw", height: "100vh",
+            background: "transparent", 
+            zIndex: "40000", // Très haut pour bloquer tout clic
+            display: "none",
+            pointerEvents: "all"
+        });
+        document.body.appendChild(secretDiv);
+    }
+    
+    secretDiv.style.display = 'block';
+
+    // Confettis de fête
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#ff00ff', '#ffffff', '#00ffff'],
+            zIndex: 40001
+        });
+    }
+
+    // On retire l'overlay invisible après 2.5s pour libérer le clic
+    setTimeout(() => {
+        secretDiv.style.display = 'none';
+    }, 1500);
+}
+
+
+
+
+
+
 // --- DÉCLARATIONS GLOBALES (Indispensable pour éviter les ReferenceError) ---
 let luckyInterval; 
 let luckyBlockUnlockTime = null; 
@@ -1813,50 +1975,54 @@ function updateLuckyTimer(unlockTime, type) {
         }
     }, 1000);
 }
-
 async function ouvrirCadeauLuckyBlock() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
+    // On récupère les données fraîches du serveur pour être sûr
     const doc = await db.collection("users").doc(user.uid).get();
     const data = doc.data();
 
-    // On vérifie que la donnée existe ET que le temps est bien passé
     if (data && data.luckyBlockUnlockTime) {
         if (Date.now() < data.luckyBlockUnlockTime) return;
 
+        // --- 1. CALCUL DES GAINS ---
         let gainDust = 5000;
         let gainXP = 500;
+        const typeOrigine = data.luckyBlockType; // On stocke le nom pour l'alert finale
 
-        if (data.luckyBlockType === "Brainrot God Lucky Block") {
-            gainDust = 15000; 
-            gainXP = 1500;
-        } else if (data.luckyBlockType === "Secret Lucky Block") {
-            gainDust = 50000; 
-            gainXP = 5000;
-        } else if (data.luckyBlockType === "Admin Lucky Block") {
-            gainDust = 250000; 
-            gainXP = 25000;
+        if (typeOrigine === "Brainrot God Lucky Block") {
+            gainDust = 15000; gainXP = 1500;
+        } else if (typeOrigine === "Secret Lucky Block") {
+            gainDust = 50000; gainXP = 5000;
+        } else if (typeOrigine === "Admin Lucky Block") {
+            gainDust = 250000; gainXP = 25000;
         }
 
-        // Ajout des gains
+        // --- 2. MISE À JOUR GLOBALE IMMÉDIATE (Anti-bug de synchro) ---
+        // On vide les variables AVANT le "await" Firebase pour que saveToFirebase 
+        // ne puisse pas récupérer les anciennes valeurs par erreur.
+        luckyBlockUnlockTime = null;
+        luckyBlockType = null;
+        luckyBlockReady = false;
         dust += gainDust;
+
+        // --- 3. MISE À JOUR UI ---
         if (typeof ajouterXP === "function") await ajouterXP(gainXP);
         refreshDust();
+        const uiContainer = document.getElementById("luckyBlockUI");
+        if (uiContainer) uiContainer.style.display = "none";
 
-        // 4. Nettoyage complet pour permettre d'en re-piocher un nouveau sans bug
+        // --- 4. NETTOYAGE SERVEUR ---
         await db.collection("users").doc(user.uid).update({
             luckyBlockUnlockTime: null,
             luckyBlockType: null,
-            luckyBlockReady: false, // On remet à false ici aussi
-            dust: dust
+            luckyBlockReady: false,
+            dust: dust,
+            xp: typeof xp !== 'undefined' ? xp : 0 // On synchronise l'XP aussi
         });
 
-        // 5. UI
-        const uiContainer = document.getElementById("luckyBlockUI");
-        if (uiContainer) uiContainer.style.display = "none";
-        
-        alert(`🎉 BOOM !\nTon ${data.luckyBlockType} contenait :\n💰 +${gainDust} Dust\n✨ +${gainXP} XP !`);
+        alert(`🎉 BOOM !\nTon ${typeOrigine} contenait :\n💰 +${gainDust} Dust\n✨ +${gainXP} XP !`);
     }
 }
 
@@ -1932,61 +2098,56 @@ async function ajouterXP(montant) {
 
 
 function actualiserProfil() {
-    // 1. Calcul du niveau
-    const niveau = (typeof calculerNiveau === "function") ? calculerNiveau(xp) : 1;
+    // 1. Valeurs globales
+    const vXP = (typeof xp !== 'undefined') ? xp : 0;
+    const vDust = (typeof dust !== 'undefined') ? dust : 0;
 
-    // 2. Mise à jour du chiffre du RANG
-    const lvlStat = document.getElementById("profileLevelStat");
-    const lvlSimple = document.getElementById("profileLevel");
-    if (lvlStat) lvlStat.innerText = niveau;
-    if (lvlSimple) lvlSimple.innerText = niveau;
+    // 2. NIVEAU ET RANG
+    const niveau = (typeof calculerNiveau === "function") ? calculerNiveau(vXP) : 1;
+    if (document.getElementById("profileLevelStat")) document.getElementById("profileLevelStat").innerText = niveau;
 
-    // 3. Calcul et mise à jour de la BARRE d'XP
+    // 3. BARRE D'XP
     try {
         const xpPalierActuel = Math.pow(niveau - 1, 2) * 500;
         const xpPalierSuivant = Math.pow(niveau, 2) * 500;
-        const xpDansLeNiveau = xp - xpPalierActuel;
+        const xpDansLeNiveau = vXP - xpPalierActuel;
         const xpRequisPourNiveau = xpPalierSuivant - xpPalierActuel;
         const pourcentage = Math.min(Math.floor((xpDansLeNiveau / xpRequisPourNiveau) * 100), 100);
 
         if (document.getElementById("profileXpBar")) document.getElementById("profileXpBar").style.width = pourcentage + "%";
         if (document.getElementById("xpPercent")) document.getElementById("xpPercent").innerText = pourcentage + "%";
-        if (document.getElementById("profileXpText")) document.getElementById("profileXpText").innerText = Math.floor(xpDansLeNiveau) + " / " + xpRequisPourNiveau + " XP";
-    } catch(e) { console.log("Erreur barre XP:", e); }
+        if (document.getElementById("profileXpText")) {
+            document.getElementById("profileXpText").innerText = Math.floor(xpDansLeNiveau) + " / " + xpRequisPourNiveau + " XP";
+        }
+    } catch(e) {}
 
-    // 4. Mise à jour des stats (Dust, Streak)
-    if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = (typeof dust !== 'undefined') ? dust : 0;
-    if (document.getElementById("profileStreak")) {
-        document.getElementById("profileStreak").innerText = (typeof streakCount !== 'undefined') ? streakCount : 0;
+    // 4. DUST
+    if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = vDust;
+
+    // 5. BOOSTERS (Synchro avec l'accueil)
+    const boostersEl = document.getElementById("profileBoosters");
+    if (boostersEl) {
+        const accueilEl = document.getElementById("boosterCounter") || document.getElementById("statsBoosters");
+        if (accueilEl) {
+            const extraction = accueilEl.innerText.match(/\d+/);
+            if (extraction) boostersEl.innerText = extraction[0];
+        }
     }
 
-    // 5. --- LE CORRECTIF DU 112 (FORCE BRUTE) ---
-    // On récupère la source des cartes
-    const sourceCards = (typeof ALL_CARDS !== 'undefined') ? ALL_CARDS : (typeof allCards !== 'undefined' ? allCards : []);
-    
-    // On calcule le total REEL (Total - les 4 Lucky Blocks)
-    const totalReel = sourceCards.length > 0 ? sourceCards.length - 4 : 0;
-    const possession = (typeof collection !== 'undefined') ? collection.length : 0;
-
-    // On force l'écriture deux fois : une fois de suite et une fois après 50ms 
-    // pour être SÛR qu'aucune autre fonction ne remette 116.
-    const cardsEl = document.getElementById("profileCards") || document.getElementById("profileCardsText");
+    // 6. --- FORCE L'AFFICHAGE 386 (AVEC SÉCURITÉ) ---
+    const cardsEl = document.getElementById("profileCards");
     if (cardsEl) {
-        const texteFinal = possession + " / " + totalReel;
-        cardsEl.innerText = texteFinal;
+        const possession = (typeof collection !== 'undefined') ? collection.length : 0;
         
+        // On l'affiche une première fois
+        cardsEl.innerText = possession + " / 386";
+
+        // Sécurité : On force une deuxième fois 50ms après pour écraser tout bug
         setTimeout(() => {
-            cardsEl.innerText = texteFinal; // Deuxième couche de sécurité
+            cardsEl.innerText = possession + " / 386";
         }, 50);
     }
-    
-    // On met aussi à jour le nombre de boosters ouverts si l'élément existe
-    if (document.getElementById("profileBoosters") && typeof boostersOpened !== 'undefined') {
-        document.getElementById("profileBoosters").innerText = boostersOpened;
-    }
 }
-
-
 
 
 
@@ -2144,12 +2305,26 @@ function ouvrirSelecteurVente() {
 
     collection.forEach((card, index) => {
         const cardEl = document.createElement('div');
-        cardEl.className = `card r-${card.rarity}`;
-        cardEl.style.cursor = "pointer";
-        cardEl.onclick = () => choisirPrixVente(index);
+        
+        // --- MODIFICATION : GESTION DES CARTES DÉJÀ EN VENTE ---
+        if (card.enVente) {
+            // La carte est en vente : on la grise et on désactive le clic
+            cardEl.className = `card r-${card.rarity}`;
+            cardEl.style.opacity = "0.5";
+            cardEl.style.filter = "grayscale(1)";
+            cardEl.style.cursor = "not-allowed";
+            cardEl.style.position = "relative";
+            cardEl.onclick = null; 
+        } else {
+            // La carte est disponible : comportement normal
+            cardEl.className = `card r-${card.rarity}`;
+            cardEl.style.cursor = "pointer";
+            cardEl.onclick = () => choisirPrixVente(index);
+        }
         
         cardEl.innerHTML = `
             <div style="color:#fbbf24; font-size:0.8rem; font-weight:bold;">Lvl. ${card.level || 1}</div>
+            ${card.enVente ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(239, 68, 68, 0.9); color:white; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; z-index:2; border:1px solid white;">EN VENTE</div>` : ''}
             <img src="${card.image}" style="width:100%; border-radius:5px;">
             <strong>${card.name}</strong>
             <small>${card.rarity.toUpperCase()}</small>
@@ -2361,8 +2536,10 @@ document.getElementById('confirmSellBtn').onclick = async () => {
 
     const card = collection[cardToSellIndex];
     
-    // --- ÉTAPE 1 : RETRAIT LOCAL IMMÉDIAT ---
-    collection.splice(cardToSellIndex, 1);
+    // --- ÉTAPE 1 : MARQUAGE AU LIEU DU RETRAIT ---
+    // On ne fait plus collection.splice, on marque la carte
+    card.enVente = true;
+    card.prixVente = price;
     
     try {
         // --- ÉTAPE 2 : AJOUT AU MARCHÉ ---
@@ -2374,15 +2551,8 @@ document.getElementById('confirmSellBtn').onclick = async () => {
             date: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // --- ÉTAPE 3 : GAIN D'XP ---
-        const xpVente = 50; 
-        if (typeof ajouterXP === "function") {
-            // On attend que l'XP soit traité
-            await ajouterXP(xpVente);
-        }
-
         // --- ÉTAPE 4 : SAUVEGARDE FORCÉE ---
-        // On utilise .update pour modifier uniquement la collection
+        // La collection contient toujours la carte avec son nouveau statut "enVente"
         await db.collection("users").doc(auth.currentUser.uid).update({
             collection: collection
         });
@@ -2397,18 +2567,21 @@ document.getElementById('confirmSellBtn').onclick = async () => {
         if (typeof displayCollection === "function") displayCollection();
         
         // Message plus complet pour le joueur
-        alert(`Annonce publiée ! 💎\nLa carte a été mise en vente et vous avez gagné +${xpVente} XP.`);
+        alert(`Annonce publiée ! 💎\nLa carte reste dans votre collection tant qu'elle n'est pas vendue.`);
 
     } catch (error) {
         console.error("Erreur lors de la mise en vente:", error);
-        alert("Une erreur est survenue. La carte n'a pas été vendue.");
+        
+        // --- SÉCURITÉ : ANNULATION DU MARQUAGE EN CAS D'ERREUR ---
+        card.enVente = false;
+        delete card.prixVente;
+
+        alert("Une erreur est survenue. La carte n'a pas été mise en vente.");
         
         // Optionnel : Recharger la collection si erreur pour éviter de "perdre" la carte localement
         if (typeof showCollection === "function") showCollection();
     }
 };
-
-
 
 
 
@@ -2513,76 +2686,129 @@ const cardEl = document.createElement('div');
 
 // 4. Acheter une carte
 async function acheterCarte(id, price, sellerId) {
-    // Vérification initiale du solde
     if (dust < price) return alert("Pas assez de fragments !");
     
-    const ref = db.collection("market").doc(id);
+    const marketRef = db.collection("market").doc(id);
+    const sellerRef = db.collection("users").doc(sellerId);
+    const buyerRef = db.collection("users").doc(auth.currentUser.uid);
 
     try {
-        const snap = await ref.get();
-        if(!snap.exists) {
-            alert("Désolé, cette carte n'est plus disponible !");
-            return;
-        }
+        const snap = await marketRef.get();
+        if(!snap.exists) return alert("Cette carte n'est plus disponible !");
 
         const item = snap.data();
         const purchasedCard = item.card;
 
-        // 1. SUPPRESSION DU MARCHÉ
-        await ref.delete();
+        // --- ✨ CONFIRMATION D'ACHAT ---
+        const confirmation = confirm(`Êtes-vous sûr de vouloir acheter "${purchasedCard.name}" pour ${price} fragments ?`);
+        if (!confirmation) return;
 
-        // 2. LOGIQUE DE NIVEAU / DOUBLON
+        // --- ACTION DE L'ACHETEUR SUR LE SERVEUR POUR LE VENDEUR ---
+        const sellerDoc = await sellerRef.get();
+        if (sellerDoc.exists) {
+            let sellerCollection = sellerDoc.data().collection || [];
+            const cardIndex = sellerCollection.findIndex(c => 
+                c.name === purchasedCard.name && c.enVente === true
+            );
+
+            if (cardIndex !== -1) {
+                sellerCollection.splice(cardIndex, 1);
+                await sellerRef.update({
+                    collection: sellerCollection,
+                    dust: firebase.firestore.FieldValue.increment(price)
+                });
+            }
+        }
+
+        // --- APRES LE MÉNAGE, L'ACHETEUR PREND LA CARTE ---
+        await marketRef.delete();
+
+        purchasedCard.enVente = false;
+        delete purchasedCard.prixVente;
+
+        // --- 🆙 GESTION DES DOUBLONS + PRÉPARATION DU MESSAGE ---
+        let messageSucces = "";
         let existingCard = collection.find(c => c.name === purchasedCard.name);
-
+        
         if (existingCard) {
-            // On augmente le niveau
             existingCard.level = (existingCard.level || 1) + 1;
-            alert(`Doublon ! Votre ${purchasedCard.name} monte au niveau ${existingCard.level} !`);
+            // On prépare le message pour un doublon
+            messageSucces = `Achat réussi ! Vous possédiez déjà "${purchasedCard.name}", son niveau passe à ${existingCard.level}.`;
         } else {
-            // On ajoute la nouvelle carte avec un niveau 1 par défaut
             purchasedCard.level = 1;
             collection.push(purchasedCard);
+            // On prépare le message pour une nouvelle carte
+            messageSucces = `Achat réussi ! "${purchasedCard.name}" a été ajoutée à votre collection.`;
         }
 
-        // --- AJOUT XP DE COMPTE ---
-        const xpGagne = 50; // Tu peux varier selon le prix si tu veux
-        if (typeof ajouterXP === "function") {
-            // On attend que l'XP soit ajouté (et sauvegardé via ta fonction ajouterXP)
-            await ajouterXP(xpGagne);
-        }
-
-        // 3. MISE À JOUR DU DUST LOCAL
+        // --- MISE À JOUR COMPTE ACHETEUR ---
         dust -= price;
-
-        // 4. SAUVEGARDE SUR FIREBASE (Acheteur)
-        // On utilise .set avec { merge: true } comme dans ton code d'origine
-        await db.collection("users").doc(auth.currentUser.uid).set({
+        await buyerRef.update({
             dust: dust,
             collection: collection
-        }, { merge: true });
+        });
 
-        // --- MISE À JOUR DU STOCKAGE LOCAL (pour éviter le bug du refresh) ---
+        // --- MISE À JOUR LOCALE ---
         localStorage.setItem("collection", JSON.stringify(collection));
         localStorage.setItem("dust", dust);
 
-        // 5. TRANSFERT AU VENDEUR
-        await db.collection("users").doc(sellerId).update({
-            dust: firebase.firestore.FieldValue.increment(price)
-        });
-
-        // ✅ MISE À JOUR VISUELLE
-        if (typeof displayCollection === "function") displayCollection();
-        if (typeof showCollection === "function") showCollection(); // Rafraîchit l'affichage si l'onglet est ouvert
         refreshDust();
-        if (typeof updateButtons === "function") updateButtons();
+        if (typeof displayCollection === "function") displayCollection();
         
-        alert(`Achat effectué ! +${xpGagne} XP gagnés.`);
+        // Affichage du message personnalisé
+        alert(messageSucces);
 
     } catch (error) {
-        console.error("Erreur achat:", error);
-        alert("Une erreur est survenue lors de la transaction.");
+        console.error("Erreur transaction:", error);
+        alert("Une erreur est survenue.");
     }
 }
+
+
+
+
+
+
+
+function surveillerMesVentes() {
+    const userId = auth.currentUser.uid;
+
+    // On écoute le marché en filtrant uniquement MES ventes
+    db.collection("market").where("sellerId", "==", userId)
+      .onSnapshot((snapshot) => {
+          // On récupère les IDs des cartes qui sont ENCORE sur le marché
+          const cartesEncoreEnVente = [];
+          snapshot.forEach(doc => {
+              cartesEncoreEnVente.push(doc.data().card.name); 
+          });
+
+          let aChange = false;
+
+          // On vérifie notre collection locale
+          collection.forEach((card, index) => {
+              // SI la carte est marquée "enVente" MAIS n'est plus dans la liste du marché
+              if (card.enVente && !cartesEncoreEnVente.includes(card.name)) {
+                  console.log(`La carte ${card.name} a été vendue ! Suppression...`);
+                  collection.splice(index, 1); // Elle part de la collection
+                  aChange = true;
+              }
+          });
+
+          if (aChange) {
+              // On sauvegarde la collection propre sur Firebase (Action faite par le VENDEUR lui-même)
+              db.collection("users").doc(userId).update({
+                  collection: collection
+              }).then(() => {
+                  if (typeof displayCollection === "function") displayCollection();
+                  console.log("Collection synchronisée après vente.");
+              });
+          }
+      });
+}
+
+
+
+
 
 
 
@@ -2593,42 +2819,53 @@ async function annulerVente(id) {
     const snap = await ref.get();
 
     if(snap.exists) {
-        // 1. On récupère la carte du marché
-        const cardToRecover = snap.data().card;
+        // 1. On récupère les données de l'annonce pour savoir quelle carte libérer
+        const cardFromMarket = snap.data().card;
 
-        // --- GESTION DU DOUBLON (Booster vs Marché) ---
-        // On cherche si la carte a été obtenue via un booster pendant la vente
-        const indexExistante = collection.findIndex(c => c.name === cardToRecover.name);
+        // --- NOUVELLE LOGIQUE : LIBÉRATION DE LA CARTE ---
+        // On cherche la carte dans notre collection locale qui porte le flag 'enVente'
+        const indexExistante = collection.findIndex(c => 
+            c.name === cardFromMarket.name && c.enVente === true
+        );
 
         if (indexExistante !== -1) {
-            // Si elle existe déjà, on remplace la carte actuelle par celle du marché 
-            // (qui contient ton ancien niveau et XP)
-            collection[indexExistante] = cardToRecover;
+            // On retire les flags de vente pour rendre la carte interactive à nouveau
+            collection[indexExistante].enVente = false;
+            if (collection[indexExistante].prixVente) {
+                delete collection[indexExistante].prixVente;
+            }
         } else {
-            // Si elle n'est pas là, on l'ajoute normalement
-            collection.push(cardToRecover);
+            // Cas de secours : si la carte n'est pas trouvée (bug), on utilise celle du marché
+            // en s'assurant qu'elle est bien marquée comme n'étant plus en vente
+            cardFromMarket.enVente = false;
+            collection.push(cardFromMarket);
         }
         
         try {
-            // 2. On attend la CONFIRMATION du serveur avant de supprimer l'annonce
+            // 2. Sauvegarde de la collection mise à jour (avec la carte libérée)
             if (auth.currentUser) {
-                // IMPORTANT : On ajoute "await" ici
-                await saveToFirebase(auth.currentUser.uid);
+                await db.collection("users").doc(auth.currentUser.uid).update({
+                    collection: collection
+                });
+                // Mise à jour du stockage local
+                localStorage.setItem("collection", JSON.stringify(collection));
             }
 
-            // 3. On supprime l'annonce seulement si la sauvegarde a réussi
+            // 3. On supprime l'annonce du marché
             await ref.delete();
 
-            if (typeof chargerMarche === "function") {
-                chargerMarche();
-            }
+            // Rafraîchissement des interfaces
+            if (typeof chargerMarche === "function") chargerMarche();
+            if (typeof displayCollection === "function") displayCollection();
+            if (typeof showCollection === "function") showCollection();
 
-            alert("Carte récupérée dans ta collection !");
+            alert("Vente annulée ! La carte est de nouveau disponible dans votre collection.");
         } catch (error) {
             console.error("Erreur critique lors de l'annulation :", error);
-            // Si ça échoue, on retire ou on restaure pour rester synchro
-            if (indexExistante === -1) {
-                collection.pop(); 
+            
+            // En cas d'échec serveur, on remet le flag en local pour rester synchro avec le marché
+            if (indexExistante !== -1) {
+                collection[indexExistante].enVente = true;
             }
             alert("Erreur de connexion. La carte est restée sur le marché.");
         }
@@ -2764,6 +3001,7 @@ async function chargerQuetesFirebase() {
             const shuffled = [...TOUTES_LES_QUETES].sort(() => 0.5 - Math.random());
             quetesActives = {
                 date: today,
+                bonusFinalDonne: false, // ✨ AJOUTÉ : Indispensable pour que le bonus fonctionne
                 active: shuffled.slice(0, 3).map(q => ({ 
                     ...q, progres: 0, fini: false, recuperee: false 
                 }))
@@ -2782,6 +3020,7 @@ async function chargerQuetesFirebase() {
         console.error("Erreur lors du chargement des quêtes:", error);
     }
 }
+
 
 function afficherQuetes(quetes) {
     const list = document.getElementById("questList");
@@ -2856,50 +3095,68 @@ async function recupererCadeauFirebase(index) {
 
     // On vérifie que la quête est finie et pas encore encaissée
     if (q.fini && !q.recuperee) {
+        // 1. On marque immédiatement comme récupérée localement
         q.recuperee = true;
         
-        // 1. Mise à jour de la variable globale
+        // Mise à jour des Fragments de la quête
         dust += q.recompense; 
 
         try {
-            // --- AJOUT DU BONUS FINAL ---
-            // On vérifie si les 3 quêtes sont maintenant récupérées
-            const toutesRecuperees = quetesActives.active.every(quest => quest.recuperee === true);
+            // --- GAIN D'XP POUR LA QUÊTE ---
+            const XP_PAR_QUETE = 100;
+            if (typeof ajouterXP === "function") {
+                await ajouterXP(XP_PAR_QUETE);
+            }
+
+            // --- LOGIQUE DU BONUS FINAL ---
+            // On compte combien de quêtes sont marquées 'recuperee'
+            const nbRecuperees = quetesActives.active.filter(quest => quest.recuperee === true).length;
             let messageBonus = "";
 
-            if (toutesRecuperees && !quetesActives.bonusFinalDonne) {
+            // Si on a récupéré les 3 et que le bonus n'a pas encore été marqué comme donné
+            if (nbRecuperees === 3 && quetesActives.bonusFinalDonne !== true) {
                 const MONTANT_BONUS = 1000;
-                dust += MONTANT_BONUS;
-                quetesActives.bonusFinalDonne = true; // Marqueur pour ne pas le donner deux fois
-                messageBonus = `\n\n🌟 BONUS QUOTIDIEN : +${MONTANT_BONUS} Fragments !`;
-            }
-   
+                const XP_BONUS_FINAL = 400;
 
-            // 2. Sauvegarde synchronisée sur Firebase
-            await db.collection("users").doc(user.uid).set({
+                dust += MONTANT_BONUS;
+                quetesActives.bonusFinalDonne = true; // On bloque le bonus
+                
+                if (typeof ajouterXP === "function") {
+                    await ajouterXP(XP_BONUS_FINAL);
+                }
+
+                messageBonus = `\n\n🌟 BONUS QUOTIDIEN : +${MONTANT_BONUS} Fragments & +${XP_BONUS_FINAL} XP !`;
+            }
+
+            // 2. Sauvegarde UNIQUE et synchronisée sur Firebase
+            // On utilise .update pour ne pas écraser le reste du document user
+            await db.collection("users").doc(user.uid).update({
                 dust: dust,
                 dailyQuests: quetesActives
-            }, { merge: true });
+            });
 
-            // 3. MISE À JOUR DE L'INTERFACE (Utilise ta fonction refreshDust)
+            // 3. MISE À JOUR DE L'INTERFACE
             refreshDust(); 
 
-            // 4. Mise à jour du profil si les éléments existent
             if (document.getElementById("profileDust")) {
                 document.getElementById("profileDust").innerText = dust;
             }
             
-            // 5. Rafraîchir la liste des quêtes pour afficher "TERMINÉ ✅"
+            // 5. Rafraîchir la liste
             afficherQuetes(quetesActives.active);
             
-            alert(`🎁 +${q.recompense} Fragments récupérés !${messageBonus}`);
+            // Message final
+            alert(`🎁 +${q.recompense} Fragments & +${XP_PAR_QUETE} XP récupérés !${messageBonus}`);
             
         } catch (error) {
-            console.error("Erreur lors de la récupération de la récompense:", error);
+            console.error("Erreur lors de la récupération :", error);
+            // En cas d'erreur, on remet à false pour permettre de réessayer
+            q.recuperee = false; 
             alert("Erreur de connexion à Firebase. Réessaie.");
         }
     }
 }
+
 
 
 
@@ -2917,12 +3174,31 @@ async function avancerQuete(type, montant = 1) {
                 q.progres = q.cible;
                 q.fini = true;
 
-                // --- GAIN D'XP ---
-                const xpQuete = 100; // Bonus d'XP par quête finie
+                // --- GAIN D'XP IMMÉDIAT ---
+                const xpQuete = 100; 
                 if (typeof ajouterXP === "function") {
-                    // On utilise await pour être sûr que le niveau est calculé avant la suite
                     await ajouterXP(xpQuete);
-                    console.log(`✨ +${xpQuete} XP gagnés via la quête : ${q.nom}`);
+                }
+
+                // --- ✨ DÉTECTION DU BONUS DES 3 QUÊTES FINIES ---
+                // On vérifie si les 3 quêtes sont maintenant à l'état 'fini'
+                const nbFinies = quetesActives.active.filter(quest => quest.fini === true).length;
+                
+                if (nbFinies === 3 && quetesActives.bonusFinalDonne !== true) {
+                    const MONTANT_BONUS = 1000;
+                    const XP_BONUS_FINAL = 400;
+
+                    dust += MONTANT_BONUS;
+                    quetesActives.bonusFinalDonne = true; // On marque le bonus comme donné
+                    
+                    if (typeof ajouterXP === "function") {
+                        await ajouterXP(XP_BONUS_FINAL);
+                    }
+
+                    // On rafraîchit l'affichage du Dust car il a changé
+                    refreshDust();
+
+                    alert(`🏆 EXCEPTIONNEL ! Tu as terminé les 3 quêtes !\n🌟 Bonus débloqué : +${MONTANT_BONUS} Fragments & +${XP_BONUS_FINAL} XP !`);
                 }
             }
             aChange = true;
@@ -2932,9 +3208,11 @@ async function avancerQuete(type, montant = 1) {
     if (aChange) {
         const user = firebase.auth().currentUser;
         if(user) {
-            // Sauvegarde de l'état des quêtes
-            // Note : l'XP est déjà géré par ajouterXP()
-            db.collection("users").doc(user.uid).set({ dailyQuests: quetesActives }, { merge: true });
+            // Sauvegarde de l'état (incluant bonusFinalDonne et le nouveau montant de dust)
+            await db.collection("users").doc(user.uid).update({ 
+                dailyQuests: quetesActives,
+                dust: dust 
+            });
         }
         
         if (document.getElementById("questOverlay") && document.getElementById("questOverlay").style.display === "flex") {
@@ -2942,6 +3220,7 @@ async function avancerQuete(type, montant = 1) {
         }
     }
 }
+
 
 
 
@@ -3794,7 +4073,7 @@ function handleCardClick(cardElement, cardData) {
 
 
 
-const CURRENT_VERSION = "2.2.0"; // Change ce numéro pour faire réapparaître le message
+const CURRENT_VERSION = "2.2.1"; // Change ce numéro pour faire réapparaître le message
 
 function checkUpdateNews() {
     const lastSeenVersion = localStorage.getItem("lastSeenVersion");
@@ -4028,24 +4307,20 @@ function loadBoosterCounter(uid) {
         if (doc.exists) {
             const count = doc.data().boostersOpened || 0;
             
-            // 1. Mise à jour de l'accueil
-            boosterCounterDiv.innerText = `Boosters ouverts : ${count}`;
-            boosterCounterDiv.style.display = 'block';
+            // On met à jour la variable globale (window pour être sûr)
+            window.boostersOpened = count; 
 
-            // 2. Mise à jour du Profil (L'AJOUT EST ICI)
-            const profileEl = document.getElementById("profileBoosters");
-            if(profileEl) profileEl.innerText = count;
+            // Mise à jour de l'accueil
+            if (typeof boosterCounterDiv !== 'undefined') {
+                boosterCounterDiv.innerText = `Boosters ouverts : ${count}`;
+            }
 
-        } else {
-            boosterCounterDiv.innerText = `Boosters ouverts : 0`;
-            boosterCounterDiv.style.display = 'block';
-            
-            // Mise à jour du profil à 0 si pas de doc
-            const profileEl = document.getElementById("profileBoosters");
-            if(profileEl) profileEl.innerText = "0";
+            // ON FORCE LA MISE À JOUR DU PROFIL ICI
+            actualiserProfil(); 
+
         }
       })
-      .catch(err => console.error("Erreur lors du chargement du compteur :", err));
+      .catch(err => console.error("Erreur :", err));
 }
 
 
@@ -4222,7 +4497,6 @@ const bigName=document.getElementById('bigCardName');
 
 
 
-
 function showBigCard() {
     if (currentCardIndex >= currentPack.length) {
         overlay.style.display = 'none';
@@ -4253,7 +4527,7 @@ function showBigCard() {
         cardImg.style.cssText = "max-width:90vw; max-height:90vh; object-fit:contain; display:block; margin:auto; border-radius:12px;";
         cardDiv.appendChild(cardImg);
 
-        // --- Animation feu d’artifice ---
+        // --- Animation feu d’artifice OG ---
         const canvas = document.createElement("canvas");
         canvas.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:20000;";
         document.body.appendChild(canvas);
@@ -4280,17 +4554,62 @@ function showBigCard() {
         }
         animate();
 
+        // --- BLOCAGE OG (1.5s) ---
         overlay.removeEventListener('click', overlayClickHandler);
         setTimeout(() => { overlay.addEventListener('click', overlayClickHandler); }, 1500);
 
     } else {
-        // STYLE CLASSIQUE SANS LES NIVEAUX (Juste l'essentiel)
+        // STYLE CLASSIQUE CONSERVÉ
         cardDiv.className = "card big-card big-" + c.rarity.replace(/ /g, "-");
         cardDiv.innerHTML = `
           <div style="font-size:1rem;color:#ccc;margin-bottom:6px;">${escapeHtml(c.rarity)}</div>
           <img src="${c.image}" alt="${c.name}">
           <strong>${escapeHtml(c.name)}</strong>
         `;
+
+        // --- ⚡ LISTE DES LUCKY BLOCKS POUR L'EFFET ---
+        const listLucky = ["Mythic Lucky Block", "Brainrot God Lucky Block", "Secret Lucky Block", "Admin Lucky Block"];
+
+        // --- ✨ AJOUT FEU D'ARTIFICE ET FREEZE POUR SECRET OU LUCKY BLOCKS ---
+        if (c.rarity === "Secret" || listLucky.includes(c.rarity)) {
+            
+            const canvas = document.createElement("canvas");
+            canvas.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:20000;";
+            document.body.appendChild(canvas);
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const particles = [];
+            
+            for (let i = 0; i < 150; i++) {
+                // Couleur : Jaune/Or pour Lucky Blocks (45-60), Violet pour Secret (280+)
+                let hue = listLucky.includes(c.rarity) ? (45 + Math.random() * 15) : (280 + Math.random() * 50);
+                
+                particles.push({
+                    x: canvas.width / 2, y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 1.5) * 10,
+                    alpha: 1, radius: Math.random() * 3 + 2,
+                    color: `hsl(${hue},100%,50%)`
+                });
+            }
+            
+            function animateSpecial() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
+                    ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                    if (p.alpha <= 0) particles.splice(i, 1);
+                });
+                if (particles.length > 0) requestAnimationFrame(animateSpecial); else canvas.remove();
+            }
+            animateSpecial();
+
+            // --- BLOCAGE (2.5s) ---
+            overlay.removeEventListener('click', overlayClickHandler);
+            setTimeout(() => { 
+                overlay.addEventListener('click', overlayClickHandler); 
+            }, 2500);
+        }
     }
 
     wrapper.appendChild(cardDiv);
@@ -4298,6 +4617,8 @@ function showBigCard() {
     overlay.appendChild(wrapper);
     overlay.style.display = "flex";
 }
+
+
 
 
 
@@ -4320,6 +4641,9 @@ let boostersOpened = 0;          // Compteur total de boosters ouverts
 let boostersSinceLastSave = 0;   // Compteur local depuis la dernière sauvegarde
 let isAnyBoosterOpening = false; // Placée en dehors pour être globale
 
+
+
+const wait = ms => new Promise(res => setTimeout(res, ms));
 
 
 function openPackSequence() {
@@ -4357,6 +4681,9 @@ function openPackSequence() {
                 // --- TIRAGE ---
                 currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
 
+                // --- ⚡ NOTE : Le freeze a été déplacé dans showBigCard() ---
+                // Pour que ça ne bloque que quand la carte apparaît à l'écran.
+
                 avancerQuete("open", 1);
                 ajouterXP(50);
 
@@ -4388,7 +4715,6 @@ function openPackSequence() {
 
                         const newPower = luckyPower[c.rarity];
 
-                        // Si le slot est vide OU que le nouveau est plus puissant
                         if (uiLucky.style.display === "none" || newPower > activePower) {
                             let heures = 1;
                             if (c.rarity === "Brainrot God Lucky Block") heures = 6;
@@ -4397,17 +4723,14 @@ function openPackSequence() {
 
                             const delai = heures * 60 * 60 * 1000; 
                             
-                            // MISE À JOUR DES VARIABLES GLOBALES
                             luckyBlockUnlockTime = Date.now() + delai;
-                            // SÉCURITÉ : On s'assure que c'est du texte, pas la DIV
                             luckyBlockType = String(c.rarity); 
                             luckyBlockReady = false;
 
                             if (activePower > 0) {
-                                console.log(`🔥 Remplacement par ${c.rarity}`);
-                                alert(`🚀 INCROYABLE ! Ton Lucky Block a été amélioré en ${c.rarity} !`);
+                                console.log(`🚀 INCROYABLE ! Ton Lucky Block a été amélioré en ${c.rarity} !`);
                             } else {
-                                alert(`🍀 ${c.name} ! Cadeau débloqué dans ${heures}h.`);
+                                console.log(`🍀 ${c.name} ! Cadeau débloqué dans ${heures}h.`);
                             }
 
                             if (typeof updateLuckyTimer === "function") {
@@ -4454,13 +4777,18 @@ function openPackSequence() {
                     }
                 });
 
+                // --- ⚡ MISE À JOUR LOCALE POUR LE TEMPS RÉEL ---
+                if (typeof window.boostersOpened !== "undefined") {
+                    window.boostersOpened++;
+                }
+
                 // Sauvegardes locales
                 save("collection", collection);
                 save("dust", dust);
                 refreshDust();
                 updateStreak();
 
-                // --- SAUVEGARDE UNIQUE FIREBASE (Regroupe TOUT) ---
+                // --- SAUVEGARDE UNIQUE FIREBASE ---
                 const user = firebase.auth().currentUser;
                 if (user) {
                     db.collection("users").doc(user.uid).set({
@@ -4471,19 +4799,30 @@ function openPackSequence() {
                         streakCount: streakCount,
                         boostersOpened: firebase.firestore.FieldValue.increment(1),
                         lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
-                        // On inclut les variables de Lucky Block ici
                         luckyBlockUnlockTime: luckyBlockUnlockTime || null,
-                        // PROTECTION : On s'assure d'envoyer du texte pur à Firebase
                         luckyBlockType: (typeof luckyBlockType === "string") ? luckyBlockType : (luckyBlockType?.innerText || null),
                         luckyBlockReady: luckyBlockReady || false
                     }, { merge: true })
                     .then(() => {
+                        // MISE À JOUR ACCUEIL
                         const counterEl = document.getElementById("boosterCounter");
                         if (counterEl) {
                             let current = parseInt(counterEl.innerText.replace(/\D/g, "")) || 0;
                             counterEl.innerText = `Boosters ouverts : ${current + 1}`;
                         }
-                        if (document.getElementById("profileBoosters")) document.getElementById("profileBoosters").innerText = (parseInt(document.getElementById("profileBoosters").innerText) || 0) + 1;
+                        
+                        // MISE À JOUR PROFIL
+                        const profBoosters = document.getElementById("profileBoosters");
+                        if (profBoosters) {
+                            let actuel = parseInt(profBoosters.innerText) || 0;
+                            profBoosters.innerText = actuel + 1;
+                        }
+
+                        // SYNCHRONISATION TOTALE DU PROFIL
+                        if (typeof actualiserProfil === "function") {
+                            actualiserProfil();
+                        }
+
                         if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
                         if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
                     })
@@ -4492,8 +4831,10 @@ function openPackSequence() {
                     });
                 }
 
+                // Affichage direct de la première carte
                 currentCardIndex = 0;
                 showBigCard();
+
                 b.classList.remove("booster-opening");
                 isAnyBoosterOpening = false; 
 
@@ -4504,8 +4845,6 @@ function openPackSequence() {
 
 
 
-
-
 // Liaison du bouton principal
 document.getElementById("openPack").onclick = openPackSequence;
 
@@ -4513,20 +4852,34 @@ document.getElementById("openPack").onclick = openPackSequence;
 
 // Fonction dédiée pour envoyer les données à Firestore
 function saveToFirebase(uid) {
-  db.collection("users").doc(uid).set({
-    collection: collection,
-    dust: dust,
-    streakCount: streakCount,
-    lastOpenDate: lastOpenDate,
-    // On ajoute ces deux-là pour ton nouveau système :
-    xp: typeof xp !== 'undefined' ? xp : 0,
-    level: typeof level !== 'undefined' ? level : 1,
+  // On prépare l'objet proprement
+  const dataToSave = {
+    collection: collection,
+    dust: dust,
+    streakCount: streakCount,
+    lastOpenDate: lastOpenDate,
+    xp: typeof xp !== 'undefined' ? xp : 0,
+    level: typeof level !== 'undefined' ? level : 1,
+    
+    // On ajoute ça pour être sûr que Firebase est TOUJOURS d'accord avec le JS local
+    luckyBlockUnlockTime: typeof luckyBlockUnlockTime !== 'undefined' ? luckyBlockUnlockTime : null,
+    luckyBlockReady: typeof luckyBlockReady !== 'undefined' ? luckyBlockReady : false,
 
-    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true })
-  .then(() => console.log("✅ Sauvegarde Firebase (Collection, Streak & Niveau) réussie !"))
-  .catch(err => console.error("❌ Erreur Firebase :", err));
+    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Sécurité pour le type (évite l'erreur HTMLDivElement)
+  if (typeof luckyBlockType !== 'undefined') {
+      dataToSave.luckyBlockType = (luckyBlockType instanceof HTMLElement) ? luckyBlockType.innerText : luckyBlockType;
+  } else {
+      dataToSave.luckyBlockType = null;
+  }
+
+  db.collection("users").doc(uid).set(dataToSave, { merge: true })
+  .then(() => console.log("✅ Sauvegarde Firebase réussie !"))
+  .catch(err => console.error("❌ Erreur Firebase :", err));
 }
+
 
 
 // Liaison du bouton d'ouverture
@@ -4878,6 +5231,39 @@ auth.onAuthStateChanged(user => {
         loadUserData(user.uid);                  
         loadBoosterCounter(user.uid);            
         checkDailyShop();                        
+
+        // --- NOUVEAU : SYNC AUTO VENTE (Action côté Vendeur) ---
+        // On surveille si une de nos cartes en vente disparaît du marché
+        db.collection("market").where("sellerId", "==", user.uid)
+          .onSnapshot((snapshot) => {
+              const cartesEncoreEnVente = [];
+              snapshot.forEach(doc => {
+                  // On stocke les noms des cartes encore présentes sur le marché
+                  cartesEncoreEnVente.push(doc.data().card.name);
+              });
+
+              let aEteVendue = false;
+
+              // On parcourt notre collection locale pour voir si une carte "enVente" n'est plus au marché
+              collection.forEach((card, index) => {
+                  if (card.enVente && !cartesEncoreEnVente.includes(card.name)) {
+                      console.log("Une carte a été vendue par un acheteur, suppression de l'inventaire...");
+                      collection.splice(index, 1); // Suppression réelle chez le vendeur
+                      aEteVendue = true;
+                  }
+              });
+
+              // Si une carte a disparu du marché, le vendeur met à jour son propre document
+              if (aEteVendue) {
+                  db.collection("users").doc(user.uid).update({
+                      collection: collection
+                  }).then(() => {
+                      if (typeof displayCollection === "function") displayCollection();
+                      if (typeof showCollection === "function") showCollection();
+                      console.log("Collection du vendeur synchronisée après l'achat d'un tiers.");
+                  });
+              }
+          });
         
     } else {
         // --- Utilisateur déconnecté ---
@@ -4889,6 +5275,7 @@ auth.onAuthStateChanged(user => {
         if(accountSection) accountSection.style.display = "none";
     }
 });
+
 
 // --- Connexion ---
 loginBtn.onclick = () => {

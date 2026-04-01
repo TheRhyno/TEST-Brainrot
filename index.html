@@ -890,6 +890,10 @@ html, body {
 
 
 
+
+
+
+
   <div id="boosterCounter" style="color:#fff;font-weight:bold;font-size:1rem;margin-bottom:10px;">
     Boosters ouverts : 0
   </div>
@@ -1084,13 +1088,20 @@ html, body {
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    👤 <b>Profil</b> Choisis ton Pseudo en le modifiant dans le Profil ! <br>
+                    👤 <b>Profil :</b> Choisis ton Pseudo en le modifiant dans le Profil ! <br>
             </div>
 
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🍀 <b>Nouvelles cartes :</b> Les Brainrot God et les Secret sont désormais disponibles !
+                    🎨 <b>Fond personalisé :</b> Vous pouvez désormais personnaliser votre interface avec le fond de votre choix dans le Profil !
+                </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🆕 <b>Nouvelles cartes :</b> Les Brainrot God et les Secret sont désormais disponibles !
                 </p>
             </div>
 
@@ -1105,7 +1116,7 @@ html, body {
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🔥 <b>Streak : </b> Ouvre au moins 1 booster chaque jour pour faire grimper ta streak !<br>
+                    🔥 <b>Streak :</b> Ouvre au moins 1 booster chaque jour pour faire grimper ta streak !<br>
                                      Ne manque aucun jour où tu retombes à zéro !
      </p>
             </div>
@@ -1282,6 +1293,21 @@ html, body {
 
 
 
+<div style="background: #1a1a1a; padding: 15px; border-radius: 12px; width: 95%; max-width: 400px; border: 1px solid #333; margin-top: 20px;">
+    <p style="margin: 0 0 15px 0; color: #aaa; font-size: 0.8rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">Ambiance de l'accueil</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button onclick="changerFond('espace')" style="padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🌌 Espace</button>
+        <button onclick="changerFond('mythic')" style="padding: 10px; background: #4c1d95; color: white; border: 1px solid #7c3aed; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🔮 Mythique</button>
+        <button onclick="changerFond('abysse')" style="padding: 10px; background: #064e3b; color: white; border: 1px solid #10b981; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🌿 Abysse</button>
+        <button onclick="changerFond('gold')" style="padding: 10px; background: #78350f; color: white; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">✨ Doré</button>
+    </div>
+</div>
+
+
+
+
+
 
 <div style="
     display: flex; 
@@ -1305,6 +1331,9 @@ html, body {
         <span id="app-version">v2.2.2</span><br>
         <span>© 2026 BRAINROT TCG</span>
     </div>
+
+
+
 </div>
 
 
@@ -1846,6 +1875,45 @@ disableSite(false);
 
 
 
+
+
+
+
+
+
+
+// --- 🖼️ CONFIGURATION DES FONDS D'ÉCRAN ---
+const FONDS_DISPONIBLES = {
+    "espace": "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2000&auto=format&fit=crop",
+    "mythic": "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2000&auto=format&fit=crop",
+    "abysse": "https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?q=80&w=2000&auto=format&fit=crop",
+    "gold": "https://img.pikbest.com/back_our/20210222/bg/82b06224639f8.png!w700wp"
+};
+
+// RENOMMÉE EN : changerFond (pour correspondre au onclick="changerFond(...)")
+function changerFond(nomDesign) {
+    const lien = FONDS_DISPONIBLES[nomDesign];
+    if (lien) {
+        // On applique l'image au body
+        document.body.style.backgroundImage = `url('${lien}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundAttachment = "fixed";
+        document.body.style.backgroundPosition = "center";
+        
+        // On sauvegarde le choix pour que ça reste au refresh de la page
+        localStorage.setItem("pref_fond_ecran", nomDesign);
+        console.log("Fond changé : " + nomDesign);
+    } else {
+        console.error("Lien introuvable pour le fond : " + nomDesign);
+    }
+}
+
+// --- 🔄 CHARGEMENT AUTOMATIQUE ---
+window.addEventListener('load', () => {
+    // On récupère le choix ou on met "defaut" par défaut
+    const choixSauvegarde = localStorage.getItem("pref_fond_ecran") || "defaut"; 
+    changerFond(choixSauvegarde);
+});
 
 
 
@@ -5082,12 +5150,15 @@ function refreshCollection(cardsToShow) {
         
         wrapper.appendChild(levelBadge);
 
+        // --- 🟢 BLOC NOUVEAU (Mis en commentaire pour ne plus l'afficher) ---
+        /*
         if(c.isNew){
             const label = document.createElement("div");
             label.className = "new-label";
             label.textContent = "NOUVEAU";
             wrapper.appendChild(label);
         }
+        */
 
         const cardDiv = document.createElement("div");
 
@@ -5130,6 +5201,7 @@ function refreshCollection(cardsToShow) {
         searchWrapper.style.marginBottom = "10px";
     }
 }
+
 
 
 

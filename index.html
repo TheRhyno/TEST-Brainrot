@@ -3732,6 +3732,7 @@ async function chercherPartie() {
 
 let combatEnCours = false; 
 
+
 function ecouterLaPartie() {
     if (!currentRoomId) return;
 
@@ -3742,10 +3743,16 @@ function ecouterLaPartie() {
         const btnStart = document.getElementById("btn-start-fight");
         const opponentSlot = document.getElementById("opponent-slot");
         const battleInfo = document.getElementById("battle-info");
+        const statusDiv = document.getElementById("status-recherche");
 
         // --- 1. AFFICHAGE DE L'ADVERSAIRE (DÈS QU'IL REJOINT) ---
         if (data.player1 && data.player2) {
-            // On détermine qui est l'adversaire par rapport à notre rôle
+            
+            // --- MODIFICATION ICI : On change le message au lieu de l'effacer ---
+            if (statusDiv) {
+                statusDiv.innerHTML = "<span style='color:#ff4444; font-weight:bold; text-transform:uppercase; letter-spacing:1px;'>⚡ COMBAT EN COURS ⚡</span>";
+            }
+
             const nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
             
             if (battleInfo) {
@@ -3762,6 +3769,12 @@ function ecouterLaPartie() {
                 btnStart.disabled = true;
                 btnStart.style.display = "none";
             }
+            
+            // On peut aussi mettre à jour le message ici pour plus de dynamisme
+            if (statusDiv) {
+                statusDiv.innerHTML = "<span style='color:#facc15; font-weight:bold;'>🔥 CALCUL DU VAINQUEUR... 🔥</span>";
+            }
+
             console.log("🚀 Lancement du combat synchronisé...");
             executerCalculCombat(); 
             return; 
@@ -3772,11 +3785,10 @@ function ecouterLaPartie() {
             if (battleInfo) {
                 battleInfo.innerHTML = `<span style="color:#4ade80; font-weight:bold;">🔥 LES DEUX SONT PRÊTS ! 🔥</span>`;
             }
-            // Seul celui qui a le bouton "Lancer" le voit (Player 1 par exemple)
             if (btnStart) btnStart.style.display = "block";
         }
 
-        // Affichage du "?" pour l'adversaire (indique qu'il a choisi sa carte)
+        // Affichage du "?" pour l'adversaire
         const opponentCard = (role === "player1") ? data.card2 : data.card1;
         if (opponentCard && opponentSlot && data.status === "ready") {
             opponentSlot.innerHTML = `
@@ -3787,9 +3799,6 @@ function ecouterLaPartie() {
         }
     });
 }
-
-
-
 
 
 

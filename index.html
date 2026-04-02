@@ -950,12 +950,19 @@ html, body {
     </button>
   </div>
 
+
+
+<button id="triRareteBtn" onclick="trierParRarete()" style="padding:6px 10px;border-radius:6px;border:none;background:#facc15;color:#000;cursor:pointer;font-weight:bold;margin-left:5px">
+    💎 Trier par Rareté
+</button>
+
+
+
     <div id="collection" class="cards"></div>
 
 <div id="scrollToBottom" onclick="descendreToutEnBas()">
     ↓
 </div>
-
 
 
 
@@ -1901,6 +1908,61 @@ disableSite(false);
 
 
 
+let triEtat = "defaut"; 
+// On va stocker l'ordre de base pour avoir une référence solide
+let collectionSourceFixe = null; 
+
+function trierParRarete() {
+    const btn = document.getElementById("triRareteBtn");
+    const ordreRareteValeurs = {
+        "Commun": 1, "Rare": 2, "Epic": 3, "Legendary": 4,
+        "Mythic": 5, "Brainrot God": 6, "Secret": 7, "OG": 8
+    };
+
+    // --- SÉCURITÉ : On synchronise TOUJOURS avec la collection réelle ---
+    // On utilise l'ordre naturel (chronologique) de ton inventaire
+    collectionSourceFixe = [...collection]; 
+
+    if (triEtat === "defaut") {
+        // --- PASSAGE AU TRI PAR RARETÉ ---
+        triEtat = "rarete";
+
+        // On trie une copie de la source (ordre chronologique) par rareté
+        let tableauTrie = [...collectionSourceFixe].sort((a, b) => {
+            const scoreA = ordreRareteValeurs[a.rarity] || 0;
+            const scoreB = ordreRareteValeurs[b.rarity] || 0;
+            return scoreA - scoreB;
+        });
+
+        // Mise à jour visuelle
+        if (btn) {
+            btn.innerHTML = "🆕 Trier par Nouveauté";
+            btn.style.background = "#7c3aed"; 
+            btn.style.color = "#fff";
+        }
+
+        refreshCollection(tableauTrie);
+
+    } else {
+        // --- RETOUR AU TRI PAR NOUVEAUTÉ ---
+        triEtat = "defaut";
+
+        // On reprend la source (ordre chronologique) et on l'inverse proprement.
+        // Puisqu'on repart de 'collectionSourceFixe' qui n'a jamais été inversé,
+        // le résultat sera TOUJOURS : le plus récent en haut.
+        const ordreNouveaute = [...collectionSourceFixe].reverse();
+
+        if (btn) {
+            btn.innerHTML = "💎 Trier par Rareté";
+            btn.style.background = "#facc15"; 
+            btn.style.color = "#000";
+        }
+
+        refreshCollection(ordreNouveaute);
+    }
+}
+
+
 
 
 
@@ -1957,25 +2019,54 @@ window.addEventListener('load', () => {
 
 
 
+
+
+
+// On surveille le scroll de la section collection
+const sectionCol = document.getElementById("collectionSection");
+if (sectionCol) {
+    sectionCol.onscroll = function() {
+        const btn = document.getElementById("scrollToBottom");
+        if (!btn) return;
+
+        // Si on arrive en bas, on met la flèche vers le haut
+        const isAtBottom = (this.scrollHeight - this.scrollTop) <= (this.clientHeight + 60);
+        btn.innerText = isAtBottom ? "↑" : "↓";
+    };
+}
+
+
+
 function descendreToutEnBas() {
-    
-    // On récupère la div qui contient vraiment les cartes
-    const listeCartes = document.getElementById("collection"); 
     const sectionComplete = document.getElementById("collectionSection");
+    const btnScroll = document.getElementById("scrollToBottom");
 
-    if (sectionComplete) {
-        // On force le scroll de la fenêtre ET de la section
-        window.scrollTo({
-            top: 100000, // On balance un chiffre énorme pour forcer le bas
-            behavior: 'smooth'
-        });
+    if (sectionComplete && btnScroll) {
+        // On calcule si on est déjà en bas (avec une marge de 50px)
+        const isAtBottom = (sectionComplete.scrollHeight - sectionComplete.scrollTop) <= (sectionComplete.clientHeight + 50);
 
-        // Si ta section est en "fixed" ou "absolute" avec son propre scroll :
-        sectionComplete.scrollTo({
-            top: sectionComplete.scrollHeight,
-            behavior: 'smooth'
-        });
-        
+        if (isAtBottom) {
+            // --- ACTION : REMONTER ---
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            sectionComplete.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // On change l'icône pour indiquer qu'on peut redescendre
+            btnScroll.innerText = "↓";
+        } else {
+            // --- ACTION : DESCENDRE ---
+            window.scrollTo({
+                top: 100000, 
+                behavior: 'smooth'
+            });
+
+            sectionComplete.scrollTo({
+                top: sectionComplete.scrollHeight,
+                behavior: 'smooth'
+            });
+
+            // On change l'icône pour indiquer qu'on peut remonter
+            btnScroll.innerText = "↑";
+        }
     }
 }
 
@@ -3607,10 +3698,16 @@ async function creerNouvellePartie() {
         const playerSlot = document.getElementById("player-slot");
         const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
 
-        if (playerSlot) {
-            playerSlot.style.pointerEvents = "auto";
-            playerSlot.style.opacity = "1";
-        }
+if (playerSlot) {
+    playerSlot.style.pointerEvents = "auto";
+    playerSlot.style.opacity = "1";
+    // On remet le message d'action !
+    playerSlot.innerHTML = `
+        <span style="color: #4ade80; font-size: 0.8rem; text-align:center; font-weight:bold;">
+            Clique ici pour<br>choisir ta carte
+        </span>
+    `;
+}
         if (deckZone) {
             deckZone.style.pointerEvents = "auto";
             deckZone.style.filter = "none";
@@ -3671,10 +3768,16 @@ async function rejoindreCeDuel(id) {
         const playerSlot = document.getElementById("player-slot");
         const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
 
-        if (playerSlot) {
-            playerSlot.style.pointerEvents = "auto";
-            playerSlot.style.opacity = "1";
-        }
+if (playerSlot) {
+    playerSlot.style.pointerEvents = "auto";
+    playerSlot.style.opacity = "1";
+    // On remet le message d'action !
+    playerSlot.innerHTML = `
+        <span style="color: #4ade80; font-size: 0.8rem; text-align:center; font-weight:bold;">
+            Clique ici pour<br>choisir ta carte
+        </span>
+    `;
+}
         if (deckZone) {
             deckZone.style.pointerEvents = "auto";
             deckZone.style.filter = "none";
@@ -4104,12 +4207,12 @@ function resetArena() {
     selectedPlayerCardIndex = null;
     currentOpponentCard = null;
 
-    // 2. On remet le texte "Clique ici" à gauche // ICI
+    // 2. On remet le texte de guidage à gauche // ICI
     const playerSlot = document.getElementById("player-slot");
     if (playerSlot) {
         playerSlot.innerHTML = `
-            <span style="color: #8da0b8; font-size: 0.8rem; text-align:center;">
-                Clique ici pour<br>choisir ta carte
+            <span style="color: #8da0b8; font-size: 0.75rem; text-align:center; padding: 5px; line-height: 1.2;">
+                Rejoins ou crée un salon<br>pour combattre
             </span>
         `;
         // --- BLOCAGE DU SLOT ---
@@ -4136,15 +4239,13 @@ function resetArena() {
     if (battleInfo) battleInfo.innerText = "";
 
     // --- 🛡️ BLOCAGE DU CHOIX DE CARTES (DECK) ---
-    // Remplace "choix-cartes" par l'ID de la zone où s'affiche ton deck
     const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
     if (deckZone) {
         deckZone.style.pointerEvents = "none";
-        deckZone.style.filter = "grayscale(1)"; // Met en gris pour montrer que c'est bloqué
+        deckZone.style.filter = "grayscale(1)"; 
         deckZone.style.opacity = "0.6";
     }
 }
-
 
 
 
@@ -4549,24 +4650,37 @@ function loadBoosterCounter(uid) {
 
 
 
-
 const showMissingBtn = document.getElementById("showMissingBtn");
 let showingMissing = false; // pour basculer
 
 showMissingBtn.addEventListener("click", () => {
     showingMissing = !showingMissing; // inverse l'état
 
-    if(showingMissing){
+    // On récupère l'élément du bouton de tri par rareté
+    const triBtn = document.getElementById("triRareteBtn");
+
+    if (showingMissing) {
         showMissingBtn.textContent = "Voir ma collection"; // bouton pour revenir
         searchCollectionInput.style.display = "none"; // cache la recherche
+        
+        // --- ON CACHE LE BOUTON DE TRI ---
+        if (triBtn) triBtn.style.display = "none";
+
         const missingCards = ALL_CARDS.filter(c => !collection.some(col => col.name === c.name));
         refreshCollection(missingCards);
     } else {
         showMissingBtn.textContent = "Voir les cartes manquantes";
         searchCollectionInput.style.display = "block"; // réaffiche la recherche
+        
+        // --- ON RÉAFFICHE LE BOUTON DE TRI ---
+        if (triBtn) triBtn.style.display = "inline-block";
+
         refreshCollection(collection); // affiche toute la collection
     }
 });
+
+
+
 
 
 
@@ -5194,9 +5308,36 @@ function updateButtons() {
   }
 }
 
+
+
+
 function refreshCollection(cardsToShow) {
+    // --- GESTION DU BOUTON DE TRI ---
+    // On réaffiche le bouton par défaut (il sera caché par le bouton "Manquantes" si besoin)
+    const triBtn = document.getElementById("triRareteBtn");
+    
+    // CORRECTION : On ne réaffiche le bouton que si on n'est PAS en train de voir les cartes manquantes
+    if (triBtn) {
+        if (typeof showingMissing !== "undefined" && showingMissing) {
+            triBtn.style.display = "none";
+        } else {
+            triBtn.style.display = "inline-block";
+        }
+    }
+
     const collectionDiv = document.getElementById("collection");
     collectionDiv.innerHTML = "";
+
+    // --- LOGIQUE D'INVERSION (Dernier obtenu en haut par défaut) ---
+    // On définit quelle liste utiliser
+    let baseCards = cardsToShow || collection;
+
+    // Si on est en mode "defaut" (triEtat défini hors de la fonction) 
+    // et qu'on n'a pas passé de paramètre spécifique (donc vue collection normale), 
+    // on force l'inversion pour avoir les plus récents en haut.
+    if (typeof triEtat !== "undefined" && triEtat === "defaut" && !cardsToShow) {
+        baseCards = [...collection].reverse();
+    }
 
     // --- FILTRE : On ignore les Lucky Blocks pour ne pas fausser la collection ---
     const listLucky = [
@@ -5210,8 +5351,8 @@ function refreshCollection(cardsToShow) {
     const filteredCollection = collection.filter(c => !listLucky.includes(c.rarity));
     const filteredAllCards = ALL_CARDS.filter(c => !listLucky.includes(c.rarity));
     
-    // On filtre les cartes à afficher
-    const cards = (cardsToShow || collection).filter(c => !listLucky.includes(c.rarity));
+    // On filtre les cartes à afficher en utilisant baseCards (qui est peut-être inversé)
+    const cards = baseCards.filter(c => !listLucky.includes(c.rarity));
 
     // --- TABLEAU DE RÉFÉRENCE ---
     const expTable = {
@@ -5344,6 +5485,7 @@ function refreshCollection(cardsToShow) {
         searchWrapper.style.marginBottom = "10px";
     }
 }
+
 
 
 

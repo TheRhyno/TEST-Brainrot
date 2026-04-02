@@ -1101,7 +1101,7 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
 <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.2</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.3</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
@@ -1348,7 +1348,7 @@ html, body {
         padding-top: 15px;
         width: 80%;
     ">
-        <span id="app-version">v2.2.2</span><br>
+        <span id="app-version">v2.2.3</span><br>
         <span>© 2026 BRAINROT TCG</span>
     </div>
 
@@ -4143,17 +4143,16 @@ async function executerCalculCombat() {
     btn.innerText = "Calcul du gagnant...";
     await new Promise(r => setTimeout(r, 1500));
 
-let xpGagne = 20;
+    let xpGagne = 20;
 
     // --- 3. VERDICT (LOGIQUE FRAGMENTS ET QUÊTES) ---
     if (p1Power > p2Power) {
 
-xpGagne = 100;
+        xpGagne = 100;
 
-if (typeof avancerQuete === "function") {
+        if (typeof avancerQuete === "function") {
             avancerQuete("win_combat", 1);
         }
-
 
         // Gain de base pour la victoire
         dust += 500;
@@ -4179,8 +4178,7 @@ if (typeof avancerQuete === "function") {
         alert(`🤝 MATCH NUL !\n+${xpGagne} XP gagnés.`);
     }
 
-
-if (typeof ajouterXP === "function") {
+    if (typeof ajouterXP === "function") {
         await ajouterXP(xpGagne);
     }
 
@@ -4193,10 +4191,18 @@ if (typeof ajouterXP === "function") {
     // 5. RESET FINAL
     combatEnCours = false; 
     btn.style.display = "none";
+
+    // --- NETTOYAGE DU MESSAGE DE STATUT ---
+    const statusDiv = document.getElementById("status-recherche");
+    if (statusDiv) {
+        statusDiv.innerHTML = ""; // Supprime le message "Calcul du vainqueur"
+    }
+
     resetArena();
     showCollection(); 
     currentRoomId = null; 
 }
+
 
 
 
@@ -4393,7 +4399,7 @@ function handleCardClick(cardElement, cardData) {
 
 
 
-const CURRENT_VERSION = "2.2.2"; // Change ce numéro pour faire réapparaître le message
+const CURRENT_VERSION = "2.2.3"; // Change ce numéro pour faire réapparaître le message
 
 function checkUpdateNews() {
     const lastSeenVersion = localStorage.getItem("lastSeenVersion");

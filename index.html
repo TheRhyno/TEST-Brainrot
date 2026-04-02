@@ -1197,7 +1197,7 @@ html, body {
     👤
 </button>
 
-<div id="accountSection" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; background:rgba(17, 17, 17, 0.95); color:white; backdrop-filter: blur(10px); overflow-y: auto;">
+<div id="accountSection" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; flex-direction:column; align-items:center; justify-content: flex-start; padding:20px; box-sizing:border-box; background:rgba(17, 17, 17, 0.95); color:white; backdrop-filter: blur(10px); overflow-y: auto;">
     
 
 <h2 style="margin-top: 40px; margin-bottom: 20px;">Mon Profil</h2>
@@ -1351,6 +1351,10 @@ html, body {
 
     </div>
 </div>
+
+
+
+
 
 
 
@@ -1882,6 +1886,12 @@ disableSite(false);
 
 
 
+
+
+
+
+
+
 // --- 🖼️ CONFIGURATION DES FONDS D'ÉCRAN ---
 const FONDS_DISPONIBLES = {
     "espace": "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2000&auto=format&fit=crop",
@@ -1894,26 +1904,41 @@ const FONDS_DISPONIBLES = {
 function changerFond(nomDesign) {
     const lien = FONDS_DISPONIBLES[nomDesign];
     if (lien) {
-        // On applique l'image au body
+        // 1. On applique le nouveau fond au body
         document.body.style.backgroundImage = `url('${lien}')`;
         document.body.style.backgroundSize = "cover";
         document.body.style.backgroundAttachment = "fixed";
         document.body.style.backgroundPosition = "center";
         
-        // On sauvegarde le choix pour que ça reste au refresh de la page
+        // 2. On sauvegarde le choix pour le prochain rafraîchissement
         localStorage.setItem("pref_fond_ecran", nomDesign);
-        console.log("Fond changé : " + nomDesign);
+
+        // --- 3. SIMULATION DU CLIC SUR RETOUR ---
+        // On récupère ton bouton par son ID "backFromAccount"
+        const btnRetour = document.getElementById("backFromAccount");
+        
+        if (btnRetour) {
+            btnRetour.click(); 
+        }
     } else {
         console.error("Lien introuvable pour le fond : " + nomDesign);
     }
 }
 
-// --- 🔄 CHARGEMENT AUTOMATIQUE ---
+// --- CHARGEMENT AUTOMATIQUE (Au démarrage de la page) ---
 window.addEventListener('load', () => {
-    // On récupère le choix ou on met "defaut" par défaut
     const choixSauvegarde = localStorage.getItem("pref_fond_ecran") || "defaut"; 
-    changerFond(choixSauvegarde);
+    const lienInitial = FONDS_DISPONIBLES[choixSauvegarde];
+    
+  
+    if (lienInitial) {
+        document.body.style.backgroundImage = `url('${lienInitial}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundAttachment = "fixed";
+        document.body.style.backgroundPosition = "center";
+    }
 });
+
 
 
 
@@ -3437,6 +3462,7 @@ function ouvrirLobby() {
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                const user = auth.currentUser; // Récupération de l'utilisateur actuel
                 
                 // --- FIX : Définir dateData avant de l'utiliser ---
                 const dateData = data.createdAt ? data.createdAt.toDate() : new Date();
@@ -3448,12 +3474,32 @@ function ouvrirLobby() {
                 const item = document.createElement("div");
                 item.style = "display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:15px; margin-bottom:12px; border-radius:12px; border-left:5px solid #7c3aed; box-shadow: 0 4px 6px rgba(0,0,0,0.2);";
                 
+                // --- LOGIQUE DU BOUTON DYNAMIQUE ---
+                let boutonAction = "";
+                
+                // On vérifie si l'utilisateur connecté est le créateur du salon
+                if (user && data.player1 === user.uid) {
+                    // C'est SON salon -> Afficher la croix de suppression
+                    boutonAction = `
+                        <button onclick="supprimerMonSalon('${doc.id}')" 
+                                style="background:#ef4444; color:white; width:36px; height:36px; border-radius:8px; font-weight:bold; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                            ✕
+                        </button>`;
+                } else {
+                    // C'est le salon d'un autre -> Afficher Rejoindre
+                    boutonAction = `
+                        <button onclick="rejoindreCeDuel('${doc.id}')" 
+                                style="background:#4ade80; color:#0e1525; padding:10px 18px; border-radius:8px; font-weight:900; border:none; cursor:pointer; text-transform:uppercase;">
+                            Rejoindre
+                        </button>`;
+                }
+                
                 item.innerHTML = `
                     <div style="text-align:left;">
                         <strong style="color:#fff; font-size:1.1rem;">${data.player1Name || 'Anonyme'}</strong>
                         <div style="font-size:0.75rem; color:#8da0b8;">Ouvert à ${heure}</div>
                     </div>
-                    <button onclick="rejoindreCeDuel('${doc.id}')" style="background:#4ade80; color:#0e1525; padding:10px 18px; border-radius:8px; font-weight:900; border:none; cursor:pointer; text-transform:uppercase;">Rejoindre</button>
+                    ${boutonAction}
                 `;
                 listeDiv.appendChild(item);
             });
@@ -3461,6 +3507,40 @@ function ouvrirLobby() {
             console.error("Erreur Lobby:", error);
         });
 }
+
+
+
+async function supprimerMonSalon(id) {
+    if (!confirm("Voulez-vous vraiment supprimer votre salon ?")) return;
+    try {
+        await db.collection("battles").doc(id).delete();
+
+
+        const statusDiv = document.getElementById("status-recherche");
+        if (statusDiv) {
+            statusDiv.innerHTML = ""; 
+        }
+
+        const battleInfo = document.getElementById("battle-info");
+        if (battleInfo) {
+            battleInfo.innerText = "";
+        }
+
+
+        currentRoomId = null;
+
+        if (typeof resetArena === 'function') {
+            resetArena();
+        }
+
+
+    } catch (e) {
+        console.error("Erreur suppression:", e);
+        alert("Erreur lors de la suppression.");
+    }
+}
+
+
 
 
 
@@ -3489,7 +3569,6 @@ async function creerNouvellePartie() {
         }
 
         // --- NOUVEAUTÉ : TIRAGE DES 3 CARTES DÈS LA CRÉATION ---
-        // On génère le tirage fixe pour le créateur (Player 1)
         genererTirageCombat();
 
         // UTILISATION DU PSEUDO
@@ -3511,6 +3590,20 @@ async function creerNouvellePartie() {
         
         fermerLobby();
         
+        // --- 🔓 DÉVERROUILLAGE DU TAPIS ET DU DECK (NOUVEAU) ---
+        const playerSlot = document.getElementById("player-slot");
+        const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
+
+        if (playerSlot) {
+            playerSlot.style.pointerEvents = "auto";
+            playerSlot.style.opacity = "1";
+        }
+        if (deckZone) {
+            deckZone.style.pointerEvents = "auto";
+            deckZone.style.filter = "none";
+            deckZone.style.opacity = "1";
+        }
+        
         const statusDiv = document.getElementById("status-recherche");
         if (statusDiv) {
             statusDiv.innerHTML = "<span style='color:#4ade80;'>✅ Salon créé. En attente d'un adversaire...</span>";
@@ -3522,9 +3615,6 @@ async function creerNouvellePartie() {
         alert("Erreur lors de la création : " + e.message);
     }
 }
-
-
-
 
 async function rejoindreCeDuel(id) {
     const user = auth.currentUser;
@@ -3547,7 +3637,6 @@ async function rejoindreCeDuel(id) {
         }
 
         // --- NOUVEAUTÉ : TIRAGE DES 3 CARTES POUR LE JOUEUR 2 ---
-        // On génère le tirage fixe au moment de rejoindre
         genererTirageCombat();
 
         // 3. Si c'est bon, on rejoint la partie
@@ -3564,6 +3653,21 @@ async function rejoindreCeDuel(id) {
         });
 
         fermerLobby();
+
+        // --- 🔓 DÉVERROUILLAGE DU TAPIS ET DU DECK (NOUVEAU) ---
+        const playerSlot = document.getElementById("player-slot");
+        const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
+
+        if (playerSlot) {
+            playerSlot.style.pointerEvents = "auto";
+            playerSlot.style.opacity = "1";
+        }
+        if (deckZone) {
+            deckZone.style.pointerEvents = "auto";
+            deckZone.style.filter = "none";
+            deckZone.style.opacity = "1";
+        }
+
         ecouterLaPartie();
         
         console.log("Duel rejoint avec succès ! Tirage généré pour le combat.");
@@ -3572,8 +3676,6 @@ async function rejoindreCeDuel(id) {
         alert("Impossible de rejoindre : " + e.message);
     }
 }
-
-
 
 
 
@@ -3982,24 +4084,43 @@ function resetArena() {
 
     // 2. On remet le texte "Clique ici" à gauche // ICI
     const playerSlot = document.getElementById("player-slot");
-    playerSlot.innerHTML = `
-        <span style="color: #8da0b8; font-size: 0.8rem; text-align:center;">
-            Clique ici pour<br>choisir ta carte
-        </span>
-    `;
+    if (playerSlot) {
+        playerSlot.innerHTML = `
+            <span style="color: #8da0b8; font-size: 0.8rem; text-align:center;">
+                Clique ici pour<br>choisir ta carte
+            </span>
+        `;
+        // --- BLOCAGE DU SLOT ---
+        playerSlot.style.pointerEvents = "none"; 
+        playerSlot.style.opacity = "0.5";
+    }
 
     // 3. On remet le "?" à droite // ICI
     const opponentSlot = document.getElementById("opponent-slot");
-    opponentSlot.innerHTML = `<span>?</span>`;
+    if (opponentSlot) {
+        opponentSlot.innerHTML = `<span>?</span>`;
+    }
 
     // 4. On cache le bouton de combat (il ne doit pas rester là) // ICI
     const btnFight = document.getElementById("btn-start-fight");
-    btnFight.style.display = "none";
-    btnFight.disabled = false;
-    btnFight.innerText = "🔥 LANCER LE COMBAT ! 🔥";
+    if (btnFight) {
+        btnFight.style.display = "none";
+        btnFight.disabled = false;
+        btnFight.innerText = "🔥 LANCER LE COMBAT ! 🔥";
+    }
 
     // 5. On efface les messages de victoire/défaite sur l'écran
-    document.getElementById("battle-info").innerText = "";
+    const battleInfo = document.getElementById("battle-info");
+    if (battleInfo) battleInfo.innerText = "";
+
+    // --- 🛡️ BLOCAGE DU CHOIX DE CARTES (DECK) ---
+    // Remplace "choix-cartes" par l'ID de la zone où s'affiche ton deck
+    const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
+    if (deckZone) {
+        deckZone.style.pointerEvents = "none";
+        deckZone.style.filter = "grayscale(1)"; // Met en gris pour montrer que c'est bloqué
+        deckZone.style.opacity = "0.6";
+    }
 }
 
 

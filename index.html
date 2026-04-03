@@ -777,6 +777,29 @@ html, body {
 
 
 
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #1e293b;
+    border-top: 5px solid #7c3aed; /* Ta couleur violette */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animation pour faire disparaître l'écran en douceur */
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -789,6 +812,26 @@ html, body {
 <body>
 
 <h1>Brainrot TCG</h1>
+
+
+
+
+
+<div id="loading-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0f1a; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:30000;">
+    
+    <div class="spinner"></div> 
+
+    <h2 style="color:white; margin-top:25px; font-family: 'Segoe UI', sans-serif; font-weight: 300; letter-spacing: 5px; text-transform: uppercase; font-size: 1.1rem;">
+        Synchronisation
+    </h2>
+
+    <p style="color:#6366f1; font-family: sans-serif; font-size: 10px; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; opacity: 0.8;">
+        Connexion au serveur de jeu
+    </p>
+
+</div>
+
+
 
 <div style="text-align:center;margin-bottom:20px">
   <button id="openPack" style="padding:14px 22px;font-size:1.1rem;border-radius:12px;border:0;background:#ffcb05;color:#3b4cca;font-weight:700;cursor:pointer">
@@ -1028,7 +1071,7 @@ html, body {
 
 
 
-<div id="lobby-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.98); z-index:15000; padding:20px; color:white; box-sizing:border-box; overflow-y:auto;">
+<div id="lobby-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.98); z-index:2000000; padding:20px; color:white; box-sizing:border-box; overflow-y:auto;">
     <div style="max-width:500px; margin:auto; text-align:center;">
         <button onclick="fermerLobby()" style="background:#ef4444; padding:10px 15px; border-radius:8px; border:none; color:white; font-weight:bold; cursor:pointer; margin-bottom:20px; float:right;">✖ FERMER</button>
         <div style="clear:both;"></div>
@@ -1073,7 +1116,8 @@ html, body {
     </div>
 </div>
 
-<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; display:flex; flex-direction:column; justify-content:center; align-items:center;"> 
+
+<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; flex-direction:column; justify-content:center; align-items:center;"> 
     <h2 style="color:white; text-align:center; padding: 0 20px;">Connecte-toi pour sauvegarder ta progression</h2>
     <input type="text" id="reg-username" placeholder="Pseudo" style="margin-bottom:10px; display:block; width:220px; padding:10px; border-radius:5px; border:none;">
     <input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
@@ -1101,7 +1145,7 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
 <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.3</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.4</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
@@ -1348,7 +1392,7 @@ html, body {
         padding-top: 15px;
         width: 80%;
     ">
-        <span id="app-version">v2.2.3</span><br>
+        <span id="app-version">v2.2.4</span><br>
         <span>© 2026 BRAINROT TCG</span>
     </div>
 
@@ -2769,7 +2813,13 @@ document.getElementById('confirmSellBtn').onclick = async () => {
         // --- ÉTAPE 5 : MISE À JOUR INTERFACE ---
         fermerVente();
         
-        if (typeof showCollection === "function") showCollection();
+
+
+if (typeof showMarket === "function") {
+            showMarket(); 
+        }
+
+
         if (typeof displayCollection === "function") displayCollection();
         
         // Message plus complet pour le joueur
@@ -3060,11 +3110,18 @@ async function annulerVente(id) {
             await ref.delete();
 
             // Rafraîchissement des interfaces
-            if (typeof chargerMarche === "function") chargerMarche();
+if (typeof chargerMarche === "function") chargerMarche();
             if (typeof displayCollection === "function") displayCollection();
-            if (typeof showCollection === "function") showCollection();
+            
+            // MODIF : Remplace showCollection par la fonction de tes ventes
+            if (typeof showMySales === "function") {
+                showMySales(); 
+            } else {
+                // Si tu n'as pas de fonction séparée, on recharge le marché
+                if (typeof showMarket === "function") showMarket();
+            }
 
-            alert("Vente annulée ! La carte est de nouveau disponible dans votre collection.");
+            alert("Vente annulée ! La carte a été retirée du marché.");
         } catch (error) {
             console.error("Erreur critique lors de l'annulation :", error);
             
@@ -3548,6 +3605,10 @@ function ouvrirLobby() {
     const lobby = document.getElementById("lobby-overlay");
     if(!lobby) return;
     
+    // --- MODIFICATION : MASQUER LE BOUTON MUSIQUE ---
+    const musicBtn = document.getElementById("musicBtn");
+    if (musicBtn) musicBtn.style.display = "none";
+    
     lobby.style.display = "block";
     
     // On retire temporairement .orderBy pour éviter les erreurs d'index Firebase
@@ -3614,6 +3675,7 @@ function ouvrirLobby() {
 
 
 
+
 async function supprimerMonSalon(id) {
     if (!confirm("Voulez-vous vraiment supprimer votre salon ?")) return;
     try {
@@ -3650,7 +3712,13 @@ async function supprimerMonSalon(id) {
 
 
 function fermerLobby() {
-    document.getElementById("lobby-overlay").style.display = "none";
+    // 1. On cache le menu des duels
+    const lobby = document.getElementById("lobby-overlay");
+    if (lobby) lobby.style.display = "none";
+
+    // 2. On réaffiche le bouton de musique
+    const musicBtn = document.getElementById("musicBtn");
+    if (musicBtn) musicBtn.style.display = "flex";
 }
 
 
@@ -4310,46 +4378,53 @@ function showCombat() {
         accountSection.style.display = "none";
     }
     
-    // 2. On cache les éléments spécifiques "hors sections" // NOUVEAU
+    // 2. On cache les éléments spécifiques "hors sections" 
     const btnPack = document.getElementById("openPack");
     const btnReset = document.getElementById("resetCollection");
     const textRemaining = document.getElementById("remaining");
-    const dustDisplay = document.getElementById("dustDisplay"); // Ton compteur de fragments
+    const dustDisplay = document.getElementById("dustDisplay");
+    const accountBtn = document.getElementById("accountBtn"); 
+    const musicBtn = document.getElementById("musicBtn"); // On récupère le bouton musique
 
     if (btnPack) btnPack.style.display = "none";
     if (btnReset) btnReset.style.display = "none";
     if (textRemaining) textRemaining.style.display = "none";
     if (dustDisplay) dustDisplay.style.display = "none";
+    if (accountBtn) accountBtn.style.display = "none";
 
-    // --- AJOUT POUR LE POSITIONNEMENT (SANS RIEN SUPPRIMER) ---
-    // On s'assure que la section combat prend tout l'écran et reste en haut
+    // --- CONFIGURATION DE LA SECTION COMBAT ---
     combatSection.style.position = "fixed";
     combatSection.style.top = "0";
     combatSection.style.left = "0";
     combatSection.style.width = "100vw";
     combatSection.style.height = "100vh";
     combatSection.style.flexDirection = "column"; 
-    combatSection.style.justifyContent = "center"; // Centre le tapis verticalement
+    combatSection.style.justifyContent = "center"; 
     combatSection.style.alignItems = "center";
-    combatSection.style.zIndex = "1500";
-    combatSection.style.paddingBottom = "100px"; // Laisse de la place pour tes onglets
+    
+    // MODIF : On met 500 pour que la section soit SOUS les boutons (cliquables)
+    combatSection.style.zIndex = "500"; 
+    
+    combatSection.style.paddingBottom = "100px"; 
     combatSection.style.boxSizing = "border-box";
-    // ---------------------------------------------------------
 
     // 3. On affiche la section Combat
-    // On met "flex" au lieu de "block" pour activer le centrage en hauteur
     combatSection.style.display = "flex";
     
-    // 4. On remet l'arène à zéro (indispensable pour rejouer) // NOUVEAU
+    // --- GESTION DES BOUTONS DE NAVIGATION ---
+    // On s'assure que le bouton musique est au-dessus du combat mais sous le futur menu duel
+    if (musicBtn) {
+        musicBtn.style.zIndex = "1000"; 
+    }
+    
+    // 4. On remet l'arène à zéro
     if (typeof resetArena === 'function') {
         resetArena();
     }
 
-    // Sécurité : on force le scroll en haut pour que rien ne dépasse
     window.scrollTo(0, 0);
 }
 
-// L'événement du clic
 tabCombat.onclick = () => {
     showCombat();
 };
@@ -4399,7 +4474,7 @@ function handleCardClick(cardElement, cardData) {
 
 
 
-const CURRENT_VERSION = "2.2.3"; // Change ce numéro pour faire réapparaître le message
+const CURRENT_VERSION = "2.2.4"; // Change ce numéro pour faire réapparaître le message
 
 function checkUpdateNews() {
     const lastSeenVersion = localStorage.getItem("lastSeenVersion");
@@ -4698,15 +4773,20 @@ function showShop() {
     collectionSection.style.display = "none";
     allCardsSection.style.display = "none";
     shopSection.style.display = "block";
-combatSection.style.display = "none";
+    combatSection.style.display = "none";
+
+    // --- RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT ---
+    const accountBtn = document.getElementById("accountBtn");
+    const musicBtn = document.getElementById("musicBtn");
+    if (accountBtn) accountBtn.style.display = "flex";
+    if (musicBtn) musicBtn.style.display = "flex";
+
     updateButtons();
 
     const shopDiv = document.getElementById("shopCards");
     if (!shopDiv) return;
 
     // --- FUSION : CARTES ALÉATOIRES D'ABORD, BOOSTERS EN BAS ---
-    // [...shopCards] ce sont les cartes qui changent
-    // [...SHOP_CARDS] ce sont tes 3 boosters fixes
     const fullShopList = [...shopCards, ...SHOP_CARDS];
 
     // 2. Génération du HTML
@@ -4721,7 +4801,7 @@ combatSection.style.display = "none";
 
         return `
             <div class="card r-${(c.rarity || "Commun").replace(/ /g, "-")}" 
-                 style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px; padding: 12px; border-radius: 12px; ${specialStyle}">
+                  style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px; padding: 12px; border-radius: 12px; ${specialStyle}">
                 
                 <div style="text-align: center;">
                     <div style="font-size:0.7rem; color: #aaa; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;">${c.rarity}</div>
@@ -4740,45 +4820,57 @@ combatSection.style.display = "none";
         `;
     }).join("");
 
-    // 3. Gestion des clics (identique mais vérifiée)
+    // 3. Gestion des clics
     document.querySelectorAll(".buyBtn").forEach(btn => {
         btn.onclick = () => {
             const name = btn.getAttribute("data-name");
             const price = parseInt(btn.getAttribute("data-price"));
             const item = fullShopList.find(i => i.name === name);
 
-     if (item && dust >= price) {
-                dust -= price;
-                save("dust", dust);
-                refreshDust();
+            if (item) {
+                // --- AJOUT DE LA CONFIRMATION ---
+                const message = item.isPack 
+                    ? `Voulez-vous acheter le booster "${name}" pour ${price} 💎 ?` 
+                    : `Voulez-vous acheter la carte "${name}" pour ${price} 💎 ?`;
 
-                if (item.isPack) {
-                    // --- AJOUT QUÊTE BOOSTER ---
-                    if (typeof avancerQuete === "function") {
-                        avancerQuete("shop_booster", 1);
+                if (!confirm(message)) {
+                    return; // On arrête tout si l'utilisateur clique sur "Annuler"
+                }
+                // --------------------------------
+
+                if (dust >= price) {
+                    dust -= price;
+                    save("dust", dust);
+                    refreshDust();
+
+                    if (item.isPack) {
+                        // --- AJOUT QUÊTE BOOSTER ---
+                        if (typeof avancerQuete === "function") {
+                            avancerQuete("shop_booster", 1);
+                        }
+                        
+                        openSpecialPack(item.packType);
+                    } else {
+                        collection.push({...item});
+                        save("collection", collection);
+                        refreshCollection();
+                        alert(`✅ Achat réussi : ${name} !`);
                     }
-                    // ---------------------------
                     
-                    openSpecialPack(item.packType);
+                    // Sync Firebase
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        db.collection("users").doc(user.uid).set({ collection, dust }, { merge: true });
+                    }
+                    showShop(); 
                 } else {
-                    collection.push({...item});
-                    save("collection", collection);
-                    refreshCollection();
-                    alert(`✅ Achat réussi : ${name} !`);
+                    alert("💎 Pas assez de fragments !");
                 }
-                
-                // Sync Firebase
-                const user = firebase.auth().currentUser;
-                if (user) {
-                    db.collection("users").doc(user.uid).set({ collection, dust }, { merge: true });
-                }
-                showShop(); 
-            } else {
-                alert("💎 Pas assez de fragments !");
             }
         };
     });
 }
+
 
 
 
@@ -5245,47 +5337,71 @@ const resetLimitBtn=document.getElementById("resetLimit");
 const resetCollectionBtn=document.getElementById("resetCollection");
 const remainingDiv=document.getElementById("remaining");
 
-function showHome(){ 
-homeSection.style.display="block"; 
-collectionSection.style.display="none"; 
-allCardsSection.style.display="none";     
-shopSection.style.display = "none"; 
-combatSection.style.display = "none";
-updateButtons();}
+function showHome() {
+    homeSection.style.display = "block";
+    collectionSection.style.display = "none";
+    allCardsSection.style.display = "none";
+    shopSection.style.display = "none";
+    combatSection.style.display = "none";
 
-function showCollection(){ 
-homeSection.style.display="none"; 
-collectionSection.style.display="block"; 
-allCardsSection.style.display="none"; 
-shopSection.style.display = "none"; 
-combatSection.style.display = "none";
-updateButtons();}
+    // RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT
+    const accountBtn = document.getElementById("accountBtn");
+    const musicBtn = document.getElementById("musicBtn");
+    if (accountBtn) accountBtn.style.display = "flex";
+    if (musicBtn) musicBtn.style.display = "flex";
+
+    updateButtons();
+}
+
+function showCollection() {
+    homeSection.style.display = "none";
+    collectionSection.style.display = "block";
+    allCardsSection.style.display = "none";
+    shopSection.style.display = "none";
+    combatSection.style.display = "none";
+
+    // RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT
+    const accountBtn = document.getElementById("accountBtn");
+    const musicBtn = document.getElementById("musicBtn");
+    if (accountBtn) accountBtn.style.display = "flex";
+    if (musicBtn) musicBtn.style.display = "flex";
+
+    updateButtons();
+}
 
 function showAllCards() {
-  // Affiche uniquement la section "Chances d'obtention"
-  homeSection.style.display = "none"; 
-  collectionSection.style.display = "none"; 
-  allCardsSection.style.display = "block"; 
-shopSection.style.display = "none";
-combatSection.style.display = "none";
-  updateButtons();
+    // Affiche uniquement la section "Chances d'obtention"
+    homeSection.style.display = "none";
+    collectionSection.style.display = "none";
+    allCardsSection.style.display = "block";
+    shopSection.style.display = "none";
+    combatSection.style.display = "none";
 
-  const search = document.getElementById("searchCard");
+    // RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT
+    const accountBtn = document.getElementById("accountBtn");
+    const musicBtn = document.getElementById("musicBtn");
+    if (accountBtn) accountBtn.style.display = "flex";
+    if (musicBtn) musicBtn.style.display = "flex";
 
-  // Affiche toutes les cartes au départ
-  displayCards(ALL_CARDS);
+    updateButtons();
 
-  // Moteur de recherche
-  if (search) {
-    search.oninput = function() {
-      const value = this.value.toLowerCase();
-      const filtered = ALL_CARDS.filter(card =>
-        card.name.toLowerCase().includes(value)
-      );
-      displayCards(filtered);
-    };
-  }
+    const search = document.getElementById("searchCard");
+
+    // Affiche toutes les cartes au départ
+    displayCards(ALL_CARDS);
+
+    // Moteur de recherche
+    if (search) {
+        search.oninput = function() {
+            const value = this.value.toLowerCase();
+            const filtered = ALL_CARDS.filter(card =>
+                card.name.toLowerCase().includes(value)
+            );
+            displayCards(filtered);
+        };
+    }
 }
+
 
 
 function isVisible(el){ return el.style.display !== "none"; }
@@ -5585,7 +5701,10 @@ const authError = document.getElementById("authError");
 const logoutBtn = document.getElementById("logoutBtn");
 
 // --- Gestion de l'état de connexion ---
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async (user) => {
+    // --- RÉCUPÉRATION DE L'ÉCRAN DE CHARGEMENT ---
+    const loadingOverlay = document.getElementById("loading-overlay");
+    
     const accountBtn = document.getElementById("accountBtn");
     const userEmailText = document.getElementById("userEmail");
     const userIdText = document.getElementById("userIdDisplay");
@@ -5608,9 +5727,9 @@ auth.onAuthStateChanged(user => {
         if(profileDust) profileDust.textContent = typeof dust !== 'undefined' ? dust : 0;
 
         // Chargement des données de jeu
-        loadUserData(user.uid);                  
-        loadBoosterCounter(user.uid);            
-        checkDailyShop();                        
+        await loadUserData(user.uid);                  
+        loadBoosterCounter(user.uid);             
+        checkDailyShop();                         
 
         // --- NOUVEAU : SYNC AUTO VENTE (Action côté Vendeur) ---
         // On surveille si une de nos cartes en vente disparaît du marché
@@ -5654,7 +5773,19 @@ auth.onAuthStateChanged(user => {
         const accountSection = document.getElementById("accountSection");
         if(accountSection) accountSection.style.display = "none";
     }
+
+    // --- FERMETURE DE L'ÉCRAN DE CHARGEMENT ---
+    if (loadingOverlay) {
+        // On ajoute une classe CSS pour l'effet de fondu (optionnel)
+        loadingOverlay.classList.add("fade-out"); 
+        
+        // On retire l'élément après un petit délai pour laisser l'animation se faire
+        setTimeout(() => {
+            loadingOverlay.style.display = "none";
+        }, 500); 
+    }
 });
+
 
 
 // --- Connexion ---

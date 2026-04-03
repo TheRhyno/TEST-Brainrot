@@ -816,6 +816,12 @@ html, body {
 
 
 
+<div id="sync-status-banner" style="display:none; position:fixed; top:0; left:0; width:100%; padding:10px; text-align:center; font-weight:bold; z-index:10000; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); transition: background 0.3s;">
+    <span id="sync-status-text"></span>
+</div>
+
+
+
 
 <div id="loading-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0f1a; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:30000;">
     
@@ -1944,6 +1950,88 @@ disableSite(false);
 
 
 
+
+// 1. CRÉATION DU BANDEAU (Version "Responsive" qui ne dépasse pas)
+const alertBanner = document.createElement('div');
+alertBanner.id = "alerte-connexion-visuelle";
+alertBanner.style.cssText = `
+    position: fixed;
+    top: -120px; 
+    left: 0;
+    width: 100%;
+    min-height: 50px;
+    background: #ef4444;
+    color: white;
+    
+    /* On utilise Flexbox pour centrer parfaitement le texte */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Sécurité pour le texte */
+    padding: 10px 20px;
+    box-sizing: border-box; /* Empêche le padding de faire dépasser la largeur */
+    text-align: center;
+    font-size: 14px; /* Taille de base propre */
+    line-height: 1.4;
+    
+    font-weight: bold;
+    z-index: 999999;
+    transition: top 0.5s ease, background-color 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    font-family: sans-serif;
+`;
+alertBanner.innerHTML = "⚠️ CONNEXION PERDUE : Tes actions ne sont plus sauvegardées !";
+document.body.prepend(alertBanner);
+
+let etaitDeconnecte = false;
+
+// 2. FONCTION DE VÉRIFICATION
+async function verifierVraieConnexion() {
+    try {
+        const response = await fetch("https://www.google.com/favicon.ico", { mode: 'no-cors', cache: 'no-store' });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// 3. BOUCLE DE SURVEILLANCE
+setInterval(async () => {
+    const isReallyConnected = await verifierVraieConnexion();
+    const banner = document.getElementById("alerte-connexion-visuelle");
+    
+    if (!isReallyConnected) {
+        if (banner) {
+            banner.style.top = "0px"; 
+            banner.style.backgroundColor = "#ef4444"; 
+            banner.innerHTML = "⚠️ CONNEXION PERDUE : Tes actions ne sont plus sauvegardées !";
+        }
+        document.title = "⚠️ CONNEXION COUPÉE";
+        
+        if (!etaitDeconnecte) {
+            console.error("%c🚫 CONNEXION PERDUE", "background: black; color: red; padding: 10px; font-size: 15px;");
+            etaitDeconnecte = true;
+        }
+    } else {
+        if (etaitDeconnecte) {
+            if (banner) {
+                banner.style.backgroundColor = "#10b981"; 
+                banner.innerHTML = "✅ CONNEXION RÉTABLIE ! Synchronisation en cours...";
+                
+                setTimeout(() => {
+                    if (navigator.onLine) {
+                        banner.style.top = "-120px";
+                    }
+                }, 2500);
+            }
+
+            console.log("%c✅ CONNEXION RÉTABLIE", "background: black; color: #00FF00; padding: 10px; font-size: 15px; font-weight: bold;");
+            document.title = "Mon Jeu TCG";
+            etaitDeconnecte = false;
+        }
+    }
+}, 3000);
 
 
 
@@ -5289,7 +5377,16 @@ document.getElementById("openPack").onclick = openPackSequence;
 
 // Fonction dédiée pour envoyer les données à Firestore
 function saveToFirebase(uid) {
-  // On prépare l'objet proprement
+  // --- DÉBUT DU SYSTÈME D'ALERTE ---
+  let timeoutAlerteRecue = false;
+  const chronoSecurite = setTimeout(() => {
+      timeoutAlerteRecue = true;
+      console.warn("%c📡 ALERTE RÉSEAU : La sauvegarde Firebase ne répond plus !", "background: #8B0000; color: white; padding: 5px; font-weight: bold;");
+      console.log("%c(Le jeu va réessayer de sauvegarder automatiquement dès que la connexion revient)", "color: gray; font-style: italic;");
+  }, 4000); // Déclenche l'alerte après 4 secondes de silence
+  // --- FIN DU SYSTÈME D'ALERTE ---
+
+  // On prépare l'objet proprement (Ton code original)
   const dataToSave = {
     collection: collection,
     dust: dust,
@@ -5312,10 +5409,26 @@ function saveToFirebase(uid) {
       dataToSave.luckyBlockType = null;
   }
 
+  // Lancement de la sauvegarde
   db.collection("users").doc(uid).set(dataToSave, { merge: true })
-  .then(() => console.log("✅ Sauvegarde Firebase réussie !"))
-  .catch(err => console.error("❌ Erreur Firebase :", err));
+  .then(() => {
+      // On annule l'alerte car la sauvegarde a finalement réussi
+      clearTimeout(chronoSecurite); 
+      
+      if (timeoutAlerteRecue) {
+          console.log("%c✅ CONNEXION RÉTABLIE : Sauvegarde enfin synchronisée !", "background: green; color: white; padding: 2px;");
+      } else {
+          console.log("✅ Sauvegarde Firebase réussie !");
+      }
+  })
+  .catch(err => {
+      // On annule aussi le chrono en cas d'erreur immédiate
+      clearTimeout(chronoSecurite);
+      console.error("❌ Erreur Firebase :", err);
+  });
 }
+
+
 
 
 

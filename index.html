@@ -1980,38 +1980,62 @@ searchCollectionInput.addEventListener("input", () => {
 
 
 
-// --- CONFIGURATION : ACTIVATION DE L'APK ---
-const apkActive = false; // Mets sur 'false' pour FERMER l'APK, 'true' pour l'OUVRIR
+// --- CONFIGURATION DE L'ACCÈS ---
+const apkActive = false; // Mets false pour bloquer l'APK
 
-// 1. Détection de l'APK (WebIntoApp / WebView)
-const isAPK = /wv|WebIntoApp/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
+// Détection ultra-large :
+// 1. Vérifie si c'est une WebView Android (wv)
+// 2. Vérifie si c'est le mode "Standalone" (installé comme une app)
+// 3. Vérifie si la résolution correspond à un mobile sans barre de navigation classique
+const isAPK = /wv|WebIntoApp|Crosswalk/i.test(navigator.userAgent) || 
+              (window.matchMedia('(display-mode: standalone)').matches) ||
+              (window.android !== undefined);
 
 if (isAPK && !apkActive) {
-    // 2. Si on est sur l'APK et qu'elle est désactivée, on bloque tout
-    window.stop(); // Arrête le chargement des autres scripts
+    console.log("⚠️ APK DÉTECTÉE ET BLOQUÉE");
     
-    document.addEventListener("DOMContentLoaded", () => {
-        // On remplace tout le contenu du body par un message de fermeture
-        document.body.innerHTML = `
-            <div style="
-                position: fixed; top:0; left:0; width:100%; height:100%; 
-                background: #1e1b4b; color: white; display: flex; 
-                flex-direction: column; align-items: center; justify-content: center; 
-                text-align: center; font-family: sans-serif; z-index: 1000000; padding: 20px;
-            ">
-                <h1 style="font-size: 24px; color: #ef4444;">APPLICATION OBSOLÈTE</h1>
-                <p style="font-size: 16px; margin: 20px 0; line-height: 1.5;">
-                    L'application APK n'est plus supportée.<br>
-                    Merci de jouer directement sur notre site officiel :
-                </p>
-                <a href="https://ton-site-web.com" style="
-                    background: #6366f1; color: white; padding: 12px 25px; 
-                    border-radius: 8px; text-decoration: none; font-weight: bold;
-                ">Accéder au Site Web</a>
-            </div>
-        `;
-    });
+    // On bloque tout de suite
+    window.stop(); 
+
+    // On injecte le message directement en CSS pour qu'il apparaisse AVANT le HTML
+    const style = document.createElement('style');
+    style.innerHTML = `
+        html, body { overflow: hidden !important; height: 100% !important; margin: 0 !important; }
+        #block-screen {
+            position: fixed; top:0; left:0; width:100vw; height:100vh; 
+            background: #0f172a; color: white; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            text-align: center; z-index: 999999999; font-family: sans-serif; padding: 20px;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Injection du HTML de blocage
+    const blockDiv = document.createElement('div');
+    blockDiv.id = "block-screen";
+    blockDiv.innerHTML = `
+        <div style="font-size: 50px;">🚫</div>
+        <h1 style="color: #f87171;">APPLICATION DÉSACTIVÉE</h1>
+        <p style="color: #cbd5e1; margin: 20px 0;">
+            L'accès via l'application est suspendu.<br>
+            Merci de jouer sur notre site officiel :
+        </p>
+        <a href="https://TON-SITE-WEB.com" style="
+            background: #6366f1; color: white; padding: 15px 30px; 
+            border-radius: 50px; text-decoration: none; font-weight: bold;
+        ">OUVRIR LE SITE WEB</a>
+    `;
+    
+    // On attend que le body soit prêt pour l'écraser
+    const interval = setInterval(() => {
+        if (document.body) {
+            document.body.prepend(blockDiv);
+            clearInterval(interval);
+        }
+    }, 10);
 }
+
+
 
 
 

@@ -816,6 +816,13 @@ html, body {
 
 
 
+
+<button id="testNotifBtn" style="margin-top: 20px; background: #ff4757;">
+    Tester la Notification (5s)
+</button>
+
+
+
 <div id="sync-status-banner" style="display:none; position:fixed; top:0; left:0; width:100%; padding:10px; text-align:center; font-weight:bold; z-index:10000; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); transition: background 0.3s;">
     <span id="sync-status-text"></span>
 </div>
@@ -1983,7 +1990,7 @@ searchCollectionInput.addEventListener("input", () => {
 
 
 // --- CONFIGURATION DE L'ACCÈS ---
-const apkActive = true; // Mets false pour bloquer l'APK
+const apkActive = true; // false pour bloquer l'APK
 
 // Détection ultra-large
 const isAPK = /wv|WebIntoApp|Crosswalk/i.test(navigator.userAgent) || 
@@ -2141,6 +2148,41 @@ disableSite(false);
 
 
 
+
+
+
+
+
+
+
+// 1. Demander la permission dès l'ouverture du jeu
+if ("Notification" in window) {
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+}
+
+// 2. Fonction pour envoyer la notification
+function envoyerNotifTest() {
+    if (Notification.permission === "granted") {
+        // On attend 5 secondes avant de déclencher
+        setTimeout(() => {
+            new Notification("Brainrot TCG 🃏", {
+                body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
+                icon: "https://via.placeholder.com/128", // Remplace par le lien de ton logo
+                vibrate: [200, 100, 200]
+            });
+        }, 5000);
+        
+        alert("C'est bon ! Ferme l'appli ou verrouille ton écran, la notif arrive dans 5s.");
+    } else {
+        alert("Tu dois d'abord autoriser les notifications sur ton téléphone !");
+        Notification.requestPermission();
+    }
+}
+
+// 3. Lier le bouton à la fonction
+document.getElementById("testNotifBtn").onclick = envoyerNotifTest;
 
 
 

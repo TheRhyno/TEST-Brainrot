@@ -816,10 +816,12 @@ html, body {
 
 
 
-
-<button id="testNotifBtn" style="margin-top: 20px; background: #ff4757;">
-    Tester la Notification (5s)
-</button>
+<div style="margin-bottom: 20px;">
+    <button id="testNotifBtn" style="background: #ff4757; font-weight: bold; padding: 15px; width: 100%; max-width: 300px; border: 2px solid white;">
+        🚀 TESTER NOTIFICATION (5s)
+    </button>
+    <p class="note">Clique, puis ferme l'appli direct pour tester !</p>
+</div>
 
 
 
@@ -2154,35 +2156,71 @@ disableSite(false);
 
 
 
-
-// 1. Demander la permission dès l'ouverture du jeu
-if ("Notification" in window) {
-    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
+// 1. Demander la permission dès l'ouverture du jeu avec gestion d'erreur
+function demanderPermissionNotif() {
+    if ("Notification" in window) {
+        Notification.requestPermission().then(perm => {
+            console.log("Statut des notifications :", perm);
+        }).catch(err => {
+            console.log("Erreur lors de la demande de permission", err);
+        });
     }
 }
+demanderPermissionNotif();
 
-// 2. Fonction pour envoyer la notification
+// 2. Fonction pour envoyer la notification (version compatible APK)
 function envoyerNotifTest() {
+    // Vérification de la permission
     if (Notification.permission === "granted") {
-        // On attend 5 secondes avant de déclencher
+        
+        // On affiche un message direct pour confirmer que le bouton a réagi
+        console.log("Notification programmée pour dans 5s...");
+        alert("C'est bon ! Ferme l'appli ou verrouille ton écran, la notif arrive dans 5s.");
+
         setTimeout(() => {
-            new Notification("Brainrot TCG 🃏", {
-                body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
-                icon: "https://via.placeholder.com/128", // Remplace par le lien de ton logo
-                vibrate: [200, 100, 200]
-            });
+            // Tentative d'envoi via Service Worker (plus fiable sur APK)
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification("Brainrot TCG 🃏", {
+                        body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
+                        icon: "https://via.placeholder.com/128", 
+                        vibrate: [200, 100, 200],
+                        badge: "https://via.placeholder.com/128"
+                    });
+                });
+            } else {
+                // Fallback si le Service Worker n'est pas prêt
+                new Notification("Brainrot TCG 🃏", {
+                    body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
+                    icon: "https://via.placeholder.com/128",
+                    vibrate: [200, 100, 200]
+                });
+            }
         }, 5000);
         
-        alert("C'est bon ! Ferme l'appli ou verrouille ton écran, la notif arrive dans 5s.");
+    } else if (Notification.permission !== "denied") {
+        // Si pas encore autorisé, on redemande
+        Notification.requestPermission().then(perm => {
+            if (perm === "granted") envoyerNotifTest();
+        });
     } else {
-        alert("Tu dois d'abord autoriser les notifications sur ton téléphone !");
-        Notification.requestPermission();
+        alert("Les notifications sont bloquées dans les paramètres de ton téléphone pour cette application.");
     }
 }
 
-// 3. Lier le bouton à la fonction
-document.getElementById("testNotifBtn").onclick = envoyerNotifTest;
+// 3. Lier le bouton à la fonction (Sécurisé pour attendre que le bouton existe)
+const intervalCheckBtn = setInterval(() => {
+    const btn = document.getElementById("testNotifBtn");
+    if (btn) {
+        btn.onclick = envoyerNotifTest;
+        clearInterval(intervalCheckBtn); // On arrête de chercher une fois trouvé
+    }
+}, 500); // Vérifie toutes les 0.5s si le bouton est apparu dans le HTML
+
+
+
+
+
 
 
 

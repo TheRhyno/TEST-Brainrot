@@ -816,12 +816,11 @@ html, body {
 
 
 
-<div style="margin-bottom: 20px;">
-    <button id="testNotifBtn" style="background: #ff4757; font-weight: bold; padding: 15px; width: 100%; max-width: 300px; border: 2px solid white;">
-        🚀 TESTER NOTIFICATION (5s)
-    </button>
-    <p class="note">Clique, puis ferme l'appli direct pour tester !</p>
+<div id="testArea" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px;">
+    <button id="testNotifBtn">🚀 TESTER NOTIF (5s)</button>
+    <p class="note">Clique puis ferme l'appli vite !</p>
 </div>
+
 
 
 
@@ -2156,66 +2155,42 @@ disableSite(false);
 
 
 
-// 1. Demander la permission dès l'ouverture du jeu avec gestion d'erreur
-function demanderPermissionNotif() {
+window.onload = function() {
+    // 1. Demander la permission dès l'ouverture du jeu
     if ("Notification" in window) {
-        Notification.requestPermission().then(perm => {
-            console.log("Statut des notifications :", perm);
-        }).catch(err => {
-            console.log("Erreur lors de la demande de permission", err);
-        });
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
     }
-}
-demanderPermissionNotif();
 
-// 2. Fonction pour envoyer la notification (version compatible APK)
-function envoyerNotifTest() {
-    // Vérification de la permission
-    if (Notification.permission === "granted") {
-        
-        // On affiche un message direct pour confirmer que le bouton a réagi
-        console.log("Notification programmée pour dans 5s...");
-        alert("C'est bon ! Ferme l'appli ou verrouille ton écran, la notif arrive dans 5s.");
-
-        setTimeout(() => {
-            // Tentative d'envoi via Service Worker (plus fiable sur APK)
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.ready.then(registration => {
-                    registration.showNotification("Brainrot TCG 🃏", {
-                        body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
-                        icon: "https://via.placeholder.com/128", 
-                        vibrate: [200, 100, 200],
-                        badge: "https://via.placeholder.com/128"
-                    });
-                });
-            } else {
-                // Fallback si le Service Worker n'est pas prêt
+    // 2. Ta fonction (inchangée)
+    function envoyerNotifTest() {
+        if (Notification.permission === "granted") {
+            // On attend 5 secondes avant de déclencher
+            setTimeout(() => {
                 new Notification("Brainrot TCG 🃏", {
                     body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
-                    icon: "https://via.placeholder.com/128",
+                    icon: "https://via.placeholder.com/128", 
                     vibrate: [200, 100, 200]
                 });
-            }
-        }, 5000);
-        
-    } else if (Notification.permission !== "denied") {
-        // Si pas encore autorisé, on redemande
-        Notification.requestPermission().then(perm => {
-            if (perm === "granted") envoyerNotifTest();
-        });
-    } else {
-        alert("Les notifications sont bloquées dans les paramètres de ton téléphone pour cette application.");
+            }, 5000);
+            
+            alert("C'est bon ! Ferme l'appli ou verrouille ton écran, la notif arrive dans 5s.");
+        } else {
+            alert("Tu dois d'abord autoriser les notifications sur ton téléphone !");
+            Notification.requestPermission();
+        }
     }
-}
 
-// 3. Lier le bouton à la fonction (Sécurisé pour attendre que le bouton existe)
-const intervalCheckBtn = setInterval(() => {
-    const btn = document.getElementById("testNotifBtn");
-    if (btn) {
-        btn.onclick = envoyerNotifTest;
-        clearInterval(intervalCheckBtn); // On arrête de chercher une fois trouvé
+    // 3. Lier le bouton (avec vérification si le bouton existe)
+    const monBouton = document.getElementById("testNotifBtn");
+    if (monBouton) {
+        monBouton.onclick = envoyerNotifTest;
+    } else {
+        console.error("Le bouton testNotifBtn n'a pas été trouvé dans le HTML !");
     }
-}, 500); // Vérifie toutes les 0.5s si le bouton est apparu dans le HTML
+};
+
 
 
 

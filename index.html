@@ -1980,6 +1980,8 @@ searchCollectionInput.addEventListener("input", () => {
 
 
 
+
+
 // --- CONFIGURATION DE L'ACCÈS ---
 const apkActive = false; // Mets false pour bloquer l'APK
 
@@ -2046,13 +2048,13 @@ if (isAPK && !apkActive) {
     blockDiv.id = "block-screen";
     
     // REMPLACE CETTE URL PAR LA TIENNE
-    const monSiteUrl = "https://TON-SITE-WEB.com";
+    const monSiteUrl = "https://therhyno.github.io/Brainrot-TCG/";
 
     blockDiv.innerHTML = `
         <div style="font-size: 50px;">🚫</div>
         <h1 style="color: #f87171; font-size: 22px;">APPLICATION DÉSACTIVÉE</h1>
         <p style="color: #cbd5e1; margin: 15px 0; font-size: 15px;">
-            L'application n'est plus supportée.<br>
+            L'application est temporairement suspendu.<br>
             Copie le lien ci-dessous et ouvre-le dans ton navigateur :
         </p>
         
@@ -2078,7 +2080,7 @@ if (isAPK && !apkActive) {
                     
                     btn.innerText = "Copié !";
                     btn.style.background = "#10b981";
-                    msg.innerText = "Lien copié ! Colle-le dans Chrome.";
+                    msg.innerText = "Lien copié ! Colle-le dans ton navigateur.";
                     msg.style.opacity = "1";
 
                     setTimeout(() => {

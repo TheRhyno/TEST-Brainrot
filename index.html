@@ -1900,11 +1900,14 @@ const SHOP_CARDS = [
 
 
 
+// --- 1. SÉCURITÉ ANTI-CRASH APK ---
 function load(key, def) {
     try {
-        return JSON.parse(localStorage.getItem(key) || JSON.stringify(def));
+        const item = localStorage.getItem(key);
+        if (!item) return def;
+        return JSON.parse(item);
     } catch (e) {
-        console.error("Erreur de lecture APK Storage:", e);
+        console.error("Erreur Load APK:", e);
         return def;
     }
 }
@@ -1913,16 +1916,38 @@ function save(key, val) {
     try {
         localStorage.setItem(key, JSON.stringify(val));
     } catch (e) {
-        console.error("Erreur de sauvegarde APK:", e);
+        console.error("Erreur Save APK:", e);
     }
 }
 
-// Initialisation immédiate pour éviter que les fonctions suivantes 
-// ne trouvent des variables "undefined"
-let collection = load("collection", []);
-let daily = load("daily", {date: null, opened: 0});
-let dust = load("dust", 0);
+// --- 2. INITIALISATION AVEC VALEURS DE SECOURS ---
+let collection = [];
+let daily = {date: null, opened: 0};
+let dust = 0;
 let shopCards = [];
+
+// On essaie de charger, si ça rate, on garde les [] ou 0 ci-dessus
+try {
+    collection = load("collection", []);
+    daily = load("daily", {date: null, opened: 0});
+    dust = load("dust", 0);
+} catch(e) {
+    console.error("Échec initialisation variables");
+}
+
+// --- 3. FIX DU "OOPS" AU DÉMARRAGE (L'OVERLAY) ---
+// On force la disparition du chargement si Firebase met trop de temps
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const loader = document.getElementById("loading-overlay");
+        if (loader && loader.style.display !== "none") {
+            loader.style.opacity = "0";
+            setTimeout(() => { loader.style.display = "none"; }, 500);
+        }
+    }, 5000); // Après 5 secondes, on affiche le jeu quoi qu'il arrive
+});
+
+
 
 
 

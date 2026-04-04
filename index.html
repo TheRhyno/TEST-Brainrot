@@ -1983,10 +1983,7 @@ searchCollectionInput.addEventListener("input", () => {
 // --- CONFIGURATION DE L'ACCÈS ---
 const apkActive = false; // Mets false pour bloquer l'APK
 
-// Détection ultra-large :
-// 1. Vérifie si c'est une WebView Android (wv)
-// 2. Vérifie si c'est le mode "Standalone" (installé comme une app)
-// 3. Vérifie si la résolution correspond à un mobile sans barre de navigation classique
+// Détection ultra-large
 const isAPK = /wv|WebIntoApp|Crosswalk/i.test(navigator.userAgent) || 
               (window.matchMedia('(display-mode: standalone)').matches) ||
               (window.android !== undefined);
@@ -1997,7 +1994,7 @@ if (isAPK && !apkActive) {
     // On bloque tout de suite l'exécution des autres scripts
     window.stop(); 
 
-    // On injecte le message directement en CSS pour qu'il apparaisse AVANT le HTML
+    // On injecte le message directement en CSS
     const style = document.createElement('style');
     style.innerHTML = `
         html, body { 
@@ -2013,46 +2010,92 @@ if (isAPK && !apkActive) {
             text-align: center; z-index: 999999999; font-family: sans-serif; padding: 20px;
             box-sizing: border-box;
         }
+        .copy-box {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #334155;
+            margin-top: 20px;
+            max-width: 90%;
+        }
+        #url-text {
+            color: #94a3b8;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: all;
+        }
+        #copyBtn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
     `;
     document.head.appendChild(style);
 
-    // Injection du HTML de blocage
     const blockDiv = document.createElement('div');
     blockDiv.id = "block-screen";
+    
+    // REMPLACE CETTE URL PAR LA TIENNE
+    const monSiteUrl = "https://TON-SITE-WEB.com";
+
     blockDiv.innerHTML = `
         <div style="font-size: 50px;">🚫</div>
-        <h1 style="color: #f87171; font-size: 24px;">APPLICATION DÉSACTIVÉE</h1>
-        <p style="color: #cbd5e1; margin: 20px 0; font-size: 16px;">
-            L'accès via l'application est suspendu.<br>
-            Merci de jouer sur notre site officiel :
+        <h1 style="color: #f87171; font-size: 22px;">APPLICATION DÉSACTIVÉE</h1>
+        <p style="color: #cbd5e1; margin: 15px 0; font-size: 15px;">
+            L'application n'est plus supportée.<br>
+            Copie le lien ci-dessous et ouvre-le dans ton navigateur :
         </p>
-        <button id="openSiteBtn" style="
-            background: #6366f1; color: white; padding: 15px 30px; 
-            border-radius: 50px; border: none; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 16px;
-        ">OUVRIR LE SITE WEB</button>
+        
+        <div class="copy-box">
+            <span id="url-text">${monSiteUrl}</span>
+            <button id="copyBtn">Copier</button>
+        </div>
+        
+        <p id="copy-msg" style="color: #10b981; font-size: 12px; margin-top: 10px; height: 15px; opacity: 0; transition: 0.3s;"></p>
     `;
     
-    // On attend que le body soit prêt
     const interval = setInterval(() => {
         if (document.body) {
-            // Vider le body empêche les scripts en arrière-plan de créer des erreurs serveurs
             document.body.innerHTML = ""; 
             document.body.prepend(blockDiv);
             document.body.style.background = "#0f172a";
             
-            // On gère le clic par script pour forcer l'ouverture externe
-            document.getElementById("openSiteBtn").onclick = function() {
-                // On vide encore une fois au cas où
-                document.body.innerHTML = "Redirection...";
-                // On force l'ouverture hors de l'APK
-                window.open("https://TON-SITE-WEB.com", "_blank");
+            // Logique du bouton Copier
+            document.getElementById("copyBtn").onclick = function() {
+                navigator.clipboard.writeText(monSiteUrl).then(() => {
+                    const btn = document.getElementById("copyBtn");
+                    const msg = document.getElementById("copy-msg");
+                    
+                    btn.innerText = "Copié !";
+                    btn.style.background = "#10b981";
+                    msg.innerText = "Lien copié ! Colle-le dans Chrome.";
+                    msg.style.opacity = "1";
+
+                    setTimeout(() => {
+                        btn.innerText = "Copier";
+                        btn.style.background = "#6366f1";
+                        msg.style.opacity = "0";
+                    }, 3000);
+                });
             };
 
             clearInterval(interval);
         }
     }, 10);
 }
+
+
+
 
 
 

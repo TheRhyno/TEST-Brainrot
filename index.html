@@ -1994,18 +1994,24 @@ const isAPK = /wv|WebIntoApp|Crosswalk/i.test(navigator.userAgent) ||
 if (isAPK && !apkActive) {
     console.log("⚠️ APK DÉTECTÉE ET BLOQUÉE");
     
-    // On bloque tout de suite
+    // On bloque tout de suite l'exécution des autres scripts
     window.stop(); 
 
     // On injecte le message directement en CSS pour qu'il apparaisse AVANT le HTML
     const style = document.createElement('style');
     style.innerHTML = `
-        html, body { overflow: hidden !important; height: 100% !important; margin: 0 !important; }
+        html, body { 
+            overflow: hidden !important; 
+            height: 100% !important; 
+            margin: 0 !important; 
+            background: #0f172a !important; 
+        }
         #block-screen {
             position: fixed; top:0; left:0; width:100vw; height:100vh; 
             background: #0f172a; color: white; display: flex; 
             flex-direction: column; align-items: center; justify-content: center; 
             text-align: center; z-index: 999999999; font-family: sans-serif; padding: 20px;
+            box-sizing: border-box;
         }
     `;
     document.head.appendChild(style);
@@ -2015,21 +2021,25 @@ if (isAPK && !apkActive) {
     blockDiv.id = "block-screen";
     blockDiv.innerHTML = `
         <div style="font-size: 50px;">🚫</div>
-        <h1 style="color: #f87171;">APPLICATION DÉSACTIVÉE</h1>
-        <p style="color: #cbd5e1; margin: 20px 0;">
+        <h1 style="color: #f87171; font-size: 24px;">APPLICATION DÉSACTIVÉE</h1>
+        <p style="color: #cbd5e1; margin: 20px 0; font-size: 16px;">
             L'accès via l'application est suspendu.<br>
             Merci de jouer sur notre site officiel :
         </p>
-        <a href="https://TON-SITE-WEB.com" style="
+        <a href="https://TON-SITE-WEB.com" target="_blank" rel="noopener noreferrer" style="
             background: #6366f1; color: white; padding: 15px 30px; 
             border-radius: 50px; text-decoration: none; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         ">OUVRIR LE SITE WEB</a>
     `;
     
-    // On attend que le body soit prêt pour l'écraser
+    // On attend que le body soit prêt
     const interval = setInterval(() => {
         if (document.body) {
+            // Vider le body empêche les scripts en arrière-plan de créer des erreurs serveurs
+            document.body.innerHTML = ""; 
             document.body.prepend(blockDiv);
+            document.body.style.background = "#0f172a";
             clearInterval(interval);
         }
     }, 10);

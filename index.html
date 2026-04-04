@@ -2018,9 +2018,7 @@ disableSite(false);
 
 
 
-
-
-// 1. CRÉATION DU BANDEAU (Version "Responsive" qui ne dépasse pas)
+// 1. CRÉATION DU BANDEAU (Inchangé, version Responsive)
 const alertBanner = document.createElement('div');
 alertBanner.id = "alerte-connexion-visuelle";
 alertBanner.style.cssText = `
@@ -2065,12 +2063,14 @@ async function verifierVraieConnexion() {
     }
 }
 
-// 3. BOUCLE DE SURVEILLANCE
+// 3. BOUCLE DE SURVEILLANCE AVEC REFRESH AUTOMATIQUE
 setInterval(async () => {
     const isReallyConnected = await verifierVraieConnexion();
     const banner = document.getElementById("alerte-connexion-visuelle");
+    const loadingOverlay = document.getElementById("loading-overlay");
     
     if (!isReallyConnected) {
+        // --- CAS : CONNEXION PERDUE ---
         if (banner) {
             banner.style.top = "0px"; 
             banner.style.backgroundColor = "#ef4444"; 
@@ -2082,25 +2082,43 @@ setInterval(async () => {
             console.error("%c🚫 CONNEXION PERDUE", "background: black; color: red; padding: 10px; font-size: 15px;");
             etaitDeconnecte = true;
         }
+
+        // OPTIONNEL : Si tu veux forcer l'affichage du chargement dès que ça coupe
+        if (loadingOverlay) {
+            loadingOverlay.style.display = "flex";
+            const p = loadingOverlay.querySelector('p');
+            if(p) p.innerText = "Reconnexion en cours...";
+        }
+
     } else {
+        // --- CAS : CONNEXION RÉTABLIE ---
         if (etaitDeconnecte) {
             if (banner) {
                 banner.style.backgroundColor = "#10b981"; 
-                banner.innerHTML = "✅ CONNEXION RÉTABLIE ! Synchronisation en cours...";
-                
-                setTimeout(() => {
-                    if (navigator.onLine) {
-                        banner.style.top = "-120px";
-                    }
-                }, 2500);
+                banner.innerHTML = "✅ CONNEXION RÉTABLIE ! Redémarrage du jeu...";
             }
 
             console.log("%c✅ CONNEXION RÉTABLIE", "background: black; color: #00FF00; padding: 10px; font-size: 15px; font-weight: bold;");
             document.title = "Mon Jeu TCG";
-            etaitDeconnecte = false;
+
+            // On s'assure que l'overlay de chargement est visible avant de refresh
+            if (loadingOverlay) {
+                loadingOverlay.style.display = "flex";
+                loadingOverlay.style.opacity = "1";
+            }
+
+            // --- ACTION : REFRESH DE LA PAGE ---
+            // On laisse 1.5 seconde pour que l'utilisateur voit le message de succès
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+
+            etaitDeconnecte = false; 
         }
     }
 }, 3000);
+
+
 
 
 
@@ -5878,6 +5896,10 @@ const signupBtn = document.getElementById("signupBtn");
 const authError = document.getElementById("authError");
 const logoutBtn = document.getElementById("logoutBtn");
 
+
+
+
+
 // --- Gestion de l'état de connexion ---
 auth.onAuthStateChanged(async (user) => {
     // --- RÉCUPÉRATION DE L'ÉCRAN DE CHARGEMENT ---
@@ -5963,6 +5985,11 @@ auth.onAuthStateChanged(async (user) => {
         }, 500); 
     }
 });
+
+
+
+
+
 
 
 

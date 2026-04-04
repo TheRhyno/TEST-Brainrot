@@ -2026,11 +2026,11 @@ if (isAPK && !apkActive) {
             L'accès via l'application est suspendu.<br>
             Merci de jouer sur notre site officiel :
         </p>
-        <a href="https://TON-SITE-WEB.com" target="_blank" rel="noopener noreferrer" style="
+        <button id="openSiteBtn" style="
             background: #6366f1; color: white; padding: 15px 30px; 
-            border-radius: 50px; text-decoration: none; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        ">OUVRIR LE SITE WEB</a>
+            border-radius: 50px; border: none; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 16px;
+        ">OUVRIR LE SITE WEB</button>
     `;
     
     // On attend que le body soit prêt
@@ -2040,6 +2040,15 @@ if (isAPK && !apkActive) {
             document.body.innerHTML = ""; 
             document.body.prepend(blockDiv);
             document.body.style.background = "#0f172a";
+            
+            // On gère le clic par script pour forcer l'ouverture externe
+            document.getElementById("openSiteBtn").onclick = function() {
+                // On vide encore une fois au cas où
+                document.body.innerHTML = "Redirection...";
+                // On force l'ouverture hors de l'APK
+                window.open("https://TON-SITE-WEB.com", "_blank");
+            };
+
             clearInterval(interval);
         }
     }, 10);

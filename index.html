@@ -420,6 +420,46 @@ html, body {
 
 
 
+/* Couleur de la bordure et lueur de la carte */
+.card.r-Exclu-Season-1 {
+    border: 3px solid #ff00ff; /* Rose néon / Violet */
+    box-shadow: 0 0 15px #ff00ff, inset 0 0 10px rgba(255, 0, 255, 0.2);
+    background: linear-gradient(145deg, #162037, #2a1b3d); /* Fond légèrement violacé */
+}
+
+/* Couleur du texte de rareté (en haut ou en bas) */
+.r-Exclu-Season-1 .rarity-indicator, 
+.card.r-Exclu-Season-1 div[style*="color:#ccc"] {
+    color: #ff00ff !important; /* On force la couleur rose néon */
+    text-shadow: 0 0 5px #ff00ff;
+    font-weight: 900;
+}
+
+/* Effet de brillance spécial pour les exclus */
+.card.r-Exclu-Season-1::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    animation: shineExclu 3s infinite;
+}
+
+@keyframes shineExclu {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+
+
+
+
+
+
+
 
 /* Animation OG avec overlay qui bloque tout */
 #ogAnimation {
@@ -800,6 +840,240 @@ html, body {
 
 
 
+
+
+/* Style global de l'overlay Battle Pass */
+#bpOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); /* Fond sombre flouté */
+    z-index: 200001;
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    overflow-y: auto; /* Permet de scroller la liste */
+}
+
+/* Le conteneur principal des récompenses */
+.bp-container {
+    width: 100%;
+    max-width: 450px; /* Largeur max pour mobile */
+    background: #111827; /* Fond sombre de la liste */
+    position: relative;
+    margin-top: 80px; /* Espace pour le header */
+    padding-bottom: 20px;
+}
+
+/* La ligne verticale du milieu (jaune) */
+.bp-middle-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 6px;
+    background: #fbbf24; /* Couleur jaune doré */
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Style d'une ligne de récompense (Gratuit - Lvl - Premium) */
+.bp-level-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px; /* Hauteur de chaque palier */
+    position: relative;
+    margin-bottom: 10px;
+    z-index: 2;
+}
+
+/* Le cercle du niveau au milieu */
+.bp-level-circle {
+    width: 50px; height: 50px;
+    background: #fbbf24;
+    color: black;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: bold; font-size: 1.2em;
+    border: 4px solid #111827;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* Les slots de récompenses (communs aux deux côtés) */
+.bp-slot {
+    flex: 1;
+    height: 100%;
+    border-radius: 15px;
+    margin: 0 10px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+/* === CÔTÉ GRATUIT (GAUCHE) === */
+.bp-slot-free {
+    background: rgba(55, 65, 81, 0.8); /* Gris/Bleu sombre */
+    border-color: #4b5563;
+}
+.bp-slot-free.unlocked {
+    background: #374151; /* Plus clair quand débloqué */
+    border-color: #10b981; /* Bordure verte */
+}
+
+/* === CÔTÉ PREMIUM (DROITE) === */
+.bp-slot-prem {
+    background: rgba(31, 41, 55, 0.9); /* Très sombre si bloqué */
+    border-color: #374151;
+}
+.bp-slot-prem.unlocked {
+    /* Dégradé doré quand débloqué */
+    background: linear-gradient(135deg, #f59e0b, #d97706); 
+    border-color: #fff; /* Bordure blanche */
+    color: black; /* Texte noir sur fond doré */
+}
+
+/* Icône de cadenas pour les récompenses bloquées */
+.lock-icon {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 1.2em;
+}
+
+
+
+
+
+@keyframes cardShake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake-anim {
+    animation: cardShake 0.5s;
+    animation-iteration-count: infinite;
+}
+
+
+
+
+
+
+
+/* --- NOUVEAU DESIGN INTERFACE (STYLE SUBWAY) --- */
+.main-dashboard-header {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 10000;
+    pointer-events: none; /* Permet de cliquer à travers le vide */
+}
+.main-dashboard-header * { pointer-events: auto; } /* Réactive le clic sur les boutons */
+
+/* Profil Haut Gauche */
+.profile-badge {
+    display: flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 4px 15px 4px 4px;
+    border-radius: 40px 15px 15px 40px;
+    border: 2px solid #7c3aed;
+    width: fit-content;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+.profile-avatar-container { position: relative; width: 45px; height: 45px; }
+.profile-avatar-container img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; background: #1e293b; }
+.level-tag {
+    position: absolute; bottom: -5px; right: -2px; background: #f59e0b; color: black;
+    font-weight: 900; padding: 1px 6px; border-radius: 6px; border: 2px solid white; font-size: 11px;
+}
+
+/* HUD Haut Droite */
+.top-right-hud { position: absolute; top: 0; right: 0; display: flex; gap: 8px; align-items: center; }
+.resource-item {
+    background: rgba(15, 23, 42, 0.85); padding: 6px 12px; border-radius: 12px;
+    border: 2px solid #334155; color: white; font-weight: bold; display: flex; align-items: center; gap: 6px; font-size: 14px;
+}
+
+/* Mini Pass (Rectangle vert) */
+.mini-bp-card {
+    margin-top: 10px; background: linear-gradient(90deg, #10b981, #059669);
+    width: 150px; padding: 8px; border-radius: 12px; border: 2px solid #064e3b;
+    box-shadow: 0 4px 0 #064e3b; cursor: pointer;
+}
+.mini-bp-title { font-size: 10px; font-weight: 900; color: white; text-transform: uppercase; margin-bottom: 4px; }
+.mini-bp-progress { display: flex; align-items: center; gap: 6px; }
+.mini-bar { flex: 1; height: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+#miniBPFill { height: 100%; background: #fbbf24; width: 0%; transition: width 0.5s; }
+
+
+
+
+
+
+
+/* Ajoute de l'espace en bas de TOUTES tes sections pour ne pas que le menu cache le contenu */
+#homeSection, 
+#collectionSection, 
+#allCardsSection, 
+#shopSection, 
+#combatSection {
+    padding-bottom: 110px !important; 
+}
+
+
+
+
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ef4444; /* Rouge quand OFF */
+  transition: .4s;
+  border-radius: 34px;
+}
+
+/* Le petit rond blanc */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+/* Changement de couleur en VERT quand on clique */
+input:checked + .slider {
+  background-color: #22c55e !important; /* VERT quand ON */
+}
+
+/* Déplacement du rond blanc */
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -811,15 +1085,6 @@ html, body {
 </head>
 <body>
 
-<h1>Brainrot TCG</h1>
-
-
-
-
-<div id="testArea" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px;">
-    <button id="testNotifBtn">🚀 TESTER NOTIF (5s)</button>
-    <p class="note">Clique puis ferme l'appli vite !</p>
-</div>
 
 
 
@@ -847,10 +1112,11 @@ html, body {
 
 
 
-<div style="text-align:center;margin-bottom:20px">
-  <button id="openPack" style="padding:14px 22px;font-size:1.1rem;border-radius:12px;border:0;background:#ffcb05;color:#3b4cca;font-weight:700;cursor:pointer">
+<div style="text-align:center; margin-bottom:20px; margin-top: 150px;">
+  <button id="openPack" style="padding:14px 22px; font-size:1.1rem; border-radius:12px; border:0; background:#ffcb05; color:#3b4cca; font-weight:700; cursor:pointer; box-shadow: 0 4px 0 #c7a008; transition: transform 0.1s;" onmousedown="this.style.transform='translateY(2px)'" onmouseup="this.style.transform='translateY(0)'">
     Ouvrir un booster
   </button>
+</div>
 
   <div id="remaining" class="note"></div>
 
@@ -859,9 +1125,12 @@ html, body {
   </button>
 </div>
 
-<div id="dustDisplay" class="note">💎 Fragments : 0</div>
+
+
 
   <div id="homeSection">
+
+
 
 
 
@@ -875,6 +1144,7 @@ html, body {
      box-shadow: 0 0 15px rgba(255, 159, 67, 0.2); backdrop-filter: blur(4px);">
      <span id="streakValue">0</span> 🔥
 </div>
+
 
 
 <div id="questIcon" class="quest-btn" onclick="toggleQuests()" 
@@ -904,6 +1174,88 @@ html, body {
         <p style="font-size: 0.7em; color: #94a3b8; margin-top: 20px;">Les quêtes se réinitialisent chaque jour à minuit.</p>
     </div>
 </div>
+
+
+
+
+
+
+
+<div id="bpOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200001; flex-direction: column; align-items: center; backdrop-filter: blur(8px); overflow: hidden;">
+    
+    <div style="width: 100%; max-width: 500px; background: #111827; z-index: 100; border-bottom: 2px solid #fbbf24; flex-shrink: 0;">
+        <div style="padding: 20px; text-align: center; position: relative;">
+            <button onclick="toggleBattlePass()" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: bold;">✕</button>
+            <h2 style="color: #fbbf24; margin-bottom: 10px; letter-spacing: 2px;">SEASON PASS</h2>
+            
+            <div style="background: #1f2937; height: 12px; border-radius: 6px; margin: 10px 0; border: 1px solid #374151;">
+                <div id="bpProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 10px #fbbf24; transition: width 0.5s;"></div>
+            </div>
+            
+            <button onclick="acheterPremium()" id="btnBuyPremium" style="background: linear-gradient(90deg, #fbbf24, #d97706); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; color: #000; text-transform: uppercase;">
+                DÉBLOQUER PREMIUM (100k 💎)
+            </button>
+        </div>
+
+
+
+
+<div class="bp-footer-actions" style="display: flex; width: 100%; max-width: 500px; background: #111827; padding: 10px 0; border-top: 1px solid #374151; align-items: center;">
+    
+    <div style="flex: 1; display: flex; justify-content: center;">
+        <button onclick="recupererGratuit()" style="width: 90%; background: #4ade80; color: #064e3b; border: none; padding: 10px 2px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+            🎁 TOUT RÉCUPÉRER
+        </button>
+    </div>
+
+    <div style="width: 50px;"></div>
+
+    <div style="flex: 1; display: flex; justify-content: center;">
+        <button onclick="recupererPremium()" id="btnPremiumBP" style="display: none; width: 90%; background: #fbbf24; color: #451a03; border: none; padding: 10px 2px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+            👑 TOUT RÉCUPÉRER
+        </button>
+    </div>
+</div>
+
+
+        <div style="display: flex; width: 100%; background: #1f2937; font-weight: bold; text-align: center; color: white; font-size: 0.9em; padding: 12px 0;">
+            <div style="flex: 1; color: #4ade80;">GRATUIT</div>
+            <div style="width: 50px; color: #fbbf24;">LVL</div> 
+            <div style="flex: 1; color: #fbbf24;">PREMIUM</div>
+        </div>
+    </div>
+
+    <div style="width: 100%; max-width: 500px; flex: 1; overflow-y: auto; position: relative; scrollbar-width: none;">
+        
+        <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 6px; background: #374151; transform: translateX(-50%); z-index: 0;"></div>
+        
+        <div id="bpVerticalLine" style="position: absolute; left: 50%; top: 0; width: 6px; background: #fbbf24; transform: translateX(-50%); z-index: 1; height: 0%; transition: height 0.5s ease-out; box-shadow: 0 0 10px #fbbf24;"></div>
+        
+        <div id="bpLevelsContainer" style="display: flex; flex-direction: column; gap: 15px; padding: 20px 10px; position: relative; z-index: 2;">
+        </div>
+        
+        <div style="height: 40px;"></div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<div id="bpCardDisplayOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
+    
+    <div class="card-reward-container" style="perspective: 1000px; margin-bottom: 20px;">
+        <div id="bpCardRenderPlace"></div>
+    </div>
+
+    <div id="bpCardInfoText" style="color: white; font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
+
+    <button onclick="closeBpCardDisplay()" style="padding: 10px 30px; font-size: 18px; cursor: pointer; background: #ffc107; border: none; border-radius: 5px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,193,7,0.4);">GÉNIAL !</button>
+</div>
+
+
 
 
 
@@ -970,19 +1322,85 @@ html, body {
 
 
 
-<div id="luckyBlockUI" style="display:none; margin-top: 15px; padding: 12px; background: rgba(30, 27, 75, 0.8); border: 2px solid #fbbf24; border-radius: 10px; text-align: center; transition: all 0.3s;">
-    <div id="luckyBlockType" style="font-weight: bold; margin-bottom: 5px; color: #fff; font-size: 1em;">
+<div id="luckyBlockUI" style="display:none; margin-top: 15px; padding: 12px; background: rgba(30, 27, 75, 0.8); border: 2px solid #fbbf24; border-radius: 10px; text-align: center; transition: all 0.3s; position: relative;">
+    
+    <button id="btnSpeedy" title="Accélérer avec des Speedies" style="display:none; position: absolute; right: 10px; top: 10px; background:#fbbf24; color:black; border:none; width: 26px; height: 26px; border-radius: 50%; font-weight:bold; cursor:pointer; font-size: 1em; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10;">
+        ⚡
+    </button>
+
+    <div id="luckyBlockType" style="font-weight: bold; color: #fff; font-size: 1em; margin-bottom: 2px;">
         Lucky Block
     </div>
 
-    <div id="luckyTimerDisplay" style="color: #fbbf24; font-weight: bold; font-size: 0.9em;">
+    <div id="luckyTimerDisplay" style="color: #fbbf24; font-weight: bold; font-size: 0.9em; margin-bottom: 5px;">
         🍀 Le Lucky Block s'ouvre dans : --:--:--
     </div>
+
+<div id="speedyMenu" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:3px solid #fbbf24; border-radius:15px; padding:20px; z-index:100000; color:white; text-align:center; min-width:320px; box-shadow: 0 0 40px rgba(0,0,0,1);">
+    <h3 style="color:#fbbf24; margin-bottom:5px; margin-top:0;">⚡ Boosters de Temps</h3>
+    <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">Accélère l'ouverture de ton Lucky Block</p>
+    
+    <div style="display:flex; gap:10px; justify-content:center;">
+        <button onclick="appliquerBoost(1, 30)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
+            <b style="color:#fbbf24; font-size:1.1rem;">1 ⚡</b><br><small>-30 min</small>
+        </button>
+        <button onclick="appliquerBoost(3, 120)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
+            <b style="color:#fbbf24; font-size:1.1rem;">3 ⚡</b><br><small>-2h</small>
+        </button>
+        <button onclick="appliquerBoost(6, 300)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
+            <b style="color:#fbbf24; font-size:1.1rem;">6 ⚡</b><br><small>-5h</small>
+        </button>
+    </div>
+
+    <button onclick="document.getElementById('speedyMenu').style.display='none'" style="margin-top:15px; background:transparent; color:#666; border:none; cursor:pointer; font-size:0.8rem;">Annuler</button>
+</div>
 
     <button id="btnRecupereLucky" onclick="ouvrirCadeauLuckyBlock()" style="display:none; margin-top: 8px; background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
         🎁 RÉCUPÉRER !
     </button>
 </div>
+
+
+
+
+
+<div id="settingsMenu" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(5px); pointer-events: auto;">
+  <div style="background: #1e293b; padding: 20px; border-radius: 20px; width: 320px; text-align: center; border: 2px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); font-family: sans-serif; color: white; max-height: 90vh; overflow-y: auto;">
+    
+    <h2 style="margin: 0 0 20px 0; color: #3b82f6; font-size: 22px;">Paramètres</h2>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid #333;">
+      <span style="font-weight: bold;">Musique</span>
+      <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
+        <input type="checkbox" id="musicCheckbox" onchange="toggleMusicFromMenu()" style="opacity: 0; width: 0; height: 0;">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div style="background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px;">
+        <p style="color: #aaa; font-size: 0.75rem; text-align: center; text-transform: uppercase; margin-top: 0; margin-bottom: 10px; letter-spacing: 1px;">Ambiance</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button onclick="changerFond('espace')" style="padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🌌 Espace</button>
+            <button onclick="changerFond('mythic')" style="padding: 10px; background: #4c1d95; color: white; border: 1px solid #7c3aed; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🔮 Mythique</button>
+            <button onclick="changerFond('abysse')" style="padding: 10px; background: #064e3b; color: white; border: 1px solid #10b981; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🌿 Abysse</button>
+            <button onclick="changerFond('gold')" style="padding: 10px; background: #78350f; color: white; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">✨ Doré</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 10px; opacity: 0.5; font-size: 0.7rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+        <span id="app-version">v2.3.0</span><br>© 2026 BRAINROT TCG
+    </div>
+
+    <button onclick="closeSettingsMenu()" style="margin-top: 20px; width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">
+        ← Retour au jeu
+    </button>
+
+  </div>
+</div>
+
+
+
+
 
 
 
@@ -993,8 +1411,12 @@ html, body {
 
 
 </div>
+
+</div>
+
   <div id="collectionSection" style="display:none;margin-bottom:80px">
-    <h2>Ta collection</h2>
+
+    <h2>Ta collection</h2> 
 
   <div style="margin-bottom: 10px;">
     <input type="text" id="searchCollection" placeholder="Rechercher dans ta collection..." style="padding:6px 10px;border-radius:6px;border:none;width:220px">
@@ -1027,8 +1449,11 @@ html, body {
 
 </div>
 
-  <div id="allCardsSection" style="display:none;margin-bottom:80px">
-    <h2>Chances d'obtention</h2>
+<div id="allCardsSection" style="display:none; margin-bottom:80px; position: relative;">
+  
+  <h2 style="position: fixed; top: 15%; left: 50%; transform: translateX(-50%); margin: 0; z-index: 100; color: white; width: 100%; text-align: center; pointer-events: none;">
+    Chances d'obtention
+  </h2>
 
 
 
@@ -1043,21 +1468,53 @@ html, body {
     >
 
     <div id="allCardsList" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;"></div>
-  </div> </div> <nav style="position:fixed;bottom:0;left:0;width:100%;background:#111a2e;padding:10px 0;display:flex;justify-content:space-around;border-top:2px solid #0d1220;z-index:9999">
-  <button id="tabHome">Accueil</button>
-  <button id="tabCollection">Collection</button>
-  <button id="tabShop">Boutique</button>
-  <button id="tabAllCards">Chances</button>
-  <button id="tabCombat">Combat</button>
+  </div> </div> 
+
+
+<nav style="position:fixed; bottom:0; left:0; width:100%; height:75px; background:#111a2e; display:flex; justify-content:space-around; align-items:flex-end; border-top:2px solid #0d1220; z-index:9999; padding:0; font-family: sans-serif;">
+    
+    <button id="tabCombat" style="flex:1; background:transparent; border:none; color:white; display:flex; flex-direction:column; align-items:center; cursor:pointer; font-weight:900; font-size:9px; padding-bottom:8px; outline:none;">
+        <span style="font-size:24px; transform:translateY(-5px);">⚔️</span>
+        COMBAT
+    </button>
+
+    <button id="tabCollection" style="flex:1; background:transparent; border:none; color:white; display:flex; flex-direction:column; align-items:center; cursor:pointer; font-weight:900; font-size:9px; padding-bottom:8px; outline:none;">
+        <span style="font-size:24px; transform:translateY(-5px);">👤</span>
+        COLLECTION
+    </button>
+
+    <button id="tabHome" style="flex:1; background:#fbbf24; border:none; color:#111a2e; display:flex; flex-direction:column; align-items:center; cursor:pointer; font-weight:900; font-size:10px; height:90px; border-radius:15px 15px 0 0; padding-top:10px; box-shadow: 0 -5px 15px rgba(251, 189, 36, 0.3); outline:none;">
+        <span style="font-size:30px; transform:translateY(-5px);">🏠</span>
+        ACCUEIL
+    </button>
+
+    <button id="tabAllCards" style="flex:1; background:transparent; border:none; color:white; display:flex; flex-direction:column; align-items:center; cursor:pointer; font-weight:900; font-size:9px; padding-bottom:8px; outline:none;">
+        <span style="font-size:24px; transform:translateY(-5px);">🏆</span>
+        CHANCES
+    </button>
+
+    <button id="tabShop" style="flex:1; background:transparent; border:none; color:white; display:flex; flex-direction:column; align-items:center; cursor:pointer; font-weight:900; font-size:9px; padding-bottom:8px; outline:none;">
+        <span style="font-size:24px; transform:translateY(-5px);">🛒</span>
+        BOUTIQUE
+    </button>
+
 </nav>
+
+
 
 <div id="bigCardOverlay">
   <img id="bigCardImg" src="" alt="Carte">
   <div id="bigCardName"></div>
 </div>
 
-<div id="shopSection" class="section" style="display:none;margin-bottom:80px">
-  <h2>Boutique</h2>
+
+
+
+<div id="shopSection" class="section" style="display:none; margin-bottom:80px; position: relative;">
+
+  <h2 style="position: fixed; top: 15%; left: 50%; transform: translateX(-50%); margin: 0; z-index: 100; color: white; width: 100%; text-align: center; pointer-events: none;">
+    Boutique
+  </h2>
 
 
 <div id="timerConteneur" style="background: rgba(30, 41, 59, 0.8); color: #fbbf24; padding: 12px; border-radius: 10px; margin: 15px auto; max-width: 280px; font-weight: bold; border: 1px solid #fbbf24; text-align: center;">
@@ -1159,7 +1616,7 @@ html, body {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
 <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.2.4</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.3.0</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
@@ -1172,6 +1629,20 @@ html, body {
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
+                    🔥 <b>Passe de combat :</b> Débloque 100 paliers de récompenses exclusives dès maintenant !
+     </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🚀 <b>Marre d'attendre ?</b> Utilise les nouveaux Speedies pour réduire tes chronos Lucky Block !
+                </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
                     🎨 <b>Fond personalisé :</b> Vous pouvez désormais personnaliser votre interface avec le fond de votre choix dans le Profil !
                 </p>
             </div>
@@ -1179,7 +1650,7 @@ html, body {
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🆕 <b>Nouvelles cartes :</b> Les Brainrot God et les Secret sont désormais disponibles !
+                    💸 <b>Réduction des prix !</b> Les cartes dans la boutique sont désormais moins chères qu'avant !
                 </p>
             </div>
 
@@ -1192,12 +1663,6 @@ html, body {
             </div>
 
 
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    🔥 <b>Streak :</b> Ouvre au moins 1 booster chaque jour pour faire grimper ta streak !<br>
-                                     Ne manque aucun jour où tu retombes à zéro !
-     </p>
-            </div>
 
 
             <div style="margin-bottom: 20px;">
@@ -1207,18 +1672,6 @@ html, body {
             </div>
 
 
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    🏆 <b>Niveaux :</b> Gagne de l'XP à chaque action et monte en Niveau !
-                </p>
-            </div>
-
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    🔜 <b>À venir :</b> Un Passe de Combat arrive bientôt avec des récompenses inédites à débloquer !<br>                                   
-                </p>
-            </div>
 
 
             <div style="margin-bottom: 30px; opacity: 0.8; font-size: 0.9rem;">
@@ -1263,174 +1716,163 @@ html, body {
   <source src="https://raw.githubusercontent.com/TheRhyno/Musiques/main/SpotiDownloader.com%20-%20C'est%20nous%20dans%20le%20top%20(Brainrot)%20-%20Unchained(1).mp3" type="audio/mpeg">
 </audio>
 
-<button id="musicBtn" style="position: fixed; top: 10px; left: 10px; z-index: 1000; width: 34px; height: 34px; padding: 0; background: rgba(30, 41, 59, 0.8); color: white; border-radius: 8px; border: 1px solid #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; backdrop-filter: blur(4px);">
-    🔈
-</button>
+<button id="musicBtn" style="position: absolute; visibility: hidden; pointer-events: none;">🔈</button>
+<button id="accountBtn" style="position: absolute; visibility: hidden; pointer-events: none;"></button>
+
+
+
+
+<div id="subway-hud" style="position: fixed; top: 10px; left: 10px; right: 10px; z-index: 9000; pointer-events: none; display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px;">
+        
+        <div onclick="document.getElementById('accountSection').style.display='flex';" style="pointer-events: auto; display: flex; align-items: center; background: rgba(15, 23, 42, 0.9); padding: 4px 15px 4px 4px; border-radius: 40px 15px 15px 40px; border: 2px solid #7c3aed; backdrop-filter: blur(8px); cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <div style="position: relative; width: 42px; height: 42px;">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" id="hudAvatar" style="width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; background: #1e293b;">
+                <div id="hudLevel" style="position: absolute; bottom: -5px; right: -2px; background: #f59e0b; color: black; font-weight: 900; padding: 1px 5px; border-radius: 6px; border: 2px solid white; font-size: 10px;">1</div>
+            </div>
+            <div style="margin-left: 10px;">
+                <div id="hudUsername" style="color: white; font-size: 11px; font-weight: bold; margin-bottom: 2px;">Joueur</div>
+                <div style="width: 60px; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden;">
+                    <div id="hudXPBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #7c3aed, #ec4899); transition: width 0.5s;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="pointer-events: auto; display: flex; gap: 5px; align-items: center;">
+            <div style="background: rgba(22, 32, 55, 0.85); padding: 4px 8px; border-radius: 8px; border: 1.5px solid #ff9f43; color: #ff9f43; font-weight: 900; display: flex; align-items: center; gap: 3px; font-size: 11px; backdrop-filter: blur(8px);">
+                <span id="hudStreak">0</span> 🔥
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.9); padding: 4px 8px; border-radius: 8px; border: 1.5px solid #334155; color: white; font-weight: bold; display: flex; align-items: center; gap: 3px; font-size: 11px;">
+                <span>💎</span> <span id="hudDust">0</span>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.9); padding: 4px 8px; border-radius: 8px; border: 1.5px solid #334155; color: white; font-weight: bold; display: flex; align-items: center; gap: 3px; font-size: 11px;">
+                <span>⚡</span> <span id="hudSpeedies">0</span>
+            </div>
+            <button id="settingsBtn" onclick="openSettings()" style="background: rgba(15, 23, 42, 0.9); color: white; border: 1.5px solid #3b82f6; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; font-size: 16px; pointer-events: auto;">
+                ⚙️
+            </button>
+        </div>
+    </div>
+
+    <div id="hudBattlePass" onclick="toggleBattlePass()" 
+         style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.7); padding: 5px 12px 5px 5px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); width: fit-content; transition: transform 0.1s; align-self: flex-start; z-index: 9500000; margin: 0;" 
+         onmousedown="this.style.transform='scale(0.96)'" 
+         onmouseup="this.style.transform='scale(1)'"> 
+
+        <img src="https://cdn.phototourl.com/free/2026-04-05-6939b451-4c0c-4db2-909e-1b1f5493094f.jpg" 
+             style="width: 80px; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: block;"> 
+        
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;"> 
+            <span style="color: #fbbf24; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">Progression</span> 
+            <div style="width: 90px; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);"> 
+                <div id="bpHudProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); transition: width 0.4s;"></div> 
+            </div> 
+        </div> 
+    </div>
+</div>
 
 
 
 
 
-<button id="accountBtn" style="display:none; position: fixed; top: 10px; right: 10px; z-index: 1000; width: 34px; height: 34px; padding: 0; background: rgba(30, 41, 59, 0.8); color: white; border-radius: 8px; border: 1px solid #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; backdrop-filter: blur(4px);"> 
-    👤
-</button>
+
+
 
 <div id="accountSection" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; flex-direction:column; align-items:center; justify-content: flex-start; padding:20px; box-sizing:border-box; background:rgba(17, 17, 17, 0.95); color:white; backdrop-filter: blur(10px); overflow-y: auto;">
-    
-
-<h2 style="margin-top: 40px; margin-bottom: 20px;">Mon Profil</h2>
-
-<div style="background: #222; padding: 20px; border-radius: 12px; width: 95%; max-width: 400px; border: 1px solid #444; margin-bottom: 20px;">
     
-    <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Pseudo :</p>
-    <p id="profileName" style="font-weight: bold; font-size: 1.5rem; color: #7c3aed; margin: 5px 0 10px 0;">Chargement...</p>
+    <h2 style="margin-top: 40px; margin-bottom: 20px;">Mon Profil</h2>
 
-<div id="editPseudoBox" style="margin-top: 10px; margin-bottom: 20px; display: none; text-align: center;">
-    <input type="text" id="newUsernameInput" placeholder="Nouveau pseudo" style="padding: 10px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; width: 80%; margin-bottom: 12px; outline: none; focus: border-color: #7c3aed;">
-    <br>
-    
-    <button onclick="validerNouveauPseudo()" style="padding: 8px 20px; background: #4ade80; color: #064e3b; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">
-        OK
-    </button>
-
-    <button onclick="annulerModification()" style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
-        ✕
-    </button>
-</div>
-
-
-
-<button id="btnEditPseudo" 
-        onclick="document.getElementById('editPseudoBox').style.display='block'; this.style.display='none';" 
-        style="background: none; border: 1px solid #7c3aed; color: #7c3aed; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; margin: 20px auto 40px auto; display: block; width: fit-content;">
-    Modifier mon pseudo
-</button>
-
-    <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Email :</p>
-    <p id="userEmail" style="font-weight: bold; margin: 5px 0 20px 0; word-break: break-all;">...</p>
-    
-    <p style="margin: 0; color: #aaa; font-size: 0.8rem;">ID Utilisateur :</p>
-    <p id="userIdDisplay" style="font-size: 0.7rem; color: #666; word-break: break-all; margin: 5px 0 0 0;">...</p>
-
-
-
-
-
-
-
-
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; align-items: center; background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 10px;">
-    
-    <div>
-        <p style="margin: 0; color: #7c3aed; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileBoosters">0</p>
-        <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Boosters</p>
-    </div>
-
-    <div>
-        <p style="margin: 0; color: #fbbf24; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileDust">0</p>
-        <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Fragments</p>
-    </div>
-
-<div>
-        <p style="margin: 0; color: #10b981; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileCards">-- / --</p>
-        <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Collection</p>
-    </div>
-
-<div>
-    <p style="margin: 0; color: #ff9f43; font-size: 1.1rem; font-weight: bold; line-height: 1.2;" id="profileStreak">0</p>
-    <p style="margin: 0; color: #aaa; font-size: 0.65rem; text-transform: uppercase;">Streak</p>
-</div>
-
-
-<div>
-        <p style="margin: 0; color: #60a5fa; font-size: 1rem; font-weight: bold; line-height: 1.2;" id="profileLevelStat">1</p>
-        <p style="margin: 0; color: #aaa; font-size: 0.55rem; text-transform: uppercase;">Niveau</p>
-    </div>
-
-</div>
-
-
-
-<div id="xpProgressionContainer" style="display: block; margin-top: 20px; padding-top: 15px; border-top: 1px solid #2d3748;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="color: #7c3aed; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Progression du Niveau</span>
-            <span id="xpPercent" style="color: #7c3aed; font-size: 0.8rem; font-weight: bold;">0%</span>
-        </div>
+    <div style="background: #222; padding: 20px; border-radius: 12px; width: 95%; max-width: 400px; border: 1px solid #444; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center;">
         
-        <div style="background: #0e1525; width: 100%; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid #333;">
-            <div id="profileXpBar" style="background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%; transition: width 0.8s ease-out;"></div>
+        <div onclick="openAvatarPicker()" style="position: relative; width: 80px; height: 80px; margin-bottom: 15px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <img id="profileBigAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" 
+                 style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid #7c3aed; background: #1e293b; box-shadow: 0 4px 15px rgba(0,0,0,0.5); object-fit: cover;">
+            <div style="position: absolute; bottom: 0; right: 0; background: #7c3aed; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #222; font-size: 10px;">✏️</div>
         </div>
+
+        <div style="width: 100%;">
+            <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Pseudo :</p>
+            <p id="profileName" style="font-weight: bold; font-size: 1.5rem; color: #7c3aed; margin: 5px 0 10px 0;">Chargement...</p>
+
+            <div id="editPseudoBox" style="margin-top: 10px; margin-bottom: 20px; display: none; text-align: center;">
+                <input type="text" id="newUsernameInput" placeholder="Nouveau pseudo" style="padding: 10px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; width: 80%; margin-bottom: 12px; outline: none;">
+                <br>
+                <button onclick="validerNouveauPseudo()" style="padding: 8px 20px; background: #4ade80; color: #064e3b; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">OK</button>
+                <button onclick="annulerModification()" style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+
+            <button id="btnEditPseudo" onclick="document.getElementById('editPseudoBox').style.display='block'; this.style.display='none';" style="background: none; border: 1px solid #7c3aed; color: #7c3aed; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; margin: 10px auto 20px auto; display: block; width: fit-content;">
+                Modifier mon pseudo
+            </button>
+
+            <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Email :</p>
+            <p id="userEmail" style="font-weight: bold; margin: 5px 0 20px 0; word-break: break-all;">...</p>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 10px;">
+                <div><p style="color: #7c3aed; font-weight: bold;" id="profileBoosters">0</p><p style="color: #aaa; font-size: 0.65rem;">BOOSTERS</p></div>
+                <div><p style="color: #fbbf24; font-weight: bold;" id="profileDust">0</p><p style="color: #aaa; font-size: 0.65rem;">FRAGMENTS</p></div>
+                <div><p style="color: #fbbf24; font-weight: bold;" id="profileSpeedies">0</p><p style="color: #aaa; font-size: 0.65rem;">⚡ SPEEDIES</p></div>
+                <div><p style="color: #10b981; font-weight: bold;" id="profileCards">-- / --</p><p style="color: #aaa; font-size: 0.65rem;">COLLECTION</p></div>
+                <div><p style="color: #ff9f43; font-weight: bold;" id="profileStreak">0</p><p style="color: #aaa; font-size: 0.65rem;">STREAK</p></div>
+                <div><p style="color: #60a5fa; font-weight: bold;" id="profileLevelStat">1</p><p style="color: #aaa; font-size: 0.65rem;">NIVEAU</p></div>
+            </div>
+
+            <div id="xpProgressionContainer" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 5px;">
+                    <span style="color: #7c3aed;">XP PROGRESSION</span>
+                    <span id="xpPercent">0%</span>
+                </div>
+                <div style="background: #0e1525; height: 10px; border-radius: 5px; border: 1px solid #333; overflow: hidden;">
+                    <div id="profileXpBar" style="background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; width: 95%; max-width: 400px; margin-top: 10px; margin-bottom: 30px;">
+        <button onclick="document.getElementById('accountSection').style.display='none';" style="flex: 1; background:#444; color:white; padding:15px; border-radius:10px; border:0; font-weight:bold; cursor:pointer;">← Retour</button>
+        <button id="logoutBtn" style="flex: 1; background:#ef4444; color:white; padding:15px; border-radius:10px; border:0; font-weight:bold; cursor:pointer;">Déconnexion</button>
+    </div>
+</div>
+
+<div id="avatarPickerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+    <div style="background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #7c3aed; width: 90%; max-width: 380px; box-sizing: border-box;">
         
-        <p id="profileXpText" style="margin: 8px 0 0 0; color: #8da0b8; font-size: 0.7rem; text-align: center;">0 / 100 XP pour le prochain niveau</p>
-    </div>
+        <p style="color: #fbbf24; font-size: 0.8rem; text-align: center; text-transform: uppercase; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;">Personnaliser l'Avatar</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center; margin-bottom: 25px; max-height: 220px; overflow-y: auto; padding: 5px;">
+            
 
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/10/Strawberryelephant-1-288x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/JohnPork.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Headlesshorseman-253x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Steal-a-Brainrot-67.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/DoiDoi.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.webstickersmuraux.com/fr/img/brarot001-png/folder/products-detalle-png/autocollants-tung-tung-tung-sahur.png" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Ballerina_cappucinaaaa212121-261x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Lerulerulerule-256x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
 
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
 
+        </div>
 
-
-
-<div style="background: #1a1a1a; padding: 15px; border-radius: 12px; width: 95%; max-width: 400px; border: 1px solid #333; margin-top: 20px;">
-    <p style="margin: 0 0 15px 0; color: #aaa; font-size: 0.8rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">Ambiance de l'accueil</p>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button onclick="changerFond('espace')" style="padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🌌 Espace</button>
-        <button onclick="changerFond('mythic')" style="padding: 10px; background: #4c1d95; color: white; border: 1px solid #7c3aed; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🔮 Mythique</button>
-        <button onclick="changerFond('abysse')" style="padding: 10px; background: #064e3b; color: white; border: 1px solid #10b981; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">🌿 Abysse</button>
-        <button onclick="changerFond('gold')" style="padding: 10px; background: #78350f; color: white; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">✨ Doré</button>
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center;">
+            <input type="file" id="avatarInput" accept="image/*" onchange="handleCustomAvatar(this); closeAvatarPicker();" style="display: none;">
+            <button onclick="document.getElementById('avatarInput').click()" style="background: rgba(124, 58, 237, 0.2); color: #a78bfa; border: 1px dashed #7c3aed; padding: 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; margin-bottom: 15px;">
+                📸 Importer depuis la galerie
+            </button>
+            
+            <button onclick="closeAvatarPicker()" style="width: 100%; background: transparent; color: #aaa; border: none; padding: 5px; cursor: pointer; font-size: 0.8rem;">
+                Annuler
+            </button>
+        </div>
     </div>
 </div>
-
-
-
-
-
-
-<div style="
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    margin-top: 50px; 
-    padding-bottom: 20px; 
-    width: 100%;
-">
-    <div style="
-        opacity: 0.4; 
-        font-family: monospace; 
-        font-size: 0.75rem; 
-        text-align: center; 
-        line-height: 1.5;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding-top: 15px;
-        width: 80%;
-    ">
-        <span id="app-version">v2.2.4</span><br>
-        <span>© 2026 BRAINROT TCG</span>
-    </div>
-
-
-
-</div>
-
-
-
-
-    <div style="display: flex; gap: 12px; width: 95%; max-width: 400px;">
-        
-        <button id="backFromAccount" style="flex: 1; background:#444; color:white; padding:15px; border-radius:10px; border:0; cursor:pointer; font-weight:bold;">
-            ← Retour
-        </button>
-
-        <button id="logoutBtn" style="flex: 1; background:#ef4444; color:white; padding:15px; border-radius:10px; border:0; cursor:pointer; font-weight:bold;">
-            Déconnexion
-        </button>
-
-    </div>
-</div>
-
-
 
 
 
@@ -1880,6 +2322,9 @@ const ALL_CARDS = [
   {name:"Secret Lucky Block", rarity:"Secret Lucky Block", image:"https://cdn.phototourl.com/free/2026-04-01-a0056889-8807-4e3b-aacf-e0b0c6d3f416.jpg"},
   {name:"Admin Lucky Block", rarity:"Admin Lucky Block", image:"https://cdn.phototourl.com/free/2026-04-01-c8d900b7-abd6-4fac-bb8a-d13b20ce6016.jpg"},
 
+
+  {name:"Noo my Eggs", rarity:"Exclu Season 1", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Noo-my-Eggs-300x300.webp"},
+
 ];
 
 
@@ -2155,44 +2600,985 @@ disableSite(false);
 
 
 
-window.onload = function() {
-    // 1. Demander la permission dès l'ouverture du jeu
-    if ("Notification" in window) {
-        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-    }
 
-    // 2. Ta fonction (inchangée)
-    function envoyerNotifTest() {
-        if (Notification.permission === "granted") {
-            // On attend 5 secondes avant de déclencher
-            setTimeout(() => {
-                new Notification("Brainrot TCG 🃏", {
-                    body: "Skibidi ! Ta carte a été vendue pendant ton absence ! 💎",
-                    icon: "https://via.placeholder.com/128", 
-                    vibrate: [200, 100, 200]
-                });
-            }, 5000);
-            
-            alert("C'est bon ! Ferme l'appli ou verrouille ton écran, la notif arrive dans 5s.");
-        } else {
-            alert("Tu dois d'abord autoriser les notifications sur ton téléphone !");
-            Notification.requestPermission();
-        }
-    }
+// Ouvre la fenêtre de sélection d'avatar
+function openAvatarPicker() {
+    document.getElementById('avatarPickerModal').style.display = 'flex';
+}
 
-    // 3. Lier le bouton (avec vérification si le bouton existe)
-    const monBouton = document.getElementById("testNotifBtn");
-    if (monBouton) {
-        monBouton.onclick = envoyerNotifTest;
+// Ferme la fenêtre de sélection d'avatar
+function closeAvatarPicker() {
+    document.getElementById('avatarPickerModal').style.display = 'none';
+}
+
+// Met à jour l'avatar partout (HUD + Profil) et sauvegarde
+function updateProfileAvatar(newSrc) {
+    // 1. Image du HUD
+    const hudImg = document.getElementById('hudAvatar');
+    if (hudImg) hudImg.src = newSrc;
+    
+    // 2. Image du Profil
+    const profImg = document.getElementById('profileBigAvatar');
+    if (profImg) profImg.src = newSrc;
+    
+    // 3. Sauvegarde Locale
+    localStorage.setItem('userAvatar', newSrc);
+}
+
+// Gère l'importation d'une photo personnalisée
+function handleCustomAvatar(input) {
+    const file = input.files[0];
+    if (file) {
+        if (file.size > 1024 * 1024) { // Limite 1Mo
+            alert("L'image est trop lourde !");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            updateProfileAvatar(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+
+
+
+
+
+
+
+
+// 1. Fonction pour ouvrir le menu
+function openSettings() {
+    const menu = document.getElementById('settingsMenu');
+    if (menu) {
+        menu.style.display = 'flex';
     } else {
-        console.error("Le bouton testNotifBtn n'a pas été trouvé dans le HTML !");
+        console.error("Le menu settingsMenu est introuvable dans le HTML");
     }
+}
+
+// 2. Fonction pour fermer le menu
+function closeSettingsMenu() {
+    const menu = document.getElementById('settingsMenu');
+    if (menu) menu.style.display = 'none';
+}
+
+// 3. Fonction pour la musique (à lier au bouton DANS le menu)
+
+let isMusicPlaying = false;
+
+function toggleMusicFromMenu() {
+    const audio = document.getElementById('bgMusic');
+    const checkbox = document.getElementById('musicCheckbox');
+    
+    if (!audio || !checkbox) return;
+
+    if (checkbox.checked) {
+        audio.play().catch(err => {
+            console.log("Lecture bloquée par le navigateur");
+            checkbox.checked = false; // On remet le levier sur OFF si ça bloque
+        });
+    } else {
+        audio.pause();
+    }
+}
+
+
+
+
+
+
+const menuButtons = ['tabHome', 'tabCollection', 'tabShop', 'tabAllCards', 'tabCombat'];
+
+menuButtons.forEach(id => {
+    const btn = document.getElementById(id);
+    if(btn) {
+        btn.addEventListener('click', function() {
+            // 1. On remet tous les boutons en mode "normal" (bleu/transparent)
+            menuButtons.forEach(otherId => {
+                const otherBtn = document.getElementById(otherId);
+                if(otherBtn) {
+                    otherBtn.style.background = "transparent";
+                    otherBtn.style.height = "75px";
+                    otherBtn.style.color = "white";
+                    otherBtn.style.borderRadius = "0";
+                    otherBtn.style.boxShadow = "none";
+                }
+            });
+
+            // 2. On met le bouton cliqué en mode "Actif" (Jaune Subway)
+            this.style.background = "#fbbf24";
+            this.style.height = "90px";
+            this.style.color = "#111a2e";
+            this.style.borderRadius = "15px 15px 0 0";
+            this.style.boxShadow = "0 -5px 15px rgba(251, 189, 36, 0.3)";
+
+            // AJOUT UNIQUEMENT POUR LE BATTLE PASS
+            const bp = document.getElementById('hudBattlePass');
+            if(bp) {
+                bp.style.display = (id === 'tabHome') ? 'flex' : 'none';
+            }
+        });
+    }
+});
+
+
+
+
+
+
+
+function syncSubwayHUD() {
+    // 1. On synchronise la Streak (Correction : on utilise la variable streakCount en priorité)
+    const targetStreak = document.getElementById("hudStreak");
+    const sourceStreak = document.getElementById("streakValue");
+    const profileStreak = document.getElementById("profileStreak");
+
+    if(targetStreak) {
+        // On prend la valeur de la variable JS 'streakCount' (la source la plus fiable)
+        // Sinon on essaie de lire l'élément source s'il existe
+        targetStreak.innerText = (typeof streakCount !== 'undefined') ? streakCount : (sourceStreak ? sourceStreak.innerText : "0");
+    }
+    
+    // On s'assure que l'affichage dans le profil suit aussi la variable
+    if(profileStreak && typeof streakCount !== 'undefined') {
+        profileStreak.innerText = streakCount;
+    }
+
+    // 2. On synchronise les Fragments 💎
+    const sourceDust = document.getElementById("profileDust");
+    const targetDust = document.getElementById("hudDust");
+    if(sourceDust && targetDust) {
+        targetDust.innerText = sourceDust.innerText;
+    }
+
+    // 3. On synchronise les Speedies ⚡
+    const sourceSpeed = document.getElementById("profileSpeedies");
+    const targetSpeed = document.getElementById("hudSpeedies");
+    if(sourceSpeed && targetSpeed) {
+        targetSpeed.innerText = sourceSpeed.innerText;
+    }
+
+    // 4. On synchronise le Niveau et le Pseudo
+    const sourceLvl = document.getElementById("profileLevelStat");
+    const targetLvl = document.getElementById("hudLevel");
+    if(sourceLvl && targetLvl) {
+        targetLvl.innerText = sourceLvl.innerText;
+    }
+
+    const sourceName = document.getElementById("profileName");
+    const targetName = document.getElementById("hudUsername");
+    if(sourceName && targetName) {
+        targetName.innerText = sourceName.innerText;
+    }
+
+    // 5. On synchronise la barre d'XP
+    const sourceBar = document.getElementById("profileXpBar");
+    const targetBar = document.getElementById("hudXPBar");
+    if(sourceBar && targetBar) {
+        targetBar.style.width = sourceBar.style.width;
+    }
+
+    // 6. On synchronise l'icône Musique (CORRECTION : On ne copie que si la source n'est pas vide)
+    const musicBtnOriginal = document.getElementById("musicBtn");
+    const hudMusicIcon = document.getElementById("hudMusicIcon");
+    
+    if(musicBtnOriginal && hudMusicIcon) {
+        // On vérifie que le bouton original contient bien un émoji avant d'écraser le HUD
+        if (musicBtnOriginal.innerText.trim() !== "") {
+            hudMusicIcon.innerText = musicBtnOriginal.innerText;
+        }
+    }
+}
+
+// Rafraîchissement rapide
+setInterval(syncSubwayHUD, 300);
+
+
+
+
+
+
+
+
+let speedies = 0;
+
+
+const bpRewards = [];
+
+
+const battlePassRewards = [
+    { level: 2,  type: 'speedy', qty: 1, isPremium: false },
+    { level: 5,  type: 'speedy', qty: 2, isPremium: true  },
+    { level: 8,  type: 'speedy', qty: 1, isPremium: false },
+    { level: 12, type: 'speedy', qty: 3, isPremium: true  },
+    { level: 15, type: 'speedy', qty: 2, isPremium: false },
+    { level: 18, type: 'speedy', qty: 4, isPremium: true  },
+    { level: 20, type: 'speedy', qty: 2, isPremium: false }
+];
+
+const probasRarete = {
+    "Commun": 1, "Rare": 2, "Epic": 5, "Legendary": 8, "Mythic": 23, "Brainrot God": 25, "Secret": 20, "OG": 5
 };
 
+const cartesPaliers = {
+    21: "Bombardini Tortinii",
+    42: "Los Tipi Tacos",
+    63: "To to to Sahur",
+    84: "25",
+    100: "Noo my Eggs" 
+};
+
+const paliersAleatoires = [10, 35, 55, 70, 95];
+
+for (let i = 1; i <= 100; i++) {
+    let fIcon = "💎", pIcon = "💰";
+    let freeAmount = i * 21; 
+    let premAmount = i * 32;
+    let free = freeAmount + " 💎";
+    let prem = premAmount + " 💎";
+
+    // --- LOGIQUE DES SPEEDIES (Inchangée) ---
+    const speedyReward = battlePassRewards.find(r => r.level === i);
+    if (speedyReward) {
+        if (speedyReward.isPremium) { prem = speedyReward.qty + " ⚡"; pIcon = "⚡"; }
+        else { free = speedyReward.qty + " ⚡"; fIcon = "⚡"; }
+    }
+
+    // --- CONFIGURATION DES RÉCOMPENSES ---
+
+    // PALIER 100 (EXCLU)
+    if (i === 100) {
+        free = "15000 💎"; 
+        prem = "Carte " + cartesPaliers[i];
+        fIcon = "💰"; pIcon = "🃏";
+    } 
+    // PALIER 50 : CARTE MYSTÈRE PREMIUM #1
+    else if (i === 50) {
+        free = "Pack Platine";
+        prem = "Carte Mystère"; 
+        fIcon = "🥈"; pIcon = "🎁";
+    }
+    // PALIER 51 : LE PREMIER GROS CASH (40 000 💎)
+    else if (i === 51) {
+        free = freeAmount + " 💎";
+        prem = "40000 💎"; 
+        fIcon = "💎"; pIcon = "💰";
+    }
+    // PALIER 97 : LE DEUXIÈME GROS CASH (50 000 💎)
+    else if (i === 97) {
+        free = freeAmount + " 💎";
+        prem = "50000 💎"; 
+        fIcon = "💎"; pIcon = "💰";
+    }
+    // PALIER 98 : CARTE MYSTÈRE PREMIUM #2
+    else if (i === 98) {
+        free = freeAmount + " 💎";
+        prem = "Carte Mystère"; 
+        fIcon = "💎"; pIcon = "🎁";
+    }
+    // PALIER 99 : PACK DIAMOND
+    else if (i === 99) {
+        free = freeAmount + " 💎";
+        prem = "Pack Diamond";
+        fIcon = "💎"; pIcon = "💎";
+    }
+    // LES 5 CARTES MYSTÈRE GRATUITES
+    else if (paliersAleatoires.includes(i)) {
+        free = "Carte Mystère";
+        if (!prem.includes("⚡")) prem = premAmount + " 💎"; 
+        fIcon = "🎁"; pIcon = "💰";
+    }
+    // PACK PLATINE (25, 75)
+    else if (i % 25 === 0) {
+        free = "Pack Platine"; prem = "Pack Platine";
+        fIcon = "🥈"; pIcon = "🥈";
+    } 
+    // CARTES FIXES GRATUITES (21, 42, 63, 84)
+    else if (cartesPaliers[i]) {
+        free = "Carte " + cartesPaliers[i];
+        prem = "Pack Gold";
+        fIcon = "🃏"; pIcon = "🥇";
+    }
+    // PACK GOLD (15, 30, 45, 60, 90)
+    else if (i % 15 === 0) {
+        free = "Pack Gold"; prem = "Pack Gold";
+        fIcon = "🥇"; pIcon = "🥇";
+    }
+
+    bpRewards.push({ lvl: i, free, prem, fIcon, pIcon });
+}
 
 
+
+
+
+
+
+// --- FONCTION POUR TIRER UNE RARETÉ (À utiliser dans claimBPReward) ---
+function tirerRareteAleatoire() {
+    let rand = Math.random() * 100;
+    let cumul = 0;
+    for (let rarete in probasRarete) {
+        cumul += probasRarete[rarete];
+        if (rand <= cumul) return rarete;
+    }
+    return "Commun";
+}
+
+
+
+
+
+
+
+
+let isPremium = false; 
+let claimedRewards = []; 
+
+// --- CHARGEMENT INITIAL ---
+auth.onAuthStateChanged(user => {
+    if (user) {
+        db.collection("users").doc(user.uid).get().then((doc) => {
+            if (doc && doc.exists) { 
+                const data = doc.data();
+                claimedRewards = data.claimedRewards || [];
+                isPremium = data.isPremium || false;
+                xp = data.xp || 0;
+                dust = data.dust || 0;
+                collection = data.collection || [];
+                
+                // --- AJOUT : Récupération des Speedies ---
+                speedies = data.speedies || 0;
+                
+                // Mise à jour visuelle du compteur dans le profil si l'élément existe
+                const profileSpeedyDisplay = document.getElementById("profileSpeedies");
+                if (profileSpeedyDisplay) {
+                    profileSpeedyDisplay.innerText = speedies;
+                }
+                
+                // --- AJOUT : Mise à jour de la barre du Battle Pass dans le HUD ---
+                updateBPHudRealTime();
+                
+                console.log("✅ Données Battle Pass chargées.");
+                
+                if (document.getElementById('bpOverlay').style.display === 'flex') {
+                    updateBattlePassUI();
+                }
+                updatePremiumButtonUI();
+            }
+        }).catch(error => {
+            console.error("Erreur lors du chargement des données:", error);
+        });
+    }
+});
+
+// La fonction reste en dehors pour être appelée dès que l'XP change
+function updateBPHudRealTime() {
+    const hudBar = document.getElementById('bpHudProgressBar');
+    if (!hudBar) return;
+
+    // Calcul du niveau (basé sur ton système de 21 XP par palier)
+    let niveauActuel = typeof calculerNiveau === "function" ? calculerNiveau(xp) : Math.floor(xp / 21);
+    
+    // Calcul de la progression globale (sur 100 niveaux comme dans ton menu)
+    const progressPercent = Math.min((niveauActuel / 100) * 100, 100);
+
+    // Mise à jour de la largeur de la barre
+    hudBar.style.width = progressPercent + "%";
+}
+
+
+
+
+
+
+// --- MISE À JOUR VISUELLE ---
+function updateBattlePassUI() {
+    const container = document.getElementById("bpLevelsContainer");
+    const progressBar = document.getElementById("bpProgressBar");
+    const verticalLine = document.getElementById("bpVerticalLine"); // La ligne jaune du milieu
+    
+    // --- NOUVEAUX ÉLÉMENTS POUR LES BOUTONS ---
+    const btnPremRecup = document.getElementById("btnPremiumBP");
+    const btnAcheter = document.getElementById("btnBuyPremium");
+
+    if (!container) return;
+
+    let niveauActuel = calculerNiveau(xp); 
+    container.innerHTML = "";
+
+    // --- GESTION DE L'AFFICHAGE DES BOUTONS DE PIED DE PAGE ---
+    if (isPremium) {
+        // Si Premium : on montre le bouton de récupération Premium et on cache l'achat
+        if (btnPremRecup) btnPremRecup.style.display = "block";
+        if (btnAcheter) btnAcheter.style.display = "none";
+    } else {
+        // Si pas Premium : on cache la récupération Premium et on montre l'achat (100k)
+        if (btnPremRecup) btnPremRecup.style.display = "none";
+        if (btnAcheter) btnAcheter.style.display = "block";
+    }
+
+    bpRewards.forEach(item => {
+        const isReached = niveauActuel >= item.lvl;
+        const idFree = item.lvl + "_free";
+        const idPrem = item.lvl + "_prem";
+
+        const isFreeClaimed = claimedRewards.includes(idFree);
+        const isPremClaimed = claimedRewards.includes(idPrem);
+
+        const getRewardDisplay = (label, icon, claimed) => {
+            if (label.includes("Carte")) {
+                const nomCarte = label.replace("Carte ", "").trim();
+                const card = ALL_CARDS.find(c => c.name === nomCarte);
+                if (card) {
+                    const rarityColors = {
+                        "Commun": "#94a3b8", "Rare": "#3b82f6", "Epic": "#a855f7",
+                        "Legendary": "#f59e0b", "Mythic": "#ef4444", "OG": "#10b981"
+                    };
+                    const rColor = rarityColors[card.rarity] || "#fff";
+                    return `
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; position:relative;">
+                            <span style="font-size: 7px; font-weight:bold; color:${rColor}; text-transform:uppercase; margin-bottom:2px;">${card.rarity}</span>
+                            <img src="${card.image}" style="width:45px; height:60px; object-fit:cover; border-radius:5px; border:1px solid ${rColor}; filter: ${claimed ? 'grayscale(100%)' : 'none'}">
+                            <span style="font-size: 8px; margin-top:3px; text-transform:uppercase; font-weight:bold;">${card.name}</span>
+                        </div>`;
+                }
+            }
+            return `
+                <span style="font-size: 30px; filter: ${claimed ? 'grayscale(100%)' : 'none'}">${icon}</span>
+                <span style="font-size: 10px; color: inherit; font-weight: bold;">${label}</span>`;
+        };
+
+        const row = document.createElement("div");
+        row.style = "display: flex; align-items: center; justify-content: center; height: 110px; gap: 10px; margin-bottom: 10px; position: relative; z-index: 5;";
+
+        row.innerHTML = `
+            <div onclick="claimBPReward(${item.lvl}, 'free')" style="flex: 1; height: 100%; background: ${isReached ? (isFreeClaimed ? '#1a1a1a' : '#2d3436') : '#1e272e'}; border-radius: 15px; border: 2px solid ${isFreeClaimed ? '#10b981' : (isReached ? '#4ade80' : '#374151')}; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: white;">
+                ${getRewardDisplay(item.free, item.fIcon, isFreeClaimed)}
+                <span style="font-size: 9px; margin-top: 4px; color: ${isFreeClaimed ? '#10b981' : (isReached ? '#4ade80' : '#aaa')}">
+                    ${isFreeClaimed ? '✅ REÇU' : (isReached ? '🎁 RÉCUPÉRER' : '🔒 BLOQUÉ')}
+                </span>
+            </div>
+
+            <div style="width: 45px; height: 45px; background: ${isReached ? '#fbbf24' : '#1f2937'}; color: ${isReached ? '#000' : '#6b7280'}; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; border: 4px solid ${isReached ? '#111827' : '#374151'}; z-index: 10; transition: background 0.3s, color 0.3s;">
+                ${item.lvl}
+            </div>
+
+            <div onclick="claimBPReward(${item.lvl}, 'prem')" style="flex: 1; height: 100%; background: ${isPremium && isReached ? (isPremClaimed ? '#1a1a1a' : 'linear-gradient(135deg, #fbbf24, #d97706)') : '#1e272e'}; border-radius: 15px; border: 2px solid ${isPremClaimed ? '#fbbf24' : (isPremium ? '#fbbf24' : '#374151')}; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: ${isPremium ? 1 : 0.6}; cursor: pointer; color: ${isPremium && isReached && !isPremClaimed ? 'black' : 'white'};">
+                ${getRewardDisplay(item.prem, item.pIcon, isPremClaimed)}
+                <span style="font-size: 9px; margin-top: 4px; color: ${isPremium && isReached ? (isPremClaimed ? '#fbbf24' : 'black') : '#aaa'}">
+                    ${isPremClaimed ? '✅ REÇU' : (isPremium && isReached ? '🌟 RÉCUPÉRER' : '🔒 BLOQUÉ')}
+                </span>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+
+    // --- CALCUL ET MISE À JOUR DES BARRES ---
+    const progressPercent = Math.min((niveauActuel / 100) * 100, 100);
+    
+    // 1. Barre Horizontale (Haut)
+    if(progressBar) {
+        progressBar.style.width = progressPercent + "%";
+    }
+
+    // 2. Barre Verticale (Milieu) - Détection dynamique de la position
+    if(verticalLine && container.children.length > 0) {
+        const targetIndex = Math.max(0, Math.min(niveauActuel - 1, container.children.length - 1));
+        const targetRow = container.children[targetIndex];
+        
+        if (targetRow) {
+            const targetPos = targetRow.offsetTop + (targetRow.offsetHeight / 2) + 20;
+            verticalLine.style.height = targetPos + "px";
+        }
+    }
+}
+
+
+
+
+
+
+
+// --- OUVRIR / FERMER ---
+function toggleBattlePass() {
+    const overlay = document.getElementById('bpOverlay');
+    const icon = document.getElementById('bpIcon');
+    if (overlay.style.display === 'none' || overlay.style.display === '') {
+        overlay.style.display = 'flex';
+        if(icon) icon.style.display = 'none'; 
+        updateBattlePassUI();
+    } else {
+        overlay.style.display = 'none';
+        if(icon) icon.style.display = 'flex';
+    }
+}
+
+// --- RÉCUPÉRATION ---
+async function claimBPReward(lvl, type) {
+    const rewardID = lvl + "_" + type;
+    if (claimedRewards.includes(rewardID)) return alert("🚫 Déjà récupéré !");
+    
+    let niveauActuel = calculerNiveau(xp); 
+    if (niveauActuel < lvl) return alert("🔒 Palier verrouillé !");
+    if (type === 'prem' && !isPremium) return alert("💰 Débloque le Premium !");
+
+    const rewardData = bpRewards.find(r => r.lvl === lvl);
+    if (!rewardData) return;
+    const itemLabel = (type === 'free') ? rewardData.free : rewardData.prem;
+    
+    // --- 1. CAS DES DIAMANTS ---
+    if (itemLabel.includes("💎")) {
+        dust += parseInt(itemLabel) || 0;
+        alert(`💎 +${parseInt(itemLabel)} Fragments !`);
+    } 
+    
+    // --- 2. NOUVEAU : CAS DES SPEEDIES ⚡ ---
+    else if (itemLabel.includes("⚡")) {
+        const gainSpeedy = parseInt(itemLabel) || 0;
+        speedies = (speedies || 0) + gainSpeedy;
+        
+        // Mise à jour visuelle immédiate du profil (la grille de 6 cases)
+        const profileDisplay = document.getElementById("profileSpeedies");
+        if (profileDisplay) {
+            profileDisplay.innerText = speedies;
+        }
+        alert(`⚡ +${gainSpeedy} Speedies ajoutés !`);
+    }
+
+    // --- 3. CAS DE LA CARTE MYSTÈRE ---
+    else if (itemLabel === "Carte Mystère") {
+        // Redirection Accueil : On ferme le menu et on montre l'icône
+        const overlayBP = document.getElementById('bpOverlay');
+        if (overlayBP) overlayBP.style.display = 'none';
+        const iconBP = document.getElementById('bpIcon');
+        if (iconBP) iconBP.style.display = 'flex';
+
+        let rand = Math.random() * 100;
+        let cumul = 0;
+        let rareteChoisie = "Commun";
+        for (let r in probasRarete) {
+            cumul += probasRarete[r];
+            if (rand <= cumul) { rareteChoisie = r; break; }
+        }
+
+        const possibles = ALL_CARDS.filter(c => c.rarity === rareteChoisie);
+        const piochee = possibles.length > 0 
+            ? possibles[Math.floor(Math.random() * possibles.length)]
+            : ALL_CARDS[0];
+
+        const cardInCollection = collection.find(c => c.name === piochee.name);
+        
+        if (!cardInCollection) {
+            // Nouvelle carte
+            collection.push({ ...piochee, level: 1, exp: 0, isNew: true });
+            displayGainedCard(piochee, true, 1); 
+        } else {
+            // Doublon : Niveau + 1
+            cardInCollection.level = (cardInCollection.level || 1) + 1;
+            displayGainedCard(piochee, false, cardInCollection.level); 
+        }
+    }
+
+    // --- 4. CAS DES CARTES FIXES ---
+    else if (itemLabel.includes("Carte")) {
+        // Redirection Accueil : On ferme le menu et on montre l'icône
+        const overlayBP = document.getElementById('bpOverlay');
+        if (overlayBP) overlayBP.style.display = 'none';
+        const iconBP = document.getElementById('bpIcon');
+        if (iconBP) iconBP.style.display = 'flex';
+
+        const nomCarte = itemLabel.replace("Carte ", "").trim();
+        const info = ALL_CARDS.find(c => c.name === nomCarte);
+        if (info) {
+            const cardInCollection = collection.find(c => c.name === info.name);
+            
+            if (!cardInCollection) {
+                // Nouvelle carte
+                collection.push({ ...info, level: 1, exp: 0, isNew: true });
+                displayGainedCard(info, true, 1);
+            } else {
+                // Doublon : Niveau + 1
+                cardInCollection.level = (cardInCollection.level || 1) + 1;
+                displayGainedCard(info, false, cardInCollection.level);
+            }
+        }
+    }
+
+    // --- 5. CAS DES PACKS ---
+    else if (itemLabel.includes("Pack")) {
+        const overlayBP = document.getElementById('bpOverlay');
+        if (overlayBP) overlayBP.style.display = 'none'; 
+        const iconBP = document.getElementById('bpIcon');
+        if (iconBP) iconBP.style.display = 'flex';
+
+        if (itemLabel.includes("Diamond")) openSpecialPack("diamond");
+        else if (itemLabel.includes("Platine") || itemLabel.includes("Platinum")) openSpecialPack("platinum");
+        else openSpecialPack("gold");
+    }
+
+    // --- SAUVEGARDE FIREBASE ---
+    claimedRewards.push(rewardID); 
+    const user = firebase.auth().currentUser;
+    if (user) {
+        try {
+            await db.collection("users").doc(user.uid).update({
+                claimedRewards: claimedRewards,
+                dust: dust,
+                speedies: speedies, // Ajout de la sauvegarde des Speedies
+                collection: collection 
+            });
+        } catch (e) {
+            console.error("Erreur Firebase :", e);
+        }
+    }
+    updateBattlePassUI();
+}
+
+
+
+
+
+
+let isBulkClaiming = false;
+
+function displayGainedCard(cardData, isNew, newLevel) {
+
+    // 1. On ferme le menu du Battle Pass UNIQUEMENT si on ne fait pas un "Tout récupérer"
+    // On vérifie si isBulkClaiming existe et est faux
+    if (typeof isBulkClaiming !== 'undefined' && !isBulkClaiming) {
+        const bpMenu = document.getElementById('bpOverlay');
+        if (bpMenu) bpMenu.style.display = 'none';
+    }
+
+    // 2. On prépare les données (Ta logique qui marche)
+    currentPack = [{ ...cardData, isNew: isNew, level: newLevel }];
+    currentCardIndex = 0;
+
+    // --- 🚩 AJOUT : Désactivation temporaire des feux d'artifice ---
+    window.isBPReward = true; 
+
+    // 3. On lance DIRECTEMENT ta fonction pour générer la carte en dessous
+    showBigCard();
+
+    // 4. On récupère l'overlay
+    const targetOverlay = (typeof overlay !== 'undefined') ? overlay : document.getElementById('overlay');
+
+    if (targetOverlay) {
+        // 5. On crée le "Rideau" (Masque noir)
+        const cover = document.createElement("div");
+        cover.id = "mystery-cover";
+        cover.style.cssText = `
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
+            align-items: center; z-index: 100000; cursor: pointer;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        `;
+
+        // 6. La carte Mystère (Agrandie)
+        const mysteryCard = document.createElement("div");
+        mysteryCard.style.cssText = `
+            width: 280px; 
+            height: 400px; 
+            background: linear-gradient(145deg, #1a1a1a, #2c3e50); 
+            border: 6px solid #ffd700; 
+            border-radius: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            transition: transform 0.2s;
+        `;
+        
+        mysteryCard.onmouseover = () => mysteryCard.style.transform = "scale(1.05)";
+        mysteryCard.onmouseout = () => mysteryCard.style.transform = "scale(1)";
+        
+        mysteryCard.innerHTML = `<span style="font-size: 120px; color: #ffd700; font-weight: bold; text-shadow: 0 0 20px rgba(255,215,0,0.6);">?</span>`;
+
+        cover.appendChild(mysteryCard);
+        targetOverlay.appendChild(cover);
+
+        // 7. Clic pour révéler
+        cover.onclick = (e) => {
+            e.stopPropagation();
+            
+            // Tremblement
+            mysteryCard.style.animation = "cardShake 0.5s infinite";
+            
+            setTimeout(() => {
+                // Animation de disparition fluide
+                cover.style.opacity = "0";
+                cover.style.transition = "opacity 0.3s";
+                
+                setTimeout(() => {
+                    cover.remove(); 
+                    // --- 🚩 AJOUT : Réactivation des feux d'artifice pour la suite ---
+                    window.isBPReward = false; 
+                }, 300);
+            }, 600);
+        };
+    }
+}
+
+
+
+
+
+
+
+async function acheterPremium() {
+    const prix = 100000;
+    if (isPremium) return alert("Déjà possédé !");
+    if (dust < prix) return alert("Pas assez de fragments !");
+
+    if (confirm(`Acheter le Pass Premium pour ${prix} 💎 ?`)) {
+        dust -= prix;
+        isPremium = true;
+        const user = auth.currentUser;
+        if (user) {
+            await db.collection("users").doc(user.uid).update({ isPremium: true, dust: dust });
+            alert("🎉 Pass Premium débloqué !");
+            updatePremiumButtonUI();
+            updateBattlePassUI();
+        }
+    }
+}
+
+function updatePremiumButtonUI() {
+    const btn = document.getElementById("btnBuyPremium");
+    if (btn && isPremium) {
+        btn.innerText = "✨ PASS PREMIUM DÉBLOQUÉ ✨";
+        btn.style.background = "linear-gradient(90deg, #4ade80, #22c55e)";
+        btn.style.cursor = "default";
+    }
+}
+
+
+
+
+// --- 1. BOUTONS DE RÉCUPÉRATION ---
+
+
+
+async function recupererGratuit() {
+    const user = auth.currentUser;
+    if (!user) return alert("Connecte-toi !");
+
+    isBulkClaiming = true;
+
+    // Calcul du niveau
+    let niveauActuel = typeof calculerNiveau === "function" ? calculerNiveau(xp) : Math.floor(xp / 21);
+    
+    let nouveauxGains = { dust: 0, speedies: 0 };
+    let objetsSpeciaux = []; 
+    let nouveauxPaliersIDs = [];
+
+    // Objets pour compter le détail
+    let nbMystere = 0;
+    let detailCartes = {};
+    let detailPacks = {}; 
+
+    // SCAN UNIQUEMENT GRATUIT
+    bpRewards.forEach(item => {
+        if (item.lvl <= niveauActuel) {
+            const idFree = item.lvl + "_free";
+
+            if (!claimedRewards.includes(idFree)) {
+                if (item.free.includes("💎")) {
+                    nouveauxGains.dust += parseInt(item.free.replace(/[^0-9]/g, "")) || 0;
+                } else if (item.free.includes("⚡")) {
+                    nouveauxGains.speedies += parseInt(item.free.replace(/[^0-9]/g, "")) || 0;
+                } else {
+                    objetsSpeciaux.push({ lvl: item.lvl, type: 'free' });
+                    if (item.free === "Carte Mystère") nbMystere++;
+                    else if (item.free.includes("Carte")) detailCartes[item.free] = (detailCartes[item.free] || 0) + 1;
+                    else if (item.free.includes("Pack")) detailPacks[item.free] = (detailPacks[item.free] || 0) + 1;
+                }
+                nouveauxPaliersIDs.push(idFree);
+            }
+        }
+    });
+
+    if (nouveauxPaliersIDs.length === 0) {
+        isBulkClaiming = false;
+        return alert("☕ Aucun nouveau palier GRATUIT à récupérer !");
+    }
+
+    // On envoie à la fonction de sauvegarde
+    await finaliserLaRecuperation(nouveauxPaliersIDs, nouveauxGains, objetsSpeciaux, nbMystere, detailCartes, detailPacks);
+}
+
+
+
+async function recupererPremium() {
+    const user = auth.currentUser;
+    if (!user || !isPremium) return alert("Pass Premium requis !");
+
+    isBulkClaiming = true;
+
+    let niveauActuel = typeof calculerNiveau === "function" ? calculerNiveau(xp) : Math.floor(xp / 21);
+    
+    let nouveauxGains = { dust: 0, speedies: 0 };
+    let objetsSpeciaux = []; 
+    let nouveauxPaliersIDs = [];
+
+    let nbMystere = 0;
+    let detailCartes = {};
+    let detailPacks = {}; 
+
+    // SCAN UNIQUEMENT PREMIUM
+    bpRewards.forEach(item => {
+        if (item.lvl <= niveauActuel) {
+            const idPrem = item.lvl + "_prem";
+
+            if (!claimedRewards.includes(idPrem)) {
+                if (item.prem.includes("💎")) {
+                    nouveauxGains.dust += parseInt(item.prem.replace(/[^0-9]/g, "")) || 0;
+                } else if (item.prem.includes("⚡")) {
+                    nouveauxGains.speedies += parseInt(item.prem.replace(/[^0-9]/g, "")) || 0;
+                } else {
+                    objetsSpeciaux.push({ lvl: item.lvl, type: 'prem' });
+                    if (item.prem === "Carte Mystère") nbMystere++;
+                    else if (item.prem.includes("Carte")) detailCartes[item.prem] = (detailCartes[item.prem] || 0) + 1;
+                    else if (item.prem.includes("Pack")) detailPacks[item.prem] = (detailPacks[item.prem] || 0) + 1;
+                }
+                nouveauxPaliersIDs.push(idPrem);
+            }
+        }
+    });
+
+    if (nouveauxPaliersIDs.length === 0) {
+        isBulkClaiming = false;
+        return alert("☕ Aucun nouveau palier PREMIUM à récupérer !");
+    }
+
+    await finaliserLaRecuperation(nouveauxPaliersIDs, nouveauxGains, objetsSpeciaux, nbMystere, detailCartes, detailPacks);
+}
+
+
+
+
+// --- 2. FONCTION DE SAUVEGARDE COMMUNE AVEC DÉTAIL ---
+
+async function finaliserLaRecuperation(ids, gains, objets, mysteres, dCartes, dPacks) {
+    const user = auth.currentUser;
+    try {
+        const nextClaimed = Array.from(new Set([...claimedRewards, ...ids]));
+        const nextDust = Math.floor(Number(dust) + gains.dust);
+        const nextSpeedies = Math.floor(Number(speedies) + gains.speedies);
+
+        await db.collection("users").doc(user.uid).update({
+            claimedRewards: nextClaimed,
+            dust: nextDust,
+            speedies: nextSpeedies
+        });
+
+        claimedRewards = nextClaimed;
+        dust = nextDust;
+        speedies = nextSpeedies;
+
+        const pSpeed = document.getElementById("profileSpeedies");
+        if (pSpeed) pSpeed.innerText = speedies;
+        updateBattlePassUI();
+
+        // Bilan
+        let messageGains = `✅ Tu récupères :\n`;
+        if (gains.dust > 0) messageGains += `💎 ${gains.dust} Fragments\n`;
+        if (gains.speedies > 0) messageGains += `⚡ ${gains.speedies} Speedies\n`;
+        if (mysteres > 0) messageGains += `❓ ${mysteres} Carte Mystère\n`;
+
+        for (let nom in dCartes) messageGains += `🃏 ${dCartes[nom]} ${nom}\n`;
+        for (let nom in dPacks) messageGains += `🎁 ${dPacks[nom]} ${nom}\n`;
+
+        if (objets.length > 0) {
+            messageGains += `\nClique sur OK pour tout débloquer !`;
+            alert(messageGains);
+
+            const bpOverlay = document.getElementById('bpOverlay');
+            if (bpOverlay) bpOverlay.style.display = 'none';
+
+            // --- FIX : On force l'affichage du bouton Battle Pass pour qu'il ne disparaisse pas ---
+            const bpIcon = document.getElementById('bpIcon');
+            if (bpIcon) {
+                bpIcon.style.display = 'flex';
+                bpIcon.style.opacity = '1';
+                bpIcon.style.visibility = 'visible';
+            }
+            
+            await executerOuverturesEnSerie(objets);
+        } else {
+            alert(messageGains);
+        }
+
+    } catch (e) {
+        console.error("Erreur Save :", e);
+        alert("Erreur de synchronisation.");
+    } finally {
+        isBulkClaiming = false;
+    }
+}
+
+
+
+
+
+// --- 3. GESTIONNAIRE DES ANIMATIONS ---
+
+async function executerOuverturesEnSerie(liste) {
+    for (const item of liste) {
+        const rewardData = bpRewards.find(r => r.lvl === item.lvl);
+        if (!rewardData) continue;
+        
+        const label = (item.type === 'free') ? rewardData.free : rewardData.prem;
+
+        if (label === "Carte Mystère") {
+            let rarete = tirerRareteAleatoire();
+            const possibles = ALL_CARDS.filter(c => c.rarity === rarete);
+            const piochee = possibles.length > 0 ? possibles[Math.floor(Math.random() * possibles.length)] : ALL_CARDS[0];
+            gererAjoutCollectionSansSave(piochee);
+        } 
+        else if (label.includes("Carte")) {
+            const nom = label.replace("Carte ", "").trim();
+            const info = ALL_CARDS.find(c => c.name === nom);
+            if (info) gererAjoutCollectionSansSave(info);
+        } 
+        else if (label.includes("Pack")) {
+            if (label.includes("Diamond")) openSpecialPack("diamond");
+            else if (label.includes("Platine")) openSpecialPack("platinum");
+            else openSpecialPack("gold");
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    const user = auth.currentUser;
+    if(user) await db.collection("users").doc(user.uid).update({ collection: collection });
+}
+
+// --- 4. AJOUT COLLECTION ---
+
+function gererAjoutCollectionSansSave(card) {
+    if (!card) return;
+    const cardInCollection = collection.find(c => c.name === card.name);
+    let isNew = false;
+    let nLevel = 1;
+
+    if (!cardInCollection) {
+        isNew = true;
+        collection.push({ ...card, level: 1, exp: 0, isNew: true });
+    } else {
+        cardInCollection.level = (cardInCollection.level || 1) + 1;
+        nLevel = cardInCollection.level;
+    }
+    
+    if (typeof displayGainedCard === "function") {
+        displayGainedCard(card, isNew, nLevel);
+    }
+}
 
 
 
@@ -2378,7 +3764,8 @@ const FONDS_DISPONIBLES = {
     "gold": "https://img.pikbest.com/back_our/20210222/bg/82b06224639f8.png!w700wp"
 };
 
-// RENOMMÉE EN : changerFond (pour correspondre au onclick="changerFond(...)")
+
+
 function changerFond(nomDesign) {
     const lien = FONDS_DISPONIBLES[nomDesign];
     if (lien) {
@@ -2391,10 +3778,12 @@ function changerFond(nomDesign) {
         // 2. On sauvegarde le choix pour le prochain rafraîchissement
         localStorage.setItem("pref_fond_ecran", nomDesign);
 
-        // --- 3. SIMULATION DU CLIC SUR RETOUR ---
-        // On récupère ton bouton par son ID "backFromAccount"
-        const btnRetour = document.getElementById("backFromAccount");
+        // --- 3. RETOUR À L'ACCUEIL ---
+        // On appelle directement ta fonction de fermeture
+        closeSettingsMenu(); 
         
+        // On garde quand même la sécurité du bouton au cas où
+        const btnRetour = document.getElementById("backFromAccount");
         if (btnRetour) {
             btnRetour.click(); 
         }
@@ -2408,7 +3797,6 @@ window.addEventListener('load', () => {
     const choixSauvegarde = localStorage.getItem("pref_fond_ecran") || "defaut"; 
     const lienInitial = FONDS_DISPONIBLES[choixSauvegarde];
     
-  
     if (lienInitial) {
         document.body.style.backgroundImage = `url('${lienInitial}')`;
         document.body.style.backgroundSize = "cover";
@@ -2416,8 +3804,6 @@ window.addEventListener('load', () => {
         document.body.style.backgroundPosition = "center";
     }
 });
-
-
 
 
 
@@ -2519,7 +3905,7 @@ function declencherEventSecret() {
 
 
 
-// --- DÉCLARATIONS GLOBALES (Indispensable pour éviter les ReferenceError) ---
+
 let luckyInterval; 
 let luckyBlockUnlockTime = null; 
 let luckyBlockReady = false; 
@@ -2532,6 +3918,7 @@ function updateLuckyTimer(unlockTime, type) {
     const timerText = document.getElementById("luckyTimerDisplay");
     const btn = document.getElementById("btnRecupereLucky");
     const typeText = document.getElementById("luckyBlockType");
+    const btnSpeedy = document.getElementById("btnSpeedy"); // Bouton pour utiliser les Speedies
 
     if (!unlockTime) {
         if (ui) ui.style.display = "none";
@@ -2560,6 +3947,9 @@ function updateLuckyTimer(unlockTime, type) {
             timerText.style.color = "#10b981";
             btn.style.display = "inline-block"; 
             ui.style.borderColor = "#10b981";   
+            
+            // On cache le bouton d'accélération car c'est déjà prêt
+            if (btnSpeedy) btnSpeedy.style.display = "none";
         } else {
             // ON AFFICHE LE DÉCOMPTE
             luckyBlockReady = false;
@@ -2571,9 +3961,25 @@ function updateLuckyTimer(unlockTime, type) {
             btn.style.display = "none";
             timerText.style.color = "#fbbf24";
             ui.style.borderColor = "#fbbf24";
+
+            // --- ⚡ LOGIQUE SPEEDIES MODIFIÉE (OUVRE LE MENU) ---
+            if (btnSpeedy) {
+                btnSpeedy.style.display = "inline-block";
+                // On change le texte pour inviter à cliquer sur les formules
+                btnSpeedy.innerHTML = `⚡`; 
+                
+                // Au clic, on affiche l'interface des 3 formules
+                btnSpeedy.onclick = () => {
+                    const menu = document.getElementById('speedyMenu');
+                    if (menu) menu.style.display = 'block';
+                };
+            }
         }
     }, 1000);
 }
+
+
+
 async function ouvrirCadeauLuckyBlock() {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -2608,7 +4014,7 @@ async function ouvrirCadeauLuckyBlock() {
 
         // --- 3. MISE À JOUR UI ---
         if (typeof ajouterXP === "function") await ajouterXP(gainXP);
-        refreshDust();
+
         const uiContainer = document.getElementById("luckyBlockUI");
         if (uiContainer) uiContainer.style.display = "none";
 
@@ -2621,9 +4027,69 @@ async function ouvrirCadeauLuckyBlock() {
             xp: typeof xp !== 'undefined' ? xp : 0 // On synchronise l'XP aussi
         });
 
-        alert(`🎉 BOOM !\nTon ${typeOrigine} contenait :\n💰 +${gainDust} Dust\n✨ +${gainXP} XP !`);
+        alert(`🎉 BOOM !\nTon ${typeOrigine} contenait :\n💰 +${gainDust} Fragments\n✨ +${gainXP} XP !`);
     }
 }
+
+
+
+async function appliquerBoost(cout, minutesAReduire) {
+    const user = firebase.auth().currentUser;
+    if (!user || !luckyBlockUnlockTime) return;
+
+    // 1. Vérification des Speedies (on suppose que ta variable s'appelle 'speedies')
+    if (typeof speedies === 'undefined' || speedies < cout) {
+        alert("Tu n'as pas assez de Speedies ! ⚡");
+        return;
+    }
+
+    // 2. Calcul de la réduction
+    const reductionMs = minutesAReduire * 60 * 1000;
+    let nouveauTemps = luckyBlockUnlockTime - reductionMs;
+
+    // Si on réduit plus que le temps restant, on met à "maintenant"
+    if (nouveauTemps < Date.now()) nouveauTemps = Date.now();
+
+    try {
+        // 3. Mise à jour locale
+        speedies -= cout;
+        luckyBlockUnlockTime = nouveauTemps;
+
+        // 4. Mise à jour Firebase
+        await db.collection("users").doc(user.uid).update({
+            speedies: speedies,
+            luckyBlockUnlockTime: nouveauTemps
+        });
+
+        // 5. Interface
+        document.getElementById('speedyMenu').style.display = 'none';
+        
+        // --- AJOUT : Mise à jour du compteur dans le Profil ---
+        const speedyProfileDisplay = document.getElementById("profileSpeedies");
+        if (speedyProfileDisplay) {
+            speedyProfileDisplay.innerText = speedies;
+        }
+        
+        // On relance le timer avec la nouvelle heure
+        const typeActuel = document.getElementById("luckyBlockType").innerText;
+        updateLuckyTimer(nouveauTemps, typeActuel);
+        
+        // Rafraîchir l'affichage de tes monnaies (si tu as une fonction dédiée)
+        if (typeof refreshStats === "function") refreshStats();
+        
+        console.log(`Boost de -${minutesAReduire}min appliqué avec succès !`);
+    } catch (e) {
+        console.error("Erreur lors de l'application du boost:", e);
+        alert("Erreur de connexion au serveur.");
+    }
+}
+
+
+
+
+
+
+
 
 
 
@@ -2681,7 +4147,6 @@ async function ajouterXP(montant) {
         alert("🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant Niveau " + niveauApres);
         dust += 100; 
         save("dust", dust);
-        if(typeof refreshDust === "function") refreshDust();
         
         if (user) {
             db.collection("users").doc(user.uid).set({ dust: dust }, { merge: true })
@@ -2840,16 +4305,25 @@ function updateStreak() {
 
 
 
-
 function renderStreak() {
-    const display = document.getElementById("streakDisplay");
-    if (display) {
-        display.innerText = `${streakCount} 🔥`;
+    // 1. On met à jour le chiffre dans le nouveau HUD (le bandeau du haut)
+    const hudStreak = document.getElementById("hudStreak");
+    if (hudStreak) {
+        hudStreak.innerText = streakCount;
+    }
+
+    // 2. On met à jour le chiffre dans ton menu Profil (la grille de stats)
+    const profileStreak = document.getElementById("profileStreak");
+    if (profileStreak) {
+        profileStreak.innerText = streakCount;
+    }
+
+    // 3. On fait disparaître l'ancienne bulle flottante pour éviter les doublons
+    const oldDisplay = document.getElementById("streakDisplay");
+    if (oldDisplay) {
+        oldDisplay.style.display = "none";
     }
 }
-// Appelle renderStreak() au chargement de la page
-renderStreak();
-
 
 
 
@@ -3151,10 +4625,16 @@ document.getElementById('confirmSellBtn').onclick = async () => {
     card.prixVente = price;
     
     try {
+        // --- RÉCUPÉRATION SÉCURISÉE DE L'AVATAR ---
+        // On cherche l'élément profileAvatar. S'il n'existe pas, on met un lien par défaut pour éviter le crash.
+        const profileImg = document.getElementById('profileAvatar');
+        const finalAvatarUrl = profileImg ? profileImg.src : "https://www.eldorado.gg/blog/wp-content/uploads/2025/10/Strawberryelephant-1-288x300.webp";
+
         // --- ÉTAPE 2 : AJOUT AU MARCHÉ ---
         await db.collection("market").add({
             sellerId: auth.currentUser.uid,
             sellerName: document.getElementById('profileName').innerText || "Joueur",
+            sellerAvatar: finalAvatarUrl, // Ajout de l'URL de l'image ici
             card: card,
             price: price,
             date: firebase.firestore.FieldValue.serverTimestamp()
@@ -3171,13 +4651,10 @@ document.getElementById('confirmSellBtn').onclick = async () => {
 
         // --- ÉTAPE 5 : MISE À JOUR INTERFACE ---
         fermerVente();
-        
 
-
-if (typeof showMarket === "function") {
+        if (typeof showMarket === "function") {
             showMarket(); 
         }
-
 
         if (typeof displayCollection === "function") displayCollection();
         
@@ -3197,6 +4674,7 @@ if (typeof showMarket === "function") {
         if (typeof showCollection === "function") showCollection();
     }
 };
+
 
 
 
@@ -3366,7 +4844,6 @@ async function acheterCarte(id, price, sellerId) {
         localStorage.setItem("collection", JSON.stringify(collection));
         localStorage.setItem("dust", dust);
 
-        refreshDust();
         if (typeof displayCollection === "function") displayCollection();
         
         // Affichage du message personnalisé
@@ -3756,8 +5233,6 @@ async function recupererCadeauFirebase(index) {
                 dailyQuests: quetesActives
             });
 
-            // 3. MISE À JOUR DE L'INTERFACE
-            refreshDust(); 
 
             if (document.getElementById("profileDust")) {
                 document.getElementById("profileDust").innerText = dust;
@@ -3816,8 +5291,6 @@ async function avancerQuete(type, montant = 1) {
                         await ajouterXP(XP_BONUS_FINAL);
                     }
 
-                    // On rafraîchit l'affichage du Dust car il a changé
-                    refreshDust();
 
                     alert(`🏆 EXCEPTIONNEL ! Tu as terminé les 3 quêtes !\n🌟 Bonus débloqué : +${MONTANT_BONUS} Fragments & +${XP_BONUS_FINAL} XP !`);
                 }
@@ -3876,8 +5349,6 @@ firebase.auth().onAuthStateChanged((user) => {
                     if (luckyUI) luckyUI.style.display = "none";
                 }
 
-                // 2. MISE À JOUR DE L'INTERFACE
-                if (typeof refreshDust === "function") refreshDust();
                 
                 const profileDust = document.getElementById("profileDust");
                 if (profileDust) profileDust.innerText = dust;
@@ -4610,7 +6081,6 @@ async function executerCalculCombat() {
     }
 
     // 4. SAUVEGARDE
-    refreshDust();
     if (auth.currentUser) {
         await saveUserData(auth.currentUser.uid);
     }
@@ -4705,7 +6175,8 @@ function getPower(card) {
     "Mythic": 1000,
     "Brainrot God": 2500,
     "Secret": 7500,
-    "OG": 15000
+    "OG": 15000,
+    "Exclu Season 1": 20000
     };
     // On ajoute un petit bonus de niveau même pour le fallback si le niveau existe
     const niveau = card.level || 1;
@@ -4741,14 +6212,12 @@ function showCombat() {
     const btnPack = document.getElementById("openPack");
     const btnReset = document.getElementById("resetCollection");
     const textRemaining = document.getElementById("remaining");
-    const dustDisplay = document.getElementById("dustDisplay");
     const accountBtn = document.getElementById("accountBtn"); 
     const musicBtn = document.getElementById("musicBtn"); // On récupère le bouton musique
 
     if (btnPack) btnPack.style.display = "none";
     if (btnReset) btnReset.style.display = "none";
     if (textRemaining) textRemaining.style.display = "none";
-    if (dustDisplay) dustDisplay.style.display = "none";
     if (accountBtn) accountBtn.style.display = "none";
 
     // --- CONFIGURATION DE LA SECTION COMBAT ---
@@ -4833,7 +6302,7 @@ function handleCardClick(cardElement, cardData) {
 
 
 
-const CURRENT_VERSION = "2.2.4"; // Change ce numéro pour faire réapparaître le message
+const CURRENT_VERSION = "2.3.0"; // Change ce numéro pour faire réapparaître le message
 
 function checkUpdateNews() {
     const lastSeenVersion = localStorage.getItem("lastSeenVersion");
@@ -4870,26 +6339,35 @@ function disableSiteForQuota() {
 
 const bgMusic = document.getElementById("bgMusic");
 const musicBtn = document.getElementById("musicBtn");
+const hudMusicIcon = document.getElementById("hudMusicIcon"); // On récupère la nouvelle icône du haut
 let isPlaying = false;
 
-// Fonction pour alterner Play/Pause
-musicBtn.onclick = () => {
+// 1. La nouvelle fonction globale
+function toggleMusic() {
+    if (!bgMusic) return;
+
     if (isPlaying) {
         bgMusic.pause();
-        musicBtn.innerText = "🔈"; // Icône muet
+        if (musicBtn) musicBtn.innerText = "🔈";
+        if (hudMusicIcon) hudMusicIcon.innerText = "🔈";
+        isPlaying = false;
     } else {
-        bgMusic.play();
-        musicBtn.innerText = "🔊"; // Icône son
+        bgMusic.play().catch(e => console.log("Lecture bloquée"));
+        if (musicBtn) musicBtn.innerText = "🔊";
+        if (hudMusicIcon) hudMusicIcon.innerText = "🔊";
+        isPlaying = true;
     }
-    isPlaying = !isPlaying;
-};
+}
 
-// Lancer la musique au premier clic sur la page (contrainte navigateur)
+// 2. On lie l'ancien bouton à cette fonction (pour la sécurité)
+if (musicBtn) {
+    musicBtn.onclick = toggleMusic;
+}
+
+// 3. Lancer au premier clic (optionnel)
 document.addEventListener('click', () => {
-    if (!isPlaying && bgMusic.paused) {
-        // Optionnel : décommente la ligne dessous si tu veux que ça démarre tout seul au 1er clic
-        // bgMusic.play(); isPlaying = true; musicBtn.innerText = "🔊";
-    }
+    // Si tu veux que ça démarre direct au premier clic n'importe où :
+    // if (!isPlaying) toggleMusic(); 
 }, { once: true });
 
 
@@ -4992,7 +6470,6 @@ function openSpecialPack(type) {
     // --- TON CODE ORIGINE (Sauvegardes) ---
     save("collection", collection);
     save("dust", dust);
-    refreshDust();
 
     const user = firebase.auth().currentUser;
     if (user) {
@@ -5200,7 +6677,6 @@ function showShop() {
                 if (dust >= price) {
                     dust -= price;
                     save("dust", dust);
-                    refreshDust();
 
                     if (item.isPack) {
                         // --- AJOUT QUÊTE BOOSTER ---
@@ -5237,9 +6713,6 @@ function showShop() {
 
 
 
-function refreshDust(){
-  document.getElementById("dustDisplay").textContent = "💎 Fragments : " + dust;
-}
 
 
 // --- Helper ---
@@ -5319,33 +6792,36 @@ function showBigCard() {
         cardDiv.appendChild(cardImg);
 
         // --- Animation feu d’artifice (Adaptée à la rareté) ---
-        const canvas = document.createElement("canvas");
-        canvas.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:20000;";
-        document.body.appendChild(canvas);
-        const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const particles = [];
-        for (let i = 0; i < 150; i++) {
-            // Couleur : Arc-en-ciel pour OG, Violet/Rose pour Mythic
-            let hue = (c.rarity === "OG") ? Math.random() * 360 : (280 + Math.random() * 60);
-            particles.push({
-                x: canvas.width / 2, y: canvas.height / 2,
-                vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 1.5) * 10,
-                alpha: 1, radius: Math.random() * 3 + 2,
-                color: `hsl(${hue},100%,50%)`
-            });
+        // 🚩 MODIFICATION ICI : On vérifie que ce n'est pas une récompense BP
+        if (!window.isBPReward) {
+            const canvas = document.createElement("canvas");
+            canvas.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:20000;";
+            document.body.appendChild(canvas);
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const particles = [];
+            for (let i = 0; i < 150; i++) {
+                // Couleur : Arc-en-ciel pour OG, Violet/Rose pour Mythic
+                let hue = (c.rarity === "OG") ? Math.random() * 360 : (280 + Math.random() * 60);
+                particles.push({
+                    x: canvas.width / 2, y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 1.5) * 10,
+                    alpha: 1, radius: Math.random() * 3 + 2,
+                    color: `hsl(${hue},100%,50%)`
+                });
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
+                    ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                    if (p.alpha <= 0) particles.splice(i, 1);
+                });
+                if (particles.length > 0) requestAnimationFrame(animate); else canvas.remove();
+            }
+            animate();
         }
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
-                ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
-                if (p.alpha <= 0) particles.splice(i, 1);
-            });
-            if (particles.length > 0) requestAnimationFrame(animate); else canvas.remove();
-        }
-        animate();
 
         // --- BLOCAGE (1.5s) ---
         overlay.removeEventListener('click', overlayClickHandler);
@@ -5364,7 +6840,8 @@ function showBigCard() {
         const listLucky = ["Brainrot God Lucky Block", "Secret Lucky Block", "Admin Lucky Block"];
 
         // --- ✨ AJOUT FEU D'ARTIFICE ET FREEZE POUR SECRET OU LUCKY BLOCKS ---
-        if (c.rarity === "Secret" || listLucky.includes(c.rarity)) {
+        // 🚩 MODIFICATION ICI : On vérifie aussi que ce n'est pas une récompense BP
+        if ((c.rarity === "Secret" || listLucky.includes(c.rarity)) && !window.isBPReward) {
             
             const canvas = document.createElement("canvas");
             canvas.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:20000;";
@@ -5508,7 +6985,7 @@ function openPackSequence() {
                         const newPower = luckyPower[c.rarity];
 
                         if (uiLucky.style.display === "none" || newPower > activePower) {
-                            let heures = 1;
+                            let heures = 2;
                             if (c.rarity === "Brainrot God Lucky Block") heures = 6;
                             if (c.rarity === "Secret Lucky Block") heures = 12;
                             if (c.rarity === "Admin Lucky Block") heures = 24;
@@ -5554,7 +7031,7 @@ function openPackSequence() {
                         if (existingCard.level === undefined) existingCard.level = 1;
                         if (existingCard.exp === undefined) existingCard.exp = 0;
 
-                        const expTable = { "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7, "Mythic": 4, "Brainrot God": 3, "Secret": 2, "OG": 1 };
+                        const expTable = { "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7, "Mythic": 4, "Brainrot God": 3, "Secret": 1, "OG": 1 };
                         existingCard.exp = (existingCard.exp || 0) + 1;
                         let needed = expTable[existingCard.rarity] || 10;
 
@@ -5577,7 +7054,6 @@ function openPackSequence() {
                 // Sauvegardes locales
                 save("collection", collection);
                 save("dust", dust);
-                refreshDust();
                 updateStreak();
 
                 // --- SAUVEGARDE UNIQUE FIREBASE ---
@@ -5791,22 +7267,18 @@ function updateButtons() {
   if (isVisible(homeSection)) {
     openPackBtn.style.display = "inline-block";
     resetCollectionBtn.style.display = "none";
-    dustDisplay.style.display = "none"; // <-- cacher les fragments
   } 
   else if (isVisible(collectionSection)) {
     openPackBtn.style.display = "none";
     resetCollectionBtn.style.display = "inline-block";
-    dustDisplay.style.display = "none"; // <-- cacher les fragments
   } 
   else if (isVisible(allCardsSection)) {
     openPackBtn.style.display = "none";
     resetCollectionBtn.style.display = "none";
-    dustDisplay.style.display = "none"; // <-- cacher les fragments
   } 
   else if (isVisible(shopSection)) {
     openPackBtn.style.display = "none";
     resetCollectionBtn.style.display = "none";
-    dustDisplay.style.display = "block"; // <-- montrer les fragments uniquement ici
   }
 }
 
@@ -5864,7 +7336,7 @@ function refreshCollection(cardsToShow) {
         "Legendary": 7,
         "Mythic": 4, 
         "Brainrot God": 3, 
-        "Secret": 2, 
+        "Secret": 1, 
         "OG": 1
     };
 
@@ -6018,9 +7490,15 @@ function displayCards(cards) {
     );
 
     document.getElementById("allCardsList").innerHTML = sortedCards.map(c => {
+        // --- LOGIQUE D'AFFICHAGE DE LA PROBABILITÉ ---
+        let displayProba;
+        if (c.rarity.includes("Exclu")) {
+            displayProba = "BATTLE PASS 1"; // Texte pour la carte exclusive
+        } else {
+            displayProba = (RARITY_PROBS[c.rarity] || 0) + "%"; // Pourcentage normal
+        }
 
-           if (c.rarity === "OG" || c.rarity === "Mythic Lucky Block" || c.rarity === "Brainrot God Lucky Block"  || c.rarity === "Secret Lucky Block"  || c.rarity === "Admin Lucky Block") {
-
+        if (c.rarity === "OG" || c.rarity === "Mythic Lucky Block" || c.rarity === "Brainrot God Lucky Block" || c.rarity === "Secret Lucky Block" || c.rarity === "Admin Lucky Block") {
             // On garde la classe r-rarity pour avoir la bordure colorée du CSS
             return `
             <div class="card r-${c.rarity.replace(/ /g, "-")}" style="position:relative; padding:0; overflow:hidden;">
@@ -6029,7 +7507,7 @@ function displayCards(cards) {
                 
                 <span class="rarity-indicator r-${c.rarity.replace(/ /g, "-")}" 
                       style="position:absolute; bottom:5px; right:5px; z-index:2;">
-                    ${RARITY_PROBS[c.rarity] || 0}%
+                    ${displayProba}
                 </span>
             </div>`;
         } else {
@@ -6043,7 +7521,7 @@ function displayCards(cards) {
                 <strong>${escapeHtml(c.name)}</strong>
                 <span class="rarity-indicator r-${c.rarity.replace(/ /g, "-")}" 
                       style="position:absolute; bottom:5px; right:5px;">
-                    ${RARITY_PROBS[c.rarity] || 0}%
+                    ${displayProba}
                 </span>
             </div>`;
         }
@@ -6051,9 +7529,10 @@ function displayCards(cards) {
 }
 
 
-
 // --- Affiche toutes les cartes au départ ---
 displayCards(ALL_CARDS);
+
+
 
 
 
@@ -6069,7 +7548,6 @@ resetCollectionBtn.addEventListener("click",()=>{if(confirm("Réinitialiser la c
 refreshCollection();
 refreshLimit();
 showHome();
-refreshDust();
 
 
 const authOverlay = document.getElementById("authOverlay");
@@ -6247,7 +7725,6 @@ logoutBtn.onclick = () => {
             save("dust", dust);
             
             refreshCollection();
-            refreshDust();
             refreshLimit();
             
             // On s'assure de masquer la section profil après déco
@@ -6317,7 +7794,6 @@ function loadUserData(uid) {
       save("daily", daily);
 
       refreshCollection();
-      refreshDust();
       refreshLimit();
 
       if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
@@ -6450,8 +7926,8 @@ async function checkDailyShop() {
 
     if (shouldUpdate) {
         const RARITY_PRICES = {
-            "Commun": 1000, "Rare": 2000, "Epic": 6000, "Legendary": 8000,
-            "Mythic": 10000, "Brainrot God": 20000, "Secret": 50000, "OG": 100000
+            "Commun": 500, "Rare": 800, "Epic": 1500, "Legendary": 3000,
+            "Mythic": 7000, "Brainrot God": 12000, "Secret": 27000, "OG": 55000
         };
 
         const RARITY_PROBABILITIES = {

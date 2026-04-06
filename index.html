@@ -632,6 +632,24 @@ html, body {
     transform: scale(0.9) !important;
 }
 
+/* TECHNIQUE DE DISPARITION : On cache le bouton ET le profil/argent (subway-hud) quand un menu est ouvert */
+body:has(#questOverlay[style*="display: flex"]) .quest-btn,
+body:has(#questOverlay[style*="display: block"]) .quest-btn,
+body:has(#questOverlay[style*="display: flex"]) #subway-hud,
+body:has(#questOverlay[style*="display: block"]) #subway-hud,
+body:has(#lobby-overlay[style*="display: block"]) .quest-btn,
+body:has(#lobby-overlay[style*="display: block"]) #subway-hud,
+body:has(#marketSection[style*="display: block"]) .quest-btn,
+body:has(#marketSection[style*="display: block"]) #subway-hud,
+body:has(#bpOverlay[style*="display: flex"]) .quest-btn,
+body:has(#bpOverlay[style*="display: flex"]) #subway-hud,
+body:has(#bpOverlay[style*="display: block"]) .quest-btn,
+body:has(#bpOverlay[style*="display: block"]) #subway-hud {
+    display: none !important;
+}
+
+
+
 
 
 
@@ -659,19 +677,34 @@ html, body {
 .floating-market-btn:active { transform: scale(0.9); }
 
 /* Style de la page Marché Plein Écran */
+/* 1. On s'assure que le Marché a la priorité maximale */
 #marketSection {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #0e1525;
-    z-index: 2000; /* Très haut pour tout couvrir */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: #0e1525 !important;
+    z-index: 1000000 !important;
     overflow-y: auto;
     padding: 20px;
     box-sizing: border-box;
     display: none;
 }
+
+/* 2. LA TECHNIQUE : On cache le HUD quand le marché est visible */
+/* Si le style du marché n'est PAS "display: none", alors on dégage le HUD */
+#marketSection:not([style*="display: none"]) ~ #subway-hud,
+#marketSection:not([style*="display: none"]) + #subway-hud {
+    display: none !important;
+}
+
+/* Sécurité pour forcer la disparition via le body */
+body:has(#marketSection[style*="display: block"]) #subway-hud {
+    display: none !important;
+}
+
+
 
 .back-btn-market {
     position: sticky;
@@ -842,18 +875,32 @@ html, body {
 
 
 
-/* Style global de l'overlay Battle Pass */
+/* 1. On donne au Battle Pass la priorité absolue sur l'écran */
 #bpOverlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); /* Fond sombre flouté */
-    z-index: 200001;
-    backdrop-filter: blur(5px);
-    justify-content: center;
-    overflow-y: auto; /* Permet de scroller la liste */
+    display: none; /* Changé en flex par ton JS */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: #000 !important; /* Noir total pour masquer le fond */
+    z-index: 2147483647 !important; /* Maximum technique */
 }
+
+/* 2. L'ASTUCE : Si le Battle Pass n'est PAS en "display: none", on cache le HUD */
+#bpOverlay:not([style*="display: none"]) ~ #subway-hud,
+#bpOverlay:not([style*="display: none"]) + #subway-hud {
+    display: none !important;
+}
+
+/* 3. Sécurité : Si ton HUD est APRES le BP dans le code HTML */
+body:has(#bpOverlay[style*="display: flex"]) #subway-hud {
+    display: none !important;
+}
+
+
+
+
 
 /* Le conteneur principal des récompenses */
 .bp-container {
@@ -1074,6 +1121,61 @@ input:checked + .slider:before {
 
 
 
+
+
+
+/* Animation de transition douce */
+.section-fade {
+    animation: fadeInSimple 0.4s ease-out forwards;
+}
+
+@keyframes fadeInSimple {
+    from { 
+        opacity: 0; 
+    }
+    to { 
+        opacity: 1; 
+    }
+}
+
+
+
+
+
+
+/* 1. On s'assure que le Lobby est bien positionné et opaque */
+#lobby-overlay {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(14, 21, 37, 0.98) !important;
+    z-index: 2000000 !important; /* Déjà très haut, on le verrouille */
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* 2. LA TECHNIQUE : Cache le HUD quand le Lobby est ouvert */
+#lobby-overlay:not([style*="display: none"]) ~ #subway-hud,
+#lobby-overlay:not([style*="display: none"]) + #subway-hud {
+    display: none !important;
+}
+
+/* Sécurité supplémentaire via le body */
+body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
+    display: none !important;
+}
+
+
+
+
+
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -1181,44 +1283,54 @@ input:checked + .slider:before {
 
 
 
-<div id="bpOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200001; flex-direction: column; align-items: center; backdrop-filter: blur(8px); overflow: hidden;">
-    
-    <div style="width: 100%; max-width: 500px; background: #111827; z-index: 100; border-bottom: 2px solid #fbbf24; flex-shrink: 0;">
-        <div style="padding: 20px; text-align: center; position: relative;">
-            <button onclick="toggleBattlePass()" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: bold;">✕</button>
-            <h2 style="color: #fbbf24; margin-bottom: 10px; letter-spacing: 2px;">SEASON PASS</h2>
+<div id="bpOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200001; flex-direction: column; align-items: center; backdrop-filter: blur(8px); overflow-y: auto; padding: 10px 0;">
+        
+    <div style="width: 95%; max-width: 600px; background: #111827; border-radius: 15px; border: 2px solid #fbbf24; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-shrink: 0;">
+        
+        <div style="width: 100%; position: relative; min-height: 180px;
+                    background-image: linear-gradient(to top, rgba(17, 24, 39, 1) 0%, rgba(17, 24, 39, 0.4) 100%), url('https://cdn.phototourl.com/free/2026-04-05-6939b451-4c0c-4db2-909e-1b1f5493094f.jpg'); 
+                    background-size: cover; 
+                    background-position: center; 
+                    padding: 35px 15px 15px 15px; 
+                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; box-sizing: border-box;">
             
-            <div style="background: #1f2937; height: 12px; border-radius: 6px; margin: 10px 0; border: 1px solid #374151;">
-                <div id="bpProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 10px #fbbf24; transition: width 0.5s;"></div>
-            </div>
-            
-            <button onclick="acheterPremium()" id="btnBuyPremium" style="background: linear-gradient(90deg, #fbbf24, #d97706); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; color: #000; text-transform: uppercase;">
-                DÉBLOQUER PREMIUM (100k 💎)
+            <button onclick="toggleBattlePass()" style="position: absolute; top: 8px; right: 8px; background: #ef4444; color: white; border: 1px solid rgba(255,255,255,0.5); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 10; font-size: 12px; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">✕</button>
+
+            <button onclick="acheterPremium()" id="btnBuyPremium" style="width: 90%; background: linear-gradient(90deg, #fbbf24, #d97706); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; color: #000; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                🔓 DÉBLOQUER PREMIUM (100k 💎)
             </button>
+
+            <div id="xpProgressionContainer" style="width: 92%; background: transparent; padding: 0; border: none;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 4px;">
+                    <span style="color: #ffffff; font-weight: 900; text-shadow: 2px 2px 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; letter-spacing: 0.5px;">PROGRESSION DU NIVEAU</span>
+                    <div style="text-align: right;">
+                        <span style="color: #ffffff; font-size: 0.65rem; font-weight: 900; text-shadow: 2px 2px 4px #000;">LVL</span>
+                        <span id="profileLevelStat" style="color: #fbbf24; font-weight: 900; text-shadow: 2px 2px 4px #000;">1</span>
+                    </div>
+                </div>
+                <div style="background: rgba(0,0,0,0.7); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15);">
+                    <div id="profileXpBar" style="background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%; transition: width 0.5s;"></div>
+                </div>
+            </div>
+
+            <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.2);"></div>
+
+            <div class="bp-footer-actions" style="display: flex; width: 100%; justify-content: center; gap: 8px;">
+                <div style="flex: 1; display: flex; justify-content: center;">
+                    <button onclick="recupererGratuit()" style="width: 95%; background: #4ade80; color: #064e3b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                        🎁 TOUT RÉCUPÉRER
+                    </button>
+                </div>
+
+                <div style="flex: 1; display: flex; justify-content: center;">
+                    <button onclick="recupererPremium()" id="btnPremiumBP" style="display: none; width: 95%; background: #fbbf24; color: #451a03; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                        👑 TOUT RÉCUPÉRER
+                    </button>
+                </div>
+            </div>
         </div>
 
-
-
-
-<div class="bp-footer-actions" style="display: flex; width: 100%; max-width: 500px; background: #111827; padding: 10px 0; border-top: 1px solid #374151; align-items: center;">
-    
-    <div style="flex: 1; display: flex; justify-content: center;">
-        <button onclick="recupererGratuit()" style="width: 90%; background: #4ade80; color: #064e3b; border: none; padding: 10px 2px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
-            🎁 TOUT RÉCUPÉRER
-        </button>
-    </div>
-
-    <div style="width: 50px;"></div>
-
-    <div style="flex: 1; display: flex; justify-content: center;">
-        <button onclick="recupererPremium()" id="btnPremiumBP" style="display: none; width: 90%; background: #fbbf24; color: #451a03; border: none; padding: 10px 2px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
-            👑 TOUT RÉCUPÉRER
-        </button>
-    </div>
-</div>
-
-
-        <div style="display: flex; width: 100%; background: #1f2937; font-weight: bold; text-align: center; color: white; font-size: 0.9em; padding: 12px 0;">
+        <div style="display: flex; width: 100%; background: #1f2937; font-weight: bold; text-align: center; color: white; font-size: 0.9em; padding: 12px 0; border-top: 1px solid #374151;">
             <div style="flex: 1; color: #4ade80;">GRATUIT</div>
             <div style="width: 50px; color: #fbbf24;">LVL</div> 
             <div style="flex: 1; color: #fbbf24;">PREMIUM</div>
@@ -1226,17 +1338,15 @@ input:checked + .slider:before {
     </div>
 
     <div style="width: 100%; max-width: 500px; flex: 1; overflow-y: auto; position: relative; scrollbar-width: none;">
-        
         <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 6px; background: #374151; transform: translateX(-50%); z-index: 0;"></div>
-        
         <div id="bpVerticalLine" style="position: absolute; left: 50%; top: 0; width: 6px; background: #fbbf24; transform: translateX(-50%); z-index: 1; height: 0%; transition: height 0.5s ease-out; box-shadow: 0 0 10px #fbbf24;"></div>
-        
         <div id="bpLevelsContainer" style="display: flex; flex-direction: column; gap: 15px; padding: 20px 10px; position: relative; z-index: 2;">
         </div>
-        
         <div style="height: 40px;"></div>
     </div>
 </div>
+
+
 
 
 
@@ -1360,43 +1470,6 @@ input:checked + .slider:before {
     </button>
 </div>
 
-
-
-
-
-<div id="settingsMenu" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(5px); pointer-events: auto;">
-  <div style="background: #1e293b; padding: 20px; border-radius: 20px; width: 320px; text-align: center; border: 2px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); font-family: sans-serif; color: white; max-height: 90vh; overflow-y: auto;">
-    
-    <h2 style="margin: 0 0 20px 0; color: #3b82f6; font-size: 22px;">Paramètres</h2>
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid #333;">
-      <span style="font-weight: bold;">Musique</span>
-      <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
-        <input type="checkbox" id="musicCheckbox" onchange="toggleMusicFromMenu()" style="opacity: 0; width: 0; height: 0;">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div style="background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px;">
-        <p style="color: #aaa; font-size: 0.75rem; text-align: center; text-transform: uppercase; margin-top: 0; margin-bottom: 10px; letter-spacing: 1px;">Ambiance</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button onclick="changerFond('espace')" style="padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🌌 Espace</button>
-            <button onclick="changerFond('mythic')" style="padding: 10px; background: #4c1d95; color: white; border: 1px solid #7c3aed; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🔮 Mythique</button>
-            <button onclick="changerFond('abysse')" style="padding: 10px; background: #064e3b; color: white; border: 1px solid #10b981; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🌿 Abysse</button>
-            <button onclick="changerFond('gold')" style="padding: 10px; background: #78350f; color: white; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">✨ Doré</button>
-        </div>
-    </div>
-
-    <div style="margin-top: 10px; opacity: 0.5; font-size: 0.7rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-        <span id="app-version">v2.3.0</span><br>© 2026 BRAINROT TCG
-    </div>
-
-    <button onclick="closeSettingsMenu()" style="margin-top: 20px; width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">
-        ← Retour au jeu
-    </button>
-
-  </div>
-</div>
 
 
 
@@ -1588,18 +1661,24 @@ input:checked + .slider:before {
 </div>
 
 
-<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; flex-direction:column; justify-content:center; align-items:center;"> 
-    <h2 style="color:white; text-align:center; padding: 0 20px;">Connecte-toi pour sauvegarder ta progression</h2>
+<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; flex-direction:column; justify-content:center; align-items:center; font-family: sans-serif;"> 
+    <h2 style="color:white; text-align:center; padding: 0 20px; font-size: 1.2rem;">Connecte-toi pour sauvegarder ta progression</h2>
+    
     <input type="text" id="reg-username" placeholder="Pseudo" style="margin-bottom:10px; display:block; width:220px; padding:10px; border-radius:5px; border:none;">
-    <input type="email" id="emailInput" placeholder="Email" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
-    <input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px;margin:5px;border-radius:6px;border:none;width:220px;">
-    <div style="margin-top:10px;">
-        <button id="loginBtn" style="margin-right:10px;">Connexion</button>
-        <button id="signupBtn">Inscription</button>
-    </div> 
-    <div id="authError" style="color:#f88;margin-top:10px;"></div>
-</div>
+    <input type="email" id="emailInput" placeholder="Email" style="padding:10px; margin:5px; border-radius:6px; border:none; width:220px;">
+    <input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px; margin:5px; border-radius:6px; border:none; width:220px;">
 
+    <div style="width: 220px; margin-top: 15px; color: #cbd5e1; font-size: 0.7rem; text-align: center; line-height: 1.3;">
+        En vous inscrivant, vous acceptez la <span onclick="openPrivacy()" style="color: #3b82f6; text-decoration: underline; font-weight: bold; cursor: pointer;">politique de confidentialité</span>.
+    </div>
+
+    <div style="margin-top:20px;">
+        <button id="loginBtn" style="margin-right:10px; padding: 10px 15px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold;">Connexion</button>
+        <button id="signupBtn" style="padding: 10px 15px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; background: #3b82f6; color: white;">Inscription</button>
+    </div> 
+    
+    <div id="authError" style="color:#f88; margin-top:15px; font-size: 0.8rem; text-align: center; width: 220px;"></div>
+</div>
 
 
 
@@ -1808,6 +1887,21 @@ input:checked + .slider:before {
             <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Email :</p>
             <p id="userEmail" style="font-weight: bold; margin: 5px 0 20px 0; word-break: break-all;">...</p>
 
+
+
+<div style="text-align: center; margin-top: 15px; margin-bottom: 10px; opacity: 0.6;">
+    <p style="margin: 0; color: #888; font-size: 0.55rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold;">
+        ID Session
+    </p>
+    <p id="userIdDisplay" style="margin: 2px 0 0 0; color: #bbb; font-family: 'Courier New', monospace; font-size: 0.65rem;">
+        ...
+    </p>
+</div>
+
+
+
+
+
             <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 10px;">
@@ -1816,20 +1910,11 @@ input:checked + .slider:before {
                 <div><p style="color: #fbbf24; font-weight: bold;" id="profileSpeedies">0</p><p style="color: #aaa; font-size: 0.65rem;">⚡ SPEEDIES</p></div>
                 <div><p style="color: #10b981; font-weight: bold;" id="profileCards">-- / --</p><p style="color: #aaa; font-size: 0.65rem;">COLLECTION</p></div>
                 <div><p style="color: #ff9f43; font-weight: bold;" id="profileStreak">0</p><p style="color: #aaa; font-size: 0.65rem;">STREAK</p></div>
-                <div><p style="color: #60a5fa; font-weight: bold;" id="profileLevelStat">1</p><p style="color: #aaa; font-size: 0.65rem;">NIVEAU</p></div>
+                <div><p style="color: #60a5fa; font-weight: bold;" id="profileLevelStat2">1</p><p style="color: #aaa; font-size: 0.65rem;">NIVEAU</p></div>
             </div>
 
-            <div id="xpProgressionContainer" style="margin-top: 20px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 5px;">
-                    <span style="color: #7c3aed;">XP PROGRESSION</span>
-                    <span id="xpPercent">0%</span>
-                </div>
-                <div style="background: #0e1525; height: 10px; border-radius: 5px; border: 1px solid #333; overflow: hidden;">
-                    <div id="profileXpBar" style="background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
+</div>
 
     <div style="display: flex; gap: 12px; width: 95%; max-width: 400px; margin-top: 10px; margin-bottom: 30px;">
         <button onclick="document.getElementById('accountSection').style.display='none';" style="flex: 1; background:#444; color:white; padding:15px; border-radius:10px; border:0; font-weight:bold; cursor:pointer;">← Retour</button>
@@ -1876,6 +1961,89 @@ input:checked + .slider:before {
 
 
 
+
+
+
+<div id="settingsMenu" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(5px); pointer-events: auto;">
+  <div style="background: #1e293b; padding: 20px; border-radius: 20px; width: 320px; text-align: center; border: 2px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); font-family: sans-serif; color: white; max-height: 90vh; overflow-y: auto;">
+    
+    <h2 style="margin: 0 0 20px 0; color: #3b82f6; font-size: 22px;">Paramètres</h2>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid #333;">
+      <span style="font-weight: bold;">Musique</span>
+      <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
+        <input type="checkbox" id="musicCheckbox" onchange="toggleMusicFromMenu()" style="opacity: 0; width: 0; height: 0;">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px;">
+        <p style="color: #aaa; font-size: 0.75rem; text-align: center; text-transform: uppercase; margin-top: 0; margin-bottom: 10px; letter-spacing: 1px;">Ambiance</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button onclick="changerFond('espace')" style="padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🌌 Espace</button>
+            <button onclick="changerFond('mythic')" style="padding: 10px; background: #4c1d95; color: white; border: 1px solid #7c3aed; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🔮 Mythique</button>
+            <button onclick="changerFond('abysse')" style="padding: 10px; background: #064e3b; color: white; border: 1px solid #10b981; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">🌿 Abysse</button>
+            <button onclick="changerFond('gold')" style="padding: 10px; background: #78350f; color: white; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; font-size: 0.75rem; transition: 0.2s;">✨ Doré</button>
+        </div>
+    </div>
+
+
+
+
+<div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+    <button onclick="confirmDeleteAccount()" style="background: none; border: 1px solid #ef4444; color: #ef4444; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; width: 100%; transition: 0.3s;" onmouseover="this.style.background='#ef4444'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='#ef4444'">
+        Supprimer mon compte définitivement
+    </button>
+</div>
+
+
+
+    <p onclick="document.getElementById('privacyModal').style.display='flex'" 
+       style="cursor: pointer; color: #3b82f6; font-size: 0.7rem; text-decoration: underline; margin-bottom: 10px; opacity: 0.8; display: inline-block;">
+        Politique de confidentialité
+    </p>
+
+    <div style="margin-top: 10px; opacity: 0.5; font-size: 0.7rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+        <span id="app-version">v2.3.0</span><br>© 2026 BRAINROT TCG
+    </div>
+
+    <button onclick="closeSettingsMenu()" style="margin-top: 20px; width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">
+        ← Retour au jeu
+    </button>
+
+  </div>
+</div>
+
+
+<div id="privacyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 999999 !important; align-items: center; justify-content: center; backdrop-filter: blur(15px); pointer-events: auto;">
+    <div style="background: #1e293b; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; border: 2px solid #7c3aed; color: white; font-family: sans-serif; box-shadow: 0 0 50px rgba(0,0,0,1); text-align: center; position: relative;">
+        
+        <h2 style="color: #7c3aed; margin-top: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;">Confidentialité</h2>
+        
+<div style="text-align: justify; font-size: 0.65rem; line-height: 1.2; color: #94a3b8; margin: 20px 0; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); max-height: 300px; overflow-y: auto; font-family: serif;">
+    
+    <p style="text-align: center; font-weight: bold; color: #fff; margin-bottom: 15px;">POLITIQUE DE CONFIDENTIALITÉ ET CONDITIONS GÉNÉRALES DE TRAITEMENT DES DONNÉES À CARACTÈRE PERSONNEL (RÈGLEMENT UE 2016/679)</p>
+
+    <p><b>ARTICLE 1. CADRE JURIDIQUE ET CHAMP D'APPLICATION.</b> La présente politique de confidentialité (ci-après "la Politique") définit les modalités selon lesquelles l'entité éditrice de Brainrot TCG (ci-après "l'Éditeur") procède au traitement des données à caractère personnel dans le strict respect du Règlement Général sur la Protection des Données (RGPD). En accédant aux services de l'application, l'utilisateur (ci-après "l'Utilisateur") reconnaît avoir pris connaissance des présentes dispositions de manière non équivoque.</p>
+
+    <p><b>ARTICLE 2. NATURE DES DONNÉES COLLECTÉES ET FINALITÉS.</b> L'Éditeur collecte, via l'infrastructure technique de tiers mandatés (Google Cloud Platform / Firebase), des données strictement nécessaires à l'interopérabilité logicielle. Ces données incluent sans s'y limiter : l'adresse de protocole de messagerie électronique (e-mail), l'identifiant alphanumérique de session unique (UID), les métadonnées de progression incluant l'inventaire numérique (cartes, boosters, fragments, speedies) et les variables de persistance de session. La finalité exclusive est le maintien de l'intégrité de la base de données relationnelle associée au compte de l'Utilisateur.</p>
+
+    <p><b>ARTICLE 3. SOUS-TRAITANCE ET TRANSFERT TRANSFRONTALIER.</b> Les données susmentionnées sont hébergées sur des clusters de serveurs dont la localisation géographique peut être située hors de l'Espace Économique Européen (EEE). L'Utilisateur consent expressément au transfert de ses données vers les infrastructures de Google LLC, régies par des clauses contractuelles types approuvées par la Commission Européenne. L'Éditeur ne saurait être tenu responsable d'une interruption de service liée à une défaillance de l'infrastructure tierce.</p>
+
+    <p><b>ARTICLE 4. CONSERVATION ET ARCHIVAGE.</b> Les données sont conservées pour une durée n'excédant pas celle nécessaire aux finalités pour lesquelles elles sont collectées. En l'espèce, les données sont maintenues tant que le compte est actif. Conformément à l'article 17 du RGPD, l'Utilisateur dispose d'un droit à l'effacement. Nonobstant ce qui précède, certaines données techniques anonymisées peuvent être conservées à des fins purement statistiques de diagnostic de charge serveur.</p>
+
+    <p><b>ARTICLE 5. SÉCURITÉ ET INTÉGRITÉ.</b> L'Éditeur met en œuvre des mesures techniques et organisationnelles appropriées (Security Rules Firestore) pour garantir un niveau de sécurité adapté au risque, incluant le chiffrement au repos et en transit. Toutefois, l'Utilisateur est informé que la sécurité absolue sur le réseau internet n'existe pas, et l'Éditeur décline toute responsabilité en cas de compromission des identifiants d'accès imputable à la négligence de l'Utilisateur.</p>
+
+    <p><b>ARTICLE 6. MODIFICATIONS ET MISES À JOUR.</b> L'Éditeur se réserve le droit unilatéral de modifier la présente Politique à tout moment afin de se conformer aux évolutions législatives ou techniques. La version prévalente est celle accessible en temps réel au sein de l'interface logicielle. La continuation de l'utilisation du service après modification vaut acceptation tacite des nouvelles dispositions.</p>
+
+    <p style="font-size: 0.55rem; color: #475569; margin-top: 25px;">Document généré par le protocole légal automatisé - Version 2026.4.6 - Tous droits réservés.</p>
+</div>
+
+        <button onclick="document.getElementById('privacyModal').style.display='none'" style="width: 100%; background: #7c3aed; color: white; padding: 14px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); font-size: 0.9rem;">
+            J'AI COMPRIS
+        </button>
+    </div>
+</div>
 
 
 
@@ -2601,6 +2769,95 @@ disableSite(false);
 
 
 
+async function confirmDeleteAccount() {
+    const user = auth.currentUser;
+
+    if (!user) {
+        alert("Tu dois être connecté pour faire ça.");
+        return;
+    }
+
+    const firstCheck = confirm("⚠️ Es-tu sûr de vouloir supprimer ton compte ?");
+    if (!firstCheck) return;
+
+    const secondCheck = confirm("Dernier avertissement : Toutes tes cartes et tes fragments seront PERDUS à jamais. Continuer ?");
+    if (!secondCheck) return;
+
+    try {
+        // --- ÉTAPE 0 : DÉSACTIVER LES LISTENERS ---
+        // Si tu as une variable pour ton listener (ex: unsubscribe), appelle-la !
+        if (typeof unsubscribeProfil === "function") unsubscribeProfil();
+        if (typeof unsubscribeMarket === "function") unsubscribeMarket();
+
+        // --- ÉTAPE 1 : Supprimer les données Firestore d'abord ---
+        // On le fait TANT QUE l'utilisateur est encore connecté.
+        const userId = user.uid;
+        await db.collection("users").doc(userId).delete();
+        console.log("✅ Données Firestore supprimées.");
+
+        // --- ÉTAPE 2 : Supprimer le compte Auth ensuite ---
+        // Une fois que les données sont parties, on supprime l'accès.
+        await user.delete();
+        console.log("✅ Compte Auth supprimé.");
+
+        alert("Compte supprimé avec succès. Adieu, champion.");
+        location.reload(); 
+
+    } catch (error) {
+        console.error("Erreur suppression :", error);
+
+        if (error.code === 'auth/requires-recent-login') {
+            alert("Sécurité : Déconnecte-toi et reconnecte-toi avant de supprimer ton compte.");
+        } else {
+            alert("Erreur lors de la suppression : " + error.message);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+// Fonction pour ouvrir la popup de confidentialité
+function openPrivacy() {
+    const privacy = document.getElementById('privacyModal');
+    const settings = document.getElementById('settingsMenu');
+    
+    if (privacy) {
+        // Affiche la popup en mode flex
+        privacy.style.setProperty('display', 'flex', 'important');
+        // Force le z-index au maximum pour passer devant le menu de connexion (qui est à 20000)
+        privacy.style.zIndex = "30000"; 
+        
+        // Optionnel : on peut assombrir le menu derrière si besoin
+        if (settings) settings.style.opacity = "0.5";
+    } else {
+        console.error("Erreur : L'élément 'privacyModal' est introuvable dans le HTML.");
+    }
+}
+
+// Fonction pour fermer la popup
+function closePrivacy() {
+    const privacy = document.getElementById('privacyModal');
+    const settings = document.getElementById('settingsMenu');
+    
+    if (privacy) {
+        privacy.style.display = 'none';
+        // On remet l'opacité normale si on l'avait changée
+        if (settings) settings.style.opacity = "1";
+    }
+}
+
+
+
+
+
+
 // Ouvre la fenêtre de sélection d'avatar
 function openAvatarPicker() {
     document.getElementById('avatarPickerModal').style.display = 'flex';
@@ -2611,8 +2868,8 @@ function closeAvatarPicker() {
     document.getElementById('avatarPickerModal').style.display = 'none';
 }
 
-// Met à jour l'avatar partout (HUD + Profil) et sauvegarde
-function updateProfileAvatar(newSrc) {
+
+async function updateProfileAvatar(newSrc) {
     // 1. Image du HUD
     const hudImg = document.getElementById('hudAvatar');
     if (hudImg) hudImg.src = newSrc;
@@ -2621,25 +2878,75 @@ function updateProfileAvatar(newSrc) {
     const profImg = document.getElementById('profileBigAvatar');
     if (profImg) profImg.src = newSrc;
     
-    // 3. Sauvegarde Locale
+    // 3. Sauvegarde Locale (pour affichage instantané au refresh)
     localStorage.setItem('userAvatar', newSrc);
+
+    // --- AJOUT SAUVEGARDE FIREBASE (Syntaxe Compat v9) ---
+    const user = firebase.auth().currentUser;
+    if (user) {
+        try {
+            // Utilisation de la syntaxe compatible avec tes scripts
+            const db = firebase.firestore();
+            await db.collection("users").doc(user.uid).update({
+                avatar: newSrc
+            });
+        } catch (error) {
+            console.error("Erreur de sauvegarde Firebase :", error);
+        }
+    }
 }
 
-// Gère l'importation d'une photo personnalisée
+// Gère l'importation d'une photo personnalisée (Conserve ton code intact)
 function handleCustomAvatar(input) {
     const file = input.files[0];
     if (file) {
-        if (file.size > 1024 * 1024) { // Limite 1Mo
-            alert("L'image est trop lourde !");
+        if (file.size > 1024 * 1024) { // Limite 1Mo pour éviter l'erreur de taille Firestore
+            alert("L'image est trop lourde ! (Max 1Mo)");
             return;
         }
         const reader = new FileReader();
         reader.onload = function(e) {
+            // Appelle la fonction ci-dessus qui fait maintenant le save Firebase
             updateProfileAvatar(e.target.result);
         };
         reader.readAsDataURL(file);
     }
 }
+
+// --- IMPORTANT : AJOUTE CECI DANS TON SCRIPT DE CHARGEMENT ---
+// Pour que l'avatar revienne au refresh
+function restaurerAvatarAuChargement() {
+    // 1. D'abord on vérifie le localStorage (très rapide)
+    const savedAvatar = localStorage.getItem('userAvatar');
+    if (savedAvatar) {
+        if (document.getElementById('hudAvatar')) document.getElementById('hudAvatar').src = savedAvatar;
+        if (document.getElementById('profileBigAvatar')) document.getElementById('profileBigAvatar').src = savedAvatar;
+    }
+
+    // 2. Puis on synchronise avec Firebase au cas où l'utilisateur a changé d'appareil
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
+                if (doc.exists && doc.data().avatar) {
+                    const fbAvatar = doc.data().avatar;
+                    
+                    // On met à jour les images si elles existent dans le DOM
+                    const hud = document.getElementById('hudAvatar');
+                    const prof = document.getElementById('profileBigAvatar');
+                    
+                    if (hud) hud.src = fbAvatar;
+                    if (prof) prof.src = fbAvatar;
+                    
+                    // On met à jour le localStorage avec la version la plus récente de Firebase
+                    localStorage.setItem('userAvatar', fbAvatar);
+                }
+            }).catch(err => console.error("Erreur récup avatar:", err));
+        }
+    });
+}
+
+// APPEL DE LA FONCTION : N'oublie pas de l'appeler pour qu'elle s'exécute
+restaurerAvatarAuChargement();
 
 
 
@@ -2650,10 +2957,33 @@ function handleCustomAvatar(input) {
 
 
 // 1. Fonction pour ouvrir le menu
-function openSettings() {
+function openSettings(event) {
+    // --- SÉCURITÉ ANTI-RETOUR ACCUEIL ---
+    // Empêche le clic de se propager aux éléments parents (le HUD) 
+    // qui forcent souvent un retour à l'accueil.
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+    }
+
     const menu = document.getElementById('settingsMenu');
     if (menu) {
-        menu.style.display = 'flex';
+        // On utilise setProperty avec !important pour gagner contre tout CSS existant
+        menu.style.setProperty('display', 'flex', 'important');
+        
+        // On s'assure qu'il est devant TOUT le reste (HUD, cartes, rubriques)
+        menu.style.zIndex = "100000"; 
+
+        // Bloquer le scroll du jeu en arrière-plan
+        document.body.style.overflow = 'hidden';
+
+        // CACHER LA FLÈCHE DE SCROLL (ton bouton scrollToBottom)
+        const fleche = document.getElementById('scrollToBottom');
+        if (fleche) {
+            fleche.style.setProperty('display', 'none', 'important');
+        }
+
     } else {
         console.error("Le menu settingsMenu est introuvable dans le HTML");
     }
@@ -2662,7 +2992,16 @@ function openSettings() {
 // 2. Fonction pour fermer le menu
 function closeSettingsMenu() {
     const menu = document.getElementById('settingsMenu');
-    if (menu) menu.style.display = 'none';
+    if (menu) {
+        menu.style.display = 'none';
+
+        // Réactiver le scroll et la flèche
+        document.body.style.overflow = 'auto';
+        const fleche = document.getElementById('scrollToBottom');
+        if (fleche) {
+            fleche.style.setProperty('display', 'flex', 'important');
+        }
+    }
 }
 
 // 3. Fonction pour la musique (à lier au bouton DANS le menu)
@@ -2690,11 +3029,15 @@ function toggleMusicFromMenu() {
 
 
 
+
 const menuButtons = ['tabHome', 'tabCollection', 'tabShop', 'tabAllCards', 'tabCombat'];
 
 menuButtons.forEach(id => {
     const btn = document.getElementById(id);
     if(btn) {
+        // Applique une transition CSS directement pour garantir la fluidité
+        btn.style.transition = "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+
         btn.addEventListener('click', function() {
             // 1. On remet tous les boutons en mode "normal" (bleu/transparent)
             menuButtons.forEach(otherId => {
@@ -2705,6 +3048,7 @@ menuButtons.forEach(id => {
                     otherBtn.style.color = "white";
                     otherBtn.style.borderRadius = "0";
                     otherBtn.style.boxShadow = "none";
+                    otherBtn.style.transform = "scale(1)";
                 }
             });
 
@@ -2714,15 +3058,28 @@ menuButtons.forEach(id => {
             this.style.color = "#111a2e";
             this.style.borderRadius = "15px 15px 0 0";
             this.style.boxShadow = "0 -5px 15px rgba(251, 189, 36, 0.3)";
+            
+            // Petit effet de rebond au clic
+            this.style.transform = "scale(1.02)";
+            setTimeout(() => { this.style.transform = "scale(1)"; }, 150);
 
             // AJOUT UNIQUEMENT POUR LE BATTLE PASS
             const bp = document.getElementById('hudBattlePass');
             if(bp) {
                 bp.style.display = (id === 'tabHome') ? 'flex' : 'none';
+                
+                // On applique aussi le fondu au Battle Pass s'il s'affiche
+                if(id === 'tabHome') {
+                    bp.classList.remove("section-fade");
+                    void bp.offsetWidth;
+                    bp.classList.add("section-fade");
+                }
             }
         });
     }
 });
+
+
 
 
 
@@ -2763,6 +3120,7 @@ function syncSubwayHUD() {
 
     // 4. On synchronise le Niveau et le Pseudo
     const sourceLvl = document.getElementById("profileLevelStat");
+
     const targetLvl = document.getElementById("hudLevel");
     if(sourceLvl && targetLvl) {
         targetLvl.innerText = sourceLvl.innerText;
@@ -4111,52 +4469,61 @@ function toggleXPBar() {
 }
 
 async function ajouterXP(montant) {
-    
+    // On garde ton calcul de base
     let niveauAvant = calculerNiveau(xp);
     xp += montant;
     
-    // 1. Sauvegarde Locale
+    // 1. Sauvegarde Locale (Inchangé)
     localStorage.setItem("xp", xp); 
     
+    // On prépare le niveau après ajout pour la suite
+    let niveauApres = calculerNiveau(xp);
+    let passageDeNiveau = niveauApres > niveauAvant;
+
     // 2. SAUVEGARDE SUR FIREBASE
     const user = auth.currentUser;
     
     if (user) {
         try {
-            // On calcule le niveau actuel pour l'envoyer aussi (plus propre pour ta base)
-            let niveauActuel = calculerNiveau(xp);
-
-            await db.collection("users").doc(user.uid).set({
+            // DONNÉES À SAUVEGARDER
+            let dataToSave = {
                 xp: xp,
-                level: niveauActuel, // On l'ajoute ici pour qu'il soit créé sur le serveur
+                level: niveauApres,
                 dust: dust 
-            }, { merge: true });
+            };
 
+            // Si on monte de niveau, on ajoute les 100 Dust au même pack de sauvegarde
+            // pour éviter de faire deux "set" séparés qui font bugger les alertes
+            if (passageDeNiveau) {
+                dust += 100;
+                dataToSave.dust = dust;
+            }
+
+            await db.collection("users").doc(user.uid).set(dataToSave, { merge: true });
 
         } catch (error) {
             console.error("❌ ERREUR Firebase : La sauvegarde a échoué. Vérifie tes Rules !", error);
         }
     } else {
-        console.warn("⚠️ ATTENTION : Aucun utilisateur connecté. L'XP est uniquement locale (perdue au refresh).");
+        console.warn("⚠️ ATTENTION : Aucun utilisateur connecté. L'XP est uniquement locale.");
     }
     
-    // 3. Logique de passage de niveau
-    let niveauApres = calculerNiveau(xp);
-    if (niveauApres > niveauAvant) {
+    // 3. Logique de passage de niveau (Alerte unique)
+    if (passageDeNiveau) {
         console.log("🎊 Passage de niveau détecté ! Niveau " + niveauAvant + " -> " + niveauApres);
-        alert("🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant Niveau " + niveauApres);
-        dust += 100; 
-        save("dust", dust);
         
-        if (user) {
-            db.collection("users").doc(user.uid).set({ dust: dust }, { merge: true })
-              .then(() => console.log("🎁 Cadeau de niveau (Dust) synchronisé."));
-        }
+        // L'alerte est ici, elle ne s'affichera qu'une fois car on a regroupé les saves
+        alert("🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant Niveau " + niveauApres + "\n🎁 +100 Dust offerts !");
+        
+        // Sauvegarde locale du nouveau montant de dust
+        save("dust", dust);
     }
 
-    // 4. Actualisation visuelle
+    // 4. Actualisation visuelle (Inchangé)
     actualiserProfil(); 
 }
+
+
 
 
 
@@ -4168,7 +4535,14 @@ function actualiserProfil() {
 
     // 2. NIVEAU ET RANG
     const niveau = (typeof calculerNiveau === "function") ? calculerNiveau(vXP) : 1;
-    if (document.getElementById("profileLevelStat")) document.getElementById("profileLevelStat").innerText = niveau;
+    
+    // Mise à jour du niveau sur les deux éléments (Battle Pass et Profil)
+    if (document.getElementById("profileLevelStat")) {
+        document.getElementById("profileLevelStat").innerText = niveau;
+    }
+    if (document.getElementById("profileLevelStat2")) {
+        document.getElementById("profileLevelStat2").innerText = niveau;
+    }
 
     // 3. BARRE D'XP
     try {
@@ -4212,6 +4586,7 @@ function actualiserProfil() {
         }, 50);
     }
 }
+
 
 
 
@@ -6238,6 +6613,12 @@ function showCombat() {
 
     // 3. On affiche la section Combat
     combatSection.style.display = "flex";
+
+    // --- AJOUT TRANSITION FLUIDE ---
+    combatSection.classList.remove("section-fade");
+    void combatSection.offsetWidth; // Force le redémarrage de l'animation
+    combatSection.classList.add("section-fade");
+    // -------------------------------
     
     // --- GESTION DES BOUTONS DE NAVIGATION ---
     // On s'assure que le bouton musique est au-dessus du combat mais sous le futur menu duel
@@ -6610,6 +6991,12 @@ function showShop() {
     allCardsSection.style.display = "none";
     shopSection.style.display = "block";
     combatSection.style.display = "none";
+
+    // --- AJOUT TRANSITION FLUIDE ---
+    shopSection.classList.remove("section-fade");
+    void shopSection.offsetWidth; // Force le redémarrage de l'animation
+    shopSection.classList.add("section-fade");
+    // -------------------------------
 
     // --- RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT ---
     const accountBtn = document.getElementById("accountBtn");
@@ -7200,6 +7587,11 @@ function showHome() {
     shopSection.style.display = "none";
     combatSection.style.display = "none";
 
+    // --- AJOUT TRANSITION FLUIDE (FONDU UNIQUEMENT) ---
+    homeSection.classList.remove("section-fade");
+    void homeSection.offsetWidth; // Reset l'animation
+    homeSection.classList.add("section-fade");
+
     // RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT
     const accountBtn = document.getElementById("accountBtn");
     const musicBtn = document.getElementById("musicBtn");
@@ -7208,6 +7600,9 @@ function showHome() {
 
     updateButtons();
 }
+
+
+
 
 function showCollection() {
     homeSection.style.display = "none";
@@ -7216,6 +7611,11 @@ function showCollection() {
     shopSection.style.display = "none";
     combatSection.style.display = "none";
 
+    // --- AJOUT TRANSITION FLUIDE (FONDU) ---
+    collectionSection.classList.remove("section-fade");
+    void collectionSection.offsetWidth; // Force le redémarrage de l'animation
+    collectionSection.classList.add("section-fade");
+
     // RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT
     const accountBtn = document.getElementById("accountBtn");
     const musicBtn = document.getElementById("musicBtn");
@@ -7225,6 +7625,7 @@ function showCollection() {
     updateButtons();
 }
 
+
 function showAllCards() {
     // Affiche uniquement la section "Chances d'obtention"
     homeSection.style.display = "none";
@@ -7232,6 +7633,11 @@ function showAllCards() {
     allCardsSection.style.display = "block";
     shopSection.style.display = "none";
     combatSection.style.display = "none";
+
+    // --- AJOUT TRANSITION FLUIDE (FONDU) ---
+    allCardsSection.classList.remove("section-fade");
+    void allCardsSection.offsetWidth; // Force le redémarrage de l'animation
+    allCardsSection.classList.add("section-fade");
 
     // RÉAFFICHER LES BOUTONS CACHÉS EN COMBAT
     const accountBtn = document.getElementById("accountBtn");
@@ -7257,6 +7663,8 @@ function showAllCards() {
         };
     }
 }
+
+
 
 
 
@@ -7655,6 +8063,30 @@ auth.onAuthStateChanged(async (user) => {
 
 
 
+// --- Traducteur d'erreurs Firebase ---
+function getAuthErrorMessage(errorCode) {
+    switch (errorCode) {
+        case 'auth/invalid-email':
+            return "L'adresse email n'est pas valide.";
+        case 'auth/user-disabled':
+            return "Ce compte a été désactivé.";
+        case 'auth/user-not-found':
+            return "Aucun compte trouvé avec cet email.";
+        case 'auth/wrong-password':
+            return "Mot de passe incorrect.";
+        case 'auth/email-already-in-use':
+            return "Cet email est déjà utilisé pour un autre compte.";
+        case 'auth/weak-password':
+            return "Le mot de passe est trop court (6 caractères min).";
+        case 'auth/network-request-failed':
+            return "Problème de connexion internet.";
+        case 'auth/too-many-requests':
+            return "Trop de tentatives. Réessaie plus tard.";
+        default:
+            return "Une erreur est survenue. Vérifie tes infos.";
+    }
+}
+
 // --- Connexion ---
 loginBtn.onclick = () => {
     const email = emailInput.value.trim();
@@ -7669,7 +8101,10 @@ loginBtn.onclick = () => {
             logoutBtn.style.display = "block";
             authError.textContent = "";
         })
-        .catch(err => authError.textContent = "Erreur de connexion : " + err.message);
+        .catch(err => {
+            // Utilisation du message personnalisé
+            authError.textContent = "Erreur de connexion : " + getAuthErrorMessage(err.code);
+        });
 };
 
 // --- Inscription ---
@@ -7677,7 +8112,7 @@ signupBtn.onclick = () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
     // On récupère le pseudo
-const username = document.getElementById("reg-username").value.trim();
+    const username = document.getElementById("reg-username").value.trim();
 
     // Vérification si le pseudo est rempli
     if (!username || username.length < 3) {
@@ -7689,14 +8124,21 @@ const username = document.getElementById("reg-username").value.trim();
         .then(userCredential => {
             const uid = userCredential.user.uid;
 
-            // Crée le document Firestore avec le PSEUDO
+            // Crée le document Firestore avec TOUS les champs nécessaires pour les règles
             db.collection("users").doc(uid).set({
                 username: username,      // Enregistrement du pseudo choisi
                 boostersOpened: 0,
                 collection: [],
-                dust: 0
+                dust: 0,
+                // --- AJOUTS INDISPENSABLES POUR DÉBLOQUER LES RÈGLES ---
+                xp: 0,
+                level: 1,
+                streakCount: 0,
+                isPremium: false,
+                claimedRewards: [],
+                lastUpdate: firebase.firestore.FieldValue.serverTimestamp() 
             }).then(() => {
-                console.log("Document utilisateur créé avec pseudo :", username);
+                console.log("Document utilisateur créé avec succès !");
                 loadUserData(uid);
                 loadBoosterCounter(uid);
                 authOverlay.style.display = "none";
@@ -7704,11 +8146,15 @@ const username = document.getElementById("reg-username").value.trim();
                 authError.textContent = "";
             }).catch(err => {
                 console.error("Erreur création doc :", err);
-                authError.textContent = "Erreur création profil : " + err.message;
+                authError.textContent = "Erreur création profil : " + getAuthErrorMessage(err.code);
             });
         })
-        .catch(err => authError.textContent = err.message);
+        .catch(err => {
+            authError.textContent = getAuthErrorMessage(err.code);
+        });
 };
+
+
 
 
 

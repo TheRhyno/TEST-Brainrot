@@ -1697,44 +1697,6 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-<div id="luckyBlockUI" style="display:none; margin-top: 15px; padding: 12px; background: rgba(30, 27, 75, 0.8); border: 2px solid #fbbf24; border-radius: 10px; text-align: center; transition: all 0.3s; position: relative;">
-    
-    <button id="btnSpeedy" title="Accélérer avec des Speedies" style="display:none; position: absolute; right: 10px; top: 10px; background:#fbbf24; color:black; border:none; width: 26px; height: 26px; border-radius: 50%; font-weight:bold; cursor:pointer; font-size: 1em; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10;">
-        ⚡
-    </button>
-
-    <div id="luckyBlockType" style="font-weight: bold; color: #fff; font-size: 1em; margin-bottom: 2px;">
-        Lucky Block
-    </div>
-
-    <div id="luckyTimerDisplay" style="color: #fbbf24; font-weight: bold; font-size: 0.9em; margin-bottom: 5px;">
-        🍀 Le Lucky Block s'ouvre dans : --:--:--
-    </div>
-
-<div id="speedyMenu" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:3px solid #fbbf24; border-radius:15px; padding:20px; z-index:100000; color:white; text-align:center; min-width:320px; box-shadow: 0 0 40px rgba(0,0,0,1);">
-    <h3 style="color:#fbbf24; margin-bottom:5px; margin-top:0;">⚡ Boosters de Temps</h3>
-    <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">Accélère l'ouverture de ton Lucky Block</p>
-    
-    <div style="display:flex; gap:10px; justify-content:center;">
-        <button onclick="appliquerBoost(1, 30)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
-            <b style="color:#fbbf24; font-size:1.1rem;">1 ⚡</b><br><small>-30 min</small>
-        </button>
-        <button onclick="appliquerBoost(3, 120)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
-            <b style="color:#fbbf24; font-size:1.1rem;">3 ⚡</b><br><small>-2h</small>
-        </button>
-        <button onclick="appliquerBoost(6, 300)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
-            <b style="color:#fbbf24; font-size:1.1rem;">6 ⚡</b><br><small>-5h</small>
-        </button>
-    </div>
-
-    <button onclick="document.getElementById('speedyMenu').style.display='none'" style="margin-top:15px; background:transparent; color:#666; border:none; cursor:pointer; font-size:0.8rem;">Annuler</button>
-</div>
-
-    <button id="btnRecupereLucky" onclick="ouvrirCadeauLuckyBlock()" style="display:none; margin-top: 8px; background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
-        🎁 RÉCUPÉRER !
-    </button>
-</div>
-
 
 
 
@@ -2135,10 +2097,9 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-
 <div id="subway-hud" style="position: fixed; top: 10px; left: 10px; right: 10px; z-index: 9000; pointer-events: none; display: flex; flex-direction: column; gap: 8px;">
+    
     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px;">
-        
         <div onclick="document.getElementById('accountSection').style.display='flex';" style="pointer-events: auto; display: flex; align-items: center; background: rgba(15, 23, 42, 0.9); padding: 4px 15px 4px 4px; border-radius: 40px 15px 15px 40px; border: 2px solid #7c3aed; backdrop-filter: blur(8px); cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
             <div style="position: relative; width: 42px; height: 42px;">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" id="hudAvatar" style="width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; background: #1e293b;">
@@ -2168,22 +2129,62 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
         </div>
     </div>
 
-    <div id="hudBattlePass" onclick="toggleBattlePass()" 
-         style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.7); padding: 5px 12px 5px 5px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); width: fit-content; transition: transform 0.1s; align-self: flex-start; z-index: 9500000; margin: 0;" 
-         onmousedown="this.style.transform='scale(0.96)'" 
-         onmouseup="this.style.transform='scale(1)'"> 
-
-        <img src="https://cdn.phototourl.com/free/2026-04-05-6939b451-4c0c-4db2-909e-1b1f5493094f.jpg" 
-             style="width: 80px; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: block;"> 
+    <div id="hudBottomRow" style="display: flex; align-items: stretch; gap: 17px; pointer-events: none;">
         
-        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;"> 
-            <span style="color: #fbbf24; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">Progression</span> 
-            <div style="width: 90px; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);"> 
-                <div id="bpHudProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); transition: width 0.4s;"></div> 
+        <div id="hudBattlePass" onclick="toggleBattlePass()" 
+             style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.7); padding: 5px 12px 5px 5px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); width: fit-content; transition: transform 0.1s; z-index: 9500000; margin: 0;" 
+             onmousedown="this.style.transform='scale(0.96)'" 
+             onmouseup="this.style.transform='scale(1)'"> 
+
+            <img src="https://cdn.phototourl.com/free/2026-04-05-6939b451-4c0c-4db2-909e-1b1f5493094f.jpg" 
+                 style="width: 80px; height: 42px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: block; object-fit: cover;"> 
+
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; justify-content: center;"> 
+                <span style="color: #fbbf24; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">Progression</span> 
+                <div style="width: 90px; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);"> 
+                    <div id="bpHudProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); transition: width 0.4s;"></div> 
+                </div> 
             </div> 
-        </div> 
+        </div>
+
+        <div id="luckyBlockUI" style="display:none; pointer-events: auto; background: rgba(30, 27, 75, 0.85); padding: 5px 12px; border-radius: 12px; backdrop-filter: blur(4px); border: 1.5px solid #fbbf24; align-items: center; gap: 10px; position: relative; min-width: 110px; box-sizing: border-box; transition: all 0.3s; margin: 0;">
+            <button id="btnSpeedy" onclick="document.getElementById('speedyMenu').style.display='block'" title="Accélérer avec des Speedies" style="display:none; position: absolute; right: -5px; top: -5px; background:#fbbf24; color:black; border:none; width: 18px; height: 18px; border-radius: 50%; font-weight:bold; cursor:pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                ⚡
+            </button>
+            <span style="font-size: 18px;">🍀</span>
+            <div style="display: flex; flex-direction: column; justify-content: center; gap: 3px; line-height: 1; flex: 1;">
+                <div id="luckyBlockType" style="font-weight: 900; color: rgba(255,255,255,0.6); font-size: 7px; text-transform: uppercase; letter-spacing: 0.3px;">Lucky Block</div>
+                
+                <div id="luckyTimerDisplay" style="color: #fbbf24; font-weight: 900; font-size: 11px; font-family: monospace; white-space: nowrap;">--:--:--</div>
+                
+                <button id="btnRecupereLucky" onclick="ouvrirCadeauLuckyBlock()" style="display:none; background: #10b981; color: white; border: none; padding: 4px 0; border-radius: 5px; cursor: pointer; font-weight: 900; font-size: 10px; text-transform: uppercase; width: 100%; letter-spacing: 0.5px; transition: 0.2s;">
+                    OUVRIR
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+
+<div id="speedyMenu" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:3px solid #fbbf24; border-radius:15px; padding:20px; z-index:100000; color:white; text-align:center; min-width:320px; box-shadow: 0 0 40px rgba(0,0,0,1); pointer-events: auto;">
+    <h3 style="color:#fbbf24; margin-bottom:5px; margin-top:0;">⚡ Boosters de Temps</h3>
+    <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">Accélère l'ouverture de ton Lucky Block</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+        <button onclick="appliquerBoost(1, 30)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
+            <b style="color:#fbbf24; font-size:1.1rem;">1 ⚡</b><br><small>-30 min</small>
+        </button>
+        <button onclick="appliquerBoost(3, 120)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
+            <b style="color:#fbbf24; font-size:1.1rem;">3 ⚡</b><br><small>-2h</small>
+        </button>
+        <button onclick="appliquerBoost(6, 300)" style="background:#222; color:white; border:1px solid #fbbf24; padding:10px; border-radius:10px; cursor:pointer; flex:1;">
+            <b style="color:#fbbf24; font-size:1.1rem;">6 ⚡</b><br><small>-5h</small>
+        </button>
+    </div>
+    <button onclick="document.getElementById('speedyMenu').style.display='none'" style="margin-top:15px; background:transparent; color:#666; border:none; cursor:pointer; font-size:0.8rem;">Annuler</button>
+</div>
+
+
+
+
 
 
 
@@ -4713,15 +4714,16 @@ let luckyInterval;
 let luckyBlockUnlockTime = null; 
 let luckyBlockReady = false; 
 
+
+
 function updateLuckyTimer(unlockTime, type) {
-    // On synchronise la variable globale avec la valeur reçue de Firebase
     luckyBlockUnlockTime = unlockTime;
 
     const ui = document.getElementById("luckyBlockUI");
     const timerText = document.getElementById("luckyTimerDisplay");
     const btn = document.getElementById("btnRecupereLucky");
     const typeText = document.getElementById("luckyBlockType");
-    const btnSpeedy = document.getElementById("btnSpeedy"); // Bouton pour utiliser les Speedies
+    const btnSpeedy = document.getElementById("btnSpeedy");
 
     if (!unlockTime) {
         if (ui) ui.style.display = "none";
@@ -4730,10 +4732,10 @@ function updateLuckyTimer(unlockTime, type) {
         return;
     }
 
-    if (ui) ui.style.display = "block";
-
-    if (typeText && type) {
-        typeText.innerText = type;
+    // --- MISE À JOUR DU TYPE ---
+    // Si 'type' est fourni (ex: "Rare"), on l'affiche, sinon on met "Lucky Block" par défaut
+    if (typeText) {
+        typeText.innerHTML = type ? type : "Lucky Block";
     }
 
     if (luckyInterval) clearInterval(luckyInterval);
@@ -4742,36 +4744,54 @@ function updateLuckyTimer(unlockTime, type) {
         const maintenant = Date.now();
         const reste = unlockTime - maintenant;
 
+        // --- CONDITION : AFFICHAGE UNIQUEMENT SUR L'ACCUEIL ---
+        const menuOuvert = document.getElementById('shopSection')?.style.display === 'flex' || 
+                           document.getElementById('inventorySection')?.style.display === 'flex' ||
+                           document.getElementById('accountSection')?.style.display === 'flex' ||
+                           document.getElementById('settingsSection')?.style.display === 'flex';
+
+        if (ui) {
+            if (menuOuvert) {
+                ui.style.display = "none";
+                if (document.getElementById('speedyMenu')) {
+                    document.getElementById('speedyMenu').style.display = "none";
+                }
+            } else {
+                ui.style.display = "flex"; 
+            }
+        }
+
         if (reste <= 0) {
-            // LE TEMPS EST ÉCOULÉ
             luckyBlockReady = true; 
             clearInterval(luckyInterval);
-            timerText.innerHTML = "✨ Ton cadeau est prêt !";
-            timerText.style.color = "#10b981";
-            btn.style.display = "inline-block"; 
-            ui.style.borderColor = "#10b981";   
             
-            // On cache le bouton d'accélération car c'est déjà prêt
+            // --- LOGIQUE DE REMPLACEMENT ---
+            if (timerText) timerText.style.display = "none"; // On cache le chrono (plus de texte "Prêt")
+            if (typeText) typeText.style.display = "block";  // On garde le type (ex: "Mythique")
+            
+            btn.style.display = "block"; // On affiche le bouton OUVRIR
+            ui.style.borderColor = "#10b981"; 
+            
             if (btnSpeedy) btnSpeedy.style.display = "none";
         } else {
-            // ON AFFICHE LE DÉCOMPTE
             luckyBlockReady = false;
-            const h = Math.floor(reste / 3600000);
-            const m = Math.floor((reste % 3600000) / 60000);
-            const s = Math.floor((reste % 60000) / 1000);
             
-            timerText.innerHTML = `🍀 Le Lucky Block s'ouvre dans : ${h}h ${m}m ${s}s`;
+            // --- AFFICHAGE PENDANT LE TIMER ---
+            if (timerText) {
+                timerText.style.display = "block"; // On réaffiche le chrono s'il était caché
+                const h = Math.floor(reste / 3600000);
+                const m = Math.floor((reste % 3600000) / 60000);
+                const s = Math.floor((reste % 60000) / 1000);
+                timerText.innerHTML = `${h}h ${m}m ${s}s`;
+                timerText.style.color = "#fbbf24";
+            }
+            
             btn.style.display = "none";
-            timerText.style.color = "#fbbf24";
             ui.style.borderColor = "#fbbf24";
 
-            // --- ⚡ LOGIQUE SPEEDIES MODIFIÉE (OUVRE LE MENU) ---
             if (btnSpeedy) {
                 btnSpeedy.style.display = "inline-block";
-                // On change le texte pour inviter à cliquer sur les formules
                 btnSpeedy.innerHTML = `⚡`; 
-                
-                // Au clic, on affiche l'interface des 3 formules
                 btnSpeedy.onclick = () => {
                     const menu = document.getElementById('speedyMenu');
                     if (menu) menu.style.display = 'block';
@@ -4780,6 +4800,10 @@ function updateLuckyTimer(unlockTime, type) {
         }
     }, 1000);
 }
+
+
+
+
 
 
 
@@ -4886,8 +4910,6 @@ async function appliquerBoost(cout, minutesAReduire) {
         alert("Erreur de connexion au serveur.");
     }
 }
-
-
 
 
 
@@ -5978,11 +6000,13 @@ function afficherQuetes(quetes) {
     if (!list) return;
     list.innerHTML = "";
 
-    // --- AJOUT DU BANDEAU DE PROGRESSION DU BONUS ---
+    // --- CALCUL DES ÉTATS DU BONUS ---
+    // On compte combien de quêtes sont finies (pour savoir si on peut récupérer le bonus)
+    const nbFinies = quetes.filter(q => q.fini).length;
+    // On garde nbRecuperees pour la barre de progression visuelle
     const nbRecuperees = quetes.filter(q => q.recuperee).length;
     const bonusFinalDonne = (typeof quetesActives !== 'undefined' && quetesActives.bonusFinalDonne);
     
-    // On définit les montants d'XP pour l'affichage
     const xpParQuete = 100;
     const xpBonusFinal = 400;
 
@@ -5995,19 +6019,38 @@ function afficherQuetes(quetes) {
         padding: 12px; 
         border-radius: 8px; 
         margin-bottom: 15px; 
-        border: 1px solid #4338ca; 
+        border: 1px solid ${nbFinies === 3 && !bonusFinalDonne ? '#fbbf24' : '#4338ca'}; 
         text-align: center;
     `;
 
+    // --- LOGIQUE DU CONTENU DU BANDEAU (BOUTON MANUEL) ---
+    let bonusUI = "";
+    if (bonusFinalDonne) {
+        // Cas 1 : Bonus déjà pris
+        bonusUI = `
+            <div style="font-weight: bold; color: #10b981; font-size: 0.9em;">🏆 OBJECTIF DU JOUR TERMINÉ</div>
+            <div style="font-size: 0.75em; color: #a5b4fc; margin-top: 4px;">✨ Bonus de 1000 💎 et ${xpBonusFinal} XP récupérés !</div>
+        `;
+    } else if (nbFinies === 3) {
+        // Cas 2 : Les 3 quêtes sont finies, on affiche le bouton de récupération manuel
+        bonusUI = `
+            <div style="font-weight: bold; color: #fbbf24; font-size: 0.9em; margin-bottom: 8px;">🎁 BONUS PRÊT !</div>
+            <button onclick="recupererBonusFinal()" style="background: #fbbf24; color: #1e1b4b; border: none; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-weight: 900; font-size: 10px; text-transform: uppercase; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                RÉCUPÉRER LE BONUS
+            </button>
+        `;
+    } else {
+        // Cas 3 : En cours de progression
+        bonusUI = `
+            <div style="font-weight: bold; color: #fbbf24; font-size: 0.9em;">🏆 OBJECTIF DU JOUR : ${nbFinies}/3</div>
+            <div style="font-size: 0.75em; color: #a5b4fc; margin-top: 4px;">Complétez tout pour : +1000 💎 | ✨ +${xpBonusFinal} XP</div>
+        `;
+    }
+
     bonusContainer.innerHTML = `
-        <div style="font-weight: bold; color: #fbbf24; font-size: 0.9em;">
-            🏆 OBJECTIF DU JOUR : ${nbRecuperees}/3
-        </div>
-        <div style="font-size: 0.75em; color: #a5b4fc; margin-top: 4px;">
-            ${bonusFinalDonne ? `✨ Bonus de 1000 💎 et ${xpBonusFinal} XP récupérés !` : `Complétez tout pour : +1000 💎 | ✨ +${xpBonusFinal} XP`}
-        </div>
+        ${bonusUI}
         <div style="width: 100%; background: #312e81; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
-            <div style="width: ${(nbRecuperees / 3) * 100}%; background: #fbbf24; height: 100%; transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+            <div style="width: ${(nbFinies / 3) * 100}%; background: #fbbf24; height: 100%; transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
         </div>
     `;
     list.appendChild(bonusContainer);
@@ -6031,7 +6074,6 @@ function afficherQuetes(quetes) {
 
         const item = document.createElement("div");
         item.className = "quest-item-animate";
-        // Délai progressif pour l'effet cascade
         item.style.animationDelay = `${(index + 2) * 0.1}s`;
         
         item.style.cssText = `
@@ -6071,76 +6113,126 @@ function afficherQuetes(quetes) {
 
 
 
+async function recupererBonusFinal() {
+    const user = firebase.auth().currentUser;
+    // On garde tes conditions de base et on s'assure que le bonus n'est pas déjà donné
+    if (!user || !quetesActives || quetesActives.bonusFinalDonne) return;
+
+    // --- AJOUT DE LA VÉRIFICATION DE SÉCURITÉ ---
+    // On vérifie que les 3 quêtes ont bien le statut 'fini' à true
+    const nbFinies = quetesActives.active.filter(q => q.fini).length;
+    if (nbFinies < 3) {
+        console.log("Le bonus n'est pas encore débloqué (Quêtes finies : " + nbFinies + "/3)");
+        return; 
+    }
+
+    try {
+        const MONTANT_BONUS = 1000;
+        const XP_BONUS_FINAL = 400;
+
+        // Mise à jour locale du montant de dust (Fragments/Diamants)
+        dust += MONTANT_BONUS;
+        
+        // On marque le bonus comme étant donné pour empêcher toute double récupération
+        quetesActives.bonusFinalDonne = true;
+
+        // Appel de la fonction de gain d'XP si elle existe
+        if (typeof ajouterXP === "function") await ajouterXP(XP_BONUS_FINAL);
+
+        // Mise à jour de la base de données Firebase
+        await db.collection("users").doc(user.uid).update({
+            dust: dust,
+            dailyQuests: quetesActives
+        });
+
+        // Mise à jour visuelle du compteur de dust si l'élément existe
+        if (document.getElementById("profileDust")) {
+            document.getElementById("profileDust").innerText = dust;
+        }
+
+        // Message de succès pour le joueur
+        alert("🌟 Bonus récupéré ! +1000 💎 et +400 XP");
+        
+        // Rafraîchissement de l'affichage pour faire disparaître le bouton
+        afficherQuetes(quetesActives.active);
+        
+    } catch (e) {
+        // Log de l'erreur en cas de problème avec Firebase ou le script
+        console.error("Erreur lors de la récupération du bonus final :", e);
+        // On remet éventuellement à false en cas d'échec critique de la DB pour permettre de réessayer
+        // quetesActives.bonusFinalDonne = false; 
+    }
+}
+
+
+
+
+
 
 async function recupererCadeauFirebase(index) {
     const user = firebase.auth().currentUser;
+    // Vérification de sécurité : utilisateur connecté et objet quêtes chargé
     if (!user || !quetesActives) return;
 
     let q = quetesActives.active[index];
 
-    // On vérifie que la quête est finie et pas encore encaissée
+    // --- CONDITION DE RÉCUPÉRATION ---
+    // On vérifie que la quête est terminée (fini) et qu'elle n'a pas déjà été encaissée
     if (q.fini && !q.recuperee) {
-        // 1. On marque immédiatement comme récupérée localement
-        q.recuperee = true;
         
-        // Mise à jour des Fragments de la quête
-        dust += q.recompense; 
+        // 1. Mise à jour locale immédiate
+        q.recuperee = true;
+        dust += q.recompense; // Ajout des fragments de la quête individuelle
 
         try {
-            // --- GAIN D'XP POUR LA QUÊTE ---
+            // --- GAIN D'XP INDIVIDUEL ---
             const XP_PAR_QUETE = 100;
             if (typeof ajouterXP === "function") {
                 await ajouterXP(XP_PAR_QUETE);
             }
 
-            // --- LOGIQUE DU BONUS FINAL ---
-            // On compte combien de quêtes sont marquées 'recuperee'
-            const nbRecuperees = quetesActives.active.filter(quest => quest.recuperee === true).length;
+            // --- ⚠️ MODIFICATION ICI : DÉSACTIVATION DU BONUS AUTO ---
+            // On commente la distribution auto pour laisser le bouton manuel apparaître
+            /* const nbRecuperees = quetesActives.active.filter(quest => quest.recuperee === true).length;
             let messageBonus = "";
 
-            // Si on a récupéré les 3 et que le bonus n'a pas encore été marqué comme donné
             if (nbRecuperees === 3 && quetesActives.bonusFinalDonne !== true) {
                 const MONTANT_BONUS = 1000;
                 const XP_BONUS_FINAL = 400;
-
                 dust += MONTANT_BONUS;
-                quetesActives.bonusFinalDonne = true; // On bloque le bonus
-                
+                quetesActives.bonusFinalDonne = true; 
                 if (typeof ajouterXP === "function") {
                     await ajouterXP(XP_BONUS_FINAL);
                 }
-
                 messageBonus = `\n\n🌟 BONUS QUOTIDIEN : +${MONTANT_BONUS} Fragments & +${XP_BONUS_FINAL} XP !`;
             }
+            */
 
-            // 2. Sauvegarde UNIQUE et synchronisée sur Firebase
-            // On utilise .update pour ne pas écraser le reste du document user
+            // 2. SAUVEGARDE SYNCHRONISÉE SUR FIREBASE
+            // On sauvegarde la quête comme "récupérée"
             await db.collection("users").doc(user.uid).update({
                 dust: dust,
                 dailyQuests: quetesActives
             });
 
-
+            // 3. MISE À JOUR VISUELLE
             if (document.getElementById("profileDust")) {
                 document.getElementById("profileDust").innerText = dust;
             }
             
-            // 5. Rafraîchir la liste
+            // Recharger l'affichage : C'est ici que le bouton jaune "RÉCUPÉRER LE BONUS" va apparaître
             afficherQuetes(quetesActives.active);
             
-            // Message final
-            alert(`🎁 +${q.recompense} Fragments & +${XP_PAR_QUETE} XP récupérés !${messageBonus}`);
+            // 4. FEEDBACK UTILISATEUR
+            alert(`🎁 +${q.recompense} Fragments & +${XP_PAR_QUETE} XP récupérés !`);
             
         } catch (error) {
             console.error("Erreur lors de la récupération :", error);
-            // En cas d'erreur, on remet à false pour permettre de réessayer
             q.recuperee = false; 
-            alert("Erreur de connexion à Firebase. Réessaie.");
+            alert("Erreur de connexion à Firebase. Tes gains n'ont pas été enregistrés. Réessaie.");
         }
     }
 }
-
-
 
 
 async function avancerQuete(type, montant = 1) {
@@ -6163,23 +6255,21 @@ async function avancerQuete(type, montant = 1) {
                     await ajouterXP(xpQuete);
                 }
 
-                // --- ✨ DÉTECTION DU BONUS DES 3 QUÊTES FINIES ---
+                // --- MODIFICATION : DÉTECTION DU BONUS (SANS DISTRIBUTION AUTO) ---
                 // On vérifie si les 3 quêtes sont maintenant à l'état 'fini'
                 const nbFinies = quetesActives.active.filter(quest => quest.fini === true).length;
                 
                 if (nbFinies === 3 && quetesActives.bonusFinalDonne !== true) {
-                    const MONTANT_BONUS = 1000;
+                    // Les lignes ci-dessous sont neutralisées pour permettre la récupération manuelle via le bouton
+                    /* const MONTANT_BONUS = 1000;
                     const XP_BONUS_FINAL = 400;
-
                     dust += MONTANT_BONUS;
-                    quetesActives.bonusFinalDonne = true; // On marque le bonus comme donné
+                    quetesActives.bonusFinalDonne = true; 
+                    if (typeof ajouterXP === "function") { await ajouterXP(XP_BONUS_FINAL); }
+                    alert(`🏆 EXCEPTIONNEL ! Tu as terminé les 3 quêtes !`); 
+                    */
                     
-                    if (typeof ajouterXP === "function") {
-                        await ajouterXP(XP_BONUS_FINAL);
-                    }
-
-
-                    alert(`🏆 EXCEPTIONNEL ! Tu as terminé les 3 quêtes !\n🌟 Bonus débloqué : +${MONTANT_BONUS} Fragments & +${XP_BONUS_FINAL} XP !`);
+                    console.log("Les 3 quêtes sont finies. Le bouton de récupération manuelle est maintenant disponible.");
                 }
             }
             aChange = true;
@@ -6189,7 +6279,7 @@ async function avancerQuete(type, montant = 1) {
     if (aChange) {
         const user = firebase.auth().currentUser;
         if(user) {
-            // Sauvegarde de l'état (incluant bonusFinalDonne et le nouveau montant de dust)
+            // Sauvegarde de l'état (On sauvegarde la progression, mais dust n'augmente pas ici pour le bonus)
             await db.collection("users").doc(user.uid).update({ 
                 dailyQuests: quetesActives,
                 dust: dust 
@@ -6201,9 +6291,6 @@ async function avancerQuete(type, montant = 1) {
         }
     }
 }
-
-
-
 
 // Lancement au démarrage (Assure-toi que Firebase est prêt)
 firebase.auth().onAuthStateChanged((user) => {
@@ -6225,18 +6312,14 @@ firebase.auth().onAuthStateChanged((user) => {
 
                 // --- 🎁 SYNCHRONISATION DU LUCKY BLOCK (RÉTABLISSEMENT DU TIMER) ---
                 if (data.luckyBlockUnlockTime) {
-                    // Si un temps de déblocage existe, on relance le chrono visuel
                     if (typeof updateLuckyTimer === "function") {
-                        // MODIFICATION : On ajoute data.luckyBlockType pour mettre à jour le nom à l'écran
                         updateLuckyTimer(data.luckyBlockUnlockTime, data.luckyBlockType);
                     }
                 } else {
-                    // Si aucun chrono n'est actif, on cache l'interface par sécurité
                     const luckyUI = document.getElementById("luckyBlockUI");
                     if (luckyUI) luckyUI.style.display = "none";
                 }
 
-                
                 const profileDust = document.getElementById("profileDust");
                 if (profileDust) profileDust.innerText = dust;
 
@@ -6697,9 +6780,17 @@ function ecouterLaPartie() {
             if (battleInfo) battleInfo.innerText = "En attente d'un adversaire...";
         }
 
-        // --- 2. DÉTECTION DU SIGNAL DE DÉPART ---
+        // --- 2. DÉTECTION DU SIGNAL DE DÉPART (SYNCHRONISÉ) ---
         if (data.status === "processing") {
             combatEnCours = true; 
+
+            // --- ✨ NOUVEAUTÉ : Validation de quête pour les DEUX joueurs ---
+            // Puisque les deux joueurs écoutent ce changement de statut, 
+            // la quête avance sur les deux comptes simultanément.
+            if (typeof avancerQuete === "function") {
+                avancerQuete("combat", 1);
+            }
+
             if (btnStart) {
                 btnStart.disabled = true;
                 btnStart.style.display = "none";
@@ -6710,7 +6801,7 @@ function ecouterLaPartie() {
                 statusDiv.innerHTML = "<span style='color:#facc15; font-weight:bold;'>🔥 CALCUL DU VAINQUEUR... 🔥</span>";
             }
 
-            console.log("🚀 Lancement du combat synchronisé...");
+            console.log("🚀 Lancement du combat synchronisé pour les deux joueurs...");
             executerCalculCombat(); 
             return; 
         }
@@ -6734,6 +6825,7 @@ function ecouterLaPartie() {
         }
     });
 }
+
 
 
 
@@ -6911,10 +7003,11 @@ function preparerAdversaire() {
 
 
 async function lancerLeCombat() {
-    // 1. Appeler la quête en premier
-    if (typeof avancerQuete === "function") {
+
+    /* if (typeof avancerQuete === "function") {
         avancerQuete("combat", 1);
-    }
+    } 
+    */
 
     if (!currentRoomId || combatEnCours) return;
 
@@ -6924,7 +7017,7 @@ async function lancerLeCombat() {
     btn.disabled = true;
     btn.innerText = "Envoi du signal...";
 
-    // 2. IMPORTANT : On attend que la quête soit traitée avant de changer de statut
+    // 2. IMPORTANT : Le changement de statut va déclencher la quête chez TOUT LE MONDE
     await roomRef.update({ status: "processing" });
 }
 
@@ -7129,15 +7222,23 @@ function showCombat() {
         accountSection.style.display = "none";
     }
     
+    // --- MASQUER LE LUCKY BLOCK & BATTLE PASS (POUR LE COMBAT) ---
+    const hudBottomRow = document.getElementById("hudBottomRow");
+    const speedyMenu = document.getElementById("speedyMenu");
+    if (hudBottomRow) hudBottomRow.style.display = "none";
+    if (speedyMenu) speedyMenu.style.display = "none";
+
     // 2. On cache les éléments spécifiques "hors sections" 
     const btnPack = document.getElementById("openPack");
-    const btnReset = document.getElementById("resetCollection");
+    const btnReset = document.getElementById("resetCollection"); // C'est cet ID qui entre en conflit avec tes paramètres
     const textRemaining = document.getElementById("remaining");
     const accountBtn = document.getElementById("accountBtn"); 
     const musicBtn = document.getElementById("musicBtn"); // On récupère le bouton musique
 
     if (btnPack) btnPack.style.display = "none";
-    if (btnReset) btnReset.style.display = "none";
+    
+
+    
     if (textRemaining) textRemaining.style.display = "none";
     if (accountBtn) accountBtn.style.display = "none";
 
@@ -7164,7 +7265,6 @@ function showCombat() {
     combatSection.classList.remove("section-fade");
     void combatSection.offsetWidth; // Force le redémarrage de l'animation
     combatSection.classList.add("section-fade");
-    // -------------------------------
     
     // --- GESTION DES BOUTONS DE NAVIGATION ---
     // On s'assure que le bouton musique est au-dessus du combat mais sous le futur menu duel
@@ -7537,6 +7637,12 @@ function showShop() {
     allCardsSection.style.display = "none";
     shopSection.style.display = "block";
     combatSection.style.display = "none";
+
+    // --- MASQUER LE LUCKY BLOCK & BATTLE PASS (COMME DANS L'ACCUEIL) ---
+    const hudBottomRow = document.getElementById("hudBottomRow");
+    const speedyMenu = document.getElementById("speedyMenu");
+    if (hudBottomRow) hudBottomRow.style.display = "none";
+    if (speedyMenu) speedyMenu.style.display = "none";
 
     // --- AJOUT TRANSITION FLUIDE ---
     shopSection.classList.remove("section-fade");
@@ -8234,6 +8340,10 @@ function showHome() {
     shopSection.style.display = "none";
     combatSection.style.display = "none";
 
+    // --- RÉAFFICHER LE LUCKY BLOCK & BATTLE PASS (ACCUEIL) ---
+    const hudBottomRow = document.getElementById("hudBottomRow");
+    if (hudBottomRow) hudBottomRow.style.display = "flex";
+
     // --- AJOUT TRANSITION FLUIDE (FONDU UNIQUEMENT) ---
     homeSection.classList.remove("section-fade");
     void homeSection.offsetWidth; // Reset l'animation
@@ -8258,6 +8368,13 @@ function showCollection() {
     shopSection.style.display = "none";
     combatSection.style.display = "none";
 
+    // --- MASQUER LE LUCKY BLOCK & BATTLE PASS (COMME DANS L'ACCUEIL) ---
+    const hudBottomRow = document.getElementById("hudBottomRow");
+    const speedyMenu = document.getElementById("speedyMenu");
+    
+    if (hudBottomRow) hudBottomRow.style.display = "none";
+    if (speedyMenu) speedyMenu.style.display = "none";
+
     // --- AJOUT TRANSITION FLUIDE (FONDU) ---
     collectionSection.classList.remove("section-fade");
     void collectionSection.offsetWidth; // Force le redémarrage de l'animation
@@ -8273,6 +8390,7 @@ function showCollection() {
 }
 
 
+
 function showAllCards() {
     // Affiche uniquement la section "Chances d'obtention"
     homeSection.style.display = "none";
@@ -8280,6 +8398,12 @@ function showAllCards() {
     allCardsSection.style.display = "block";
     shopSection.style.display = "none";
     combatSection.style.display = "none";
+
+    // --- MASQUER LE LUCKY BLOCK & BATTLE PASS ---
+    const hudBottomRow = document.getElementById("hudBottomRow");
+    const speedyMenu = document.getElementById("speedyMenu");
+    if (hudBottomRow) hudBottomRow.style.display = "none";
+    if (speedyMenu) speedyMenu.style.display = "none";
 
     // --- AJOUT TRANSITION FLUIDE (FONDU) ---
     allCardsSection.classList.remove("section-fade");
@@ -8310,6 +8434,8 @@ function showAllCards() {
         };
     }
 }
+
+
 
 
 

@@ -7877,21 +7877,27 @@ function openPackSequence() {
         b.onmouseenter = () => b.style.transform = "scale(1.08)";
         b.onmouseleave = () => b.style.transform = "scale(1)";
 
-        b.onclick = () => { // Début du clic
-            // 🔊 ON JOUE LE SON TOUT DE SUITE (Lien direct avec le clic pour éviter le blocage)
+     b.onclick = () => {
+            // 🛡️ ANTI-SPAM : On vérifie l'état AVANT de jouer le son
+            if (isAnyBoosterOpening) return; 
+            
+            // 🔊 LE SON (Ne se lancera qu'une seule fois grâce au "return" au-dessus)
             soundBooster.currentTime = 0;
             const playPromise = soundBooster.play();
 
-            // Ensuite on gère la logique asynchrone séparément
-            (async () => {
-                if (isAnyBoosterOpening) return; 
-                isAnyBoosterOpening = true;
+            // ⚡ ON VERROUILLE TOUT DE SUITE
+            isAnyBoosterOpening = true;
 
+            // Ensuite on gère la logique asynchrone...
+            (async () => {
                 if (playPromise !== undefined) {
                     playPromise.catch(error => {
-                        console.log("❌ Blocage persistant :", error);
+                        console.log("❌ Blocage audio :", error);
                     });
                 }
+
+
+
 
                 if (b.classList.contains("booster-opening")) return;
                 b.classList.add("booster-opening");

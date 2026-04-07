@@ -731,6 +731,40 @@ body:has(#marketSection[style*="display: block"]) #subway-hud {
 
 
 
+/* On force les menus de vente à passer DEVANT le marché (qui est à 1 000 000) */
+#selectCardOverlay, #sellOverlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.9) !important; /* Fond bien noir pour cacher le marché derrière */
+    
+    /* LE FIX : On met une valeur supérieure à 1 000 000 */
+    z-index: 2000000 !important; 
+    
+    display: none; /* Toujours caché par défaut */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* On s'assure que le contenu interne est bien visible */
+#sellOverlay .overlay-content, #selectCardOverlay .overlay-content {
+    background: #162037;
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 400px;
+    width: 90%;
+    border: 2px solid #7c3aed;
+}
+
+
+
+
+
+
 
 #combatSection {
     display: none; 
@@ -1337,7 +1371,6 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-
 /* Animation du fond noir (Overlay) */
 @keyframes fadeInSettings {
     from { opacity: 0; }
@@ -1359,16 +1392,19 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 /* On applique l'animation au menu quand il passe en display: flex */
 #settingsMenu {
     animation: fadeInSettings 0.3s ease-out;
+    
+    /* AJOUT POUR LE SCROLL : */
+    overflow-y: auto; /* Active le défilement vertical */
+    padding: 20px 0;  /* Sécurité pour ne pas coller aux bords en scrollant */
 }
 
 /* On cible la div enfant (le rectangle bleu) pour l'effet de pop */
 #settingsMenu > div {
     animation: popSettings 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* AJOUT POUR LE SCROLL : */
+    flex-shrink: 0; /* Empêche le menu de se compresser pour tenir dans l'écran */
 }
-
-
-
-
 
 /* Animation de sortie pour le fond */
 @keyframes fadeOutSettings {
@@ -7970,7 +8006,7 @@ function toggleSFXFromMenu() {
 
 
 // Fonction pour déverrouiller l'audio
-const soundBooster = new Audio('https://s19.aconvert.com/convert/p3r68-cdx67/3ts1q-yzl69.mp3');
+const soundBooster = new Audio('https://raw.githubusercontent.com/TheRhyno/Musiques/main/creatorshome-pop-cartoon-328167.mp3');
 soundBooster.preload = 'auto';
 
 // 2. ENSUITE : Le système de déblocage (qui utilise soundBooster)
@@ -8494,6 +8530,7 @@ function refreshCollection(cardsToShow) {
     }
 
     // --- FILTRE : On ignore les Lucky Blocks pour ne pas fausser la collection ---
+// 1. Objets qui ne sont JAMAIS affichés (les coffres)
     const listLucky = [
         "Mythic Lucky Block", 
         "Brainrot God Lucky Block", 
@@ -8501,12 +8538,20 @@ function refreshCollection(cardsToShow) {
         "Admin Lucky Block"
     ];
 
-    // On filtre la collection possédée et la base totale pour le compteur
+    // 2. Objets qui ne comptent pas dans le TOTAL du jeu (Exclusivités)
+    const listExclu = ["Exclu Season 1"];
+
+    // On filtre la collection possédée (on garde tout sauf les blocks)
     const filteredCollection = collection.filter(c => !listLucky.includes(c.rarity));
-    const filteredAllCards = ALL_CARDS.filter(c => !listLucky.includes(c.rarity));
+
+    // On filtre la base totale : on enlève les blocks ET la Season 1 pour le dénominateur
+    const filteredAllCards = ALL_CARDS.filter(c => 
+        !listLucky.includes(c.rarity) && !listExclu.includes(c.rarity)
+    );
     
-    // On filtre les cartes à afficher en utilisant baseCards (qui est peut-être inversé)
+    // On filtre les cartes à afficher : on enlève seulement les blocks (la Season 1 reste visible)
     const cards = baseCards.filter(c => !listLucky.includes(c.rarity));
+
 
     // --- TABLEAU DE RÉFÉRENCE ---
     const expTable = {

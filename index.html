@@ -3246,6 +3246,13 @@ async function confirmDeleteAccount() {
 
 
 // Fonction pour ouvrir la popup de confidentialité
+// Fonction pour bloquer les gestes de zoom (2 doigts)
+function preventZoom(e) {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+    }
+}
+
 function openPrivacy() {
     const privacy = document.getElementById('privacyModal');
     
@@ -3258,6 +3265,13 @@ function openPrivacy() {
         
         // On s'assure qu'elle est au premier plan absolu
         privacy.style.zIndex = "9999999";
+
+        // --- AJOUT : SÉCURITÉ ANTI-ZOOM ET SCROLL ---
+        // On empêche le scroll du site derrière
+        document.body.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+        // On bloque le geste de "pincement" pour zoomer
+        document.addEventListener('touchmove', preventZoom, { passive: false });
         
     } else {
         console.error("L'élément privacyModal est introuvable !");
@@ -3268,6 +3282,13 @@ function closePrivacy() {
     const privacy = document.getElementById('privacyModal');
     if (privacy) {
         privacy.style.display = 'none';
+
+        // --- AJOUT : RÉTABLISSEMENT ---
+        // On redonne le contrôle du scroll au body
+        document.body.style.overflow = "";
+        document.body.style.touchAction = "";
+        // On retire la protection anti-zoom
+        document.removeEventListener('touchmove', preventZoom);
     }
 }
 
@@ -5005,7 +5026,7 @@ async function ajouterXP(montant) {
             await db.collection("users").doc(user.uid).set(dataToSave, { merge: true });
 
         } catch (error) {
-            console.error("❌ ERREUR Firebase : La sauvegarde a échoué. Vérifie tes Rules !", error);
+            console.error("❌ ERREUR Firebase : La sauvegarde a échoué.", error);
         }
     } else {
         console.warn("⚠️ ATTENTION : Aucun utilisateur connecté. L'XP est uniquement locale.");
@@ -8902,31 +8923,56 @@ auth.onAuthStateChanged(async (user) => {
 function getAuthErrorMessage(errorCode) {
     switch (errorCode) {
         case 'auth/invalid-email':
-            return "L'adresse email n'est pas valide.";
+            return "Adresse email invalide.";
+
         case 'auth/user-disabled':
-            return "Ce compte a été désactivé.";
+            return "Ce compte est indisponible. Contacte le support.";
+
         case 'auth/user-not-found':
-            return "Aucun compte trouvé avec cet email.";
         case 'auth/wrong-password':
-            return "Mot de passe incorrect.";
+        case 'auth/invalid-login-credentials': // ← nouveau code
+            return "Email ou mot de passe incorrect.";
+
         case 'auth/email-already-in-use':
-            return "Cet email est déjà utilisé pour un autre compte.";
+            return "Un compte existe déjà avec cet email.";
+
         case 'auth/weak-password':
-            return "Le mot de passe est trop court (6 caractères min).";
+            return "Mot de passe trop faible (6 caractères minimum).";
+
         case 'auth/network-request-failed':
-            return "Problème de connexion internet.";
+            return "Connexion impossible. Vérifie internet.";
+
         case 'auth/too-many-requests':
             return "Trop de tentatives. Réessaie plus tard.";
+
         default:
-            return "Une erreur est survenue. Vérifie tes infos.";
+            // Fallback pour codes inconnus liés au login
+            if (errorCode && (errorCode.toLowerCase().includes("password") || errorCode.toLowerCase().includes("login"))) {
+                return "Email ou mot de passe incorrect.";
+            }
+            return "Une erreur est survenue. Réessaie.";
     }
 }
+
 
 // --- Connexion ---
 loginBtn.onclick = () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
-    
+
+    // --- Vérification si les champs sont remplis ---
+    if (!email && !password) {
+        authError.textContent = "Email et mot de passe requis.";
+        return;
+    } else if (!email) {
+        authError.textContent = "Email requis.";
+        return;
+    } else if (!password) {
+        authError.textContent = "Mot de passe requis.";
+        return;
+    }
+
+    // --- Connexion Firebase ---
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
             const uid = userCredential.user.uid;
@@ -8937,8 +8983,12 @@ loginBtn.onclick = () => {
             authError.textContent = "";
         })
         .catch(err => {
-            // Utilisation du message personnalisé
-            authError.textContent = "Erreur de connexion : " + getAuthErrorMessage(err.code);
+
+            if ((!err.code || err.code === "") && err.message && err.message.toLowerCase().includes("password")) {
+                authError.textContent = "Email ou mot de passe incorrect.";
+            } else {
+                authError.textContent = getAuthErrorMessage(err.code);
+            }
         });
 };
 
@@ -8946,10 +8996,8 @@ loginBtn.onclick = () => {
 signupBtn.onclick = () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
-    // On récupère le pseudo
     const username = document.getElementById("reg-username").value.trim();
 
-    // Vérification si le pseudo est rempli
     if (!username || username.length < 3) {
         authError.textContent = "Choisis un pseudo d'au moins 3 caractères !";
         return;
@@ -8959,19 +9007,17 @@ signupBtn.onclick = () => {
         .then(userCredential => {
             const uid = userCredential.user.uid;
 
-            // Crée le document Firestore avec TOUS les champs nécessaires pour les règles
             db.collection("users").doc(uid).set({
-                username: username,      // Enregistrement du pseudo choisi
+                username: username,
                 boostersOpened: 0,
                 collection: [],
                 dust: 0,
-                // --- AJOUTS INDISPENSABLES POUR DÉBLOQUER LES RÈGLES ---
                 xp: 0,
                 level: 1,
                 streakCount: 0,
                 isPremium: false,
                 claimedRewards: [],
-                lastUpdate: firebase.firestore.FieldValue.serverTimestamp() 
+                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 console.log("Document utilisateur créé avec succès !");
                 loadUserData(uid);
@@ -8981,13 +9027,14 @@ signupBtn.onclick = () => {
                 authError.textContent = "";
             }).catch(err => {
                 console.error("Erreur création doc :", err);
-                authError.textContent = "Erreur création profil : " + getAuthErrorMessage(err.code);
+                authError.textContent = getAuthErrorMessage(err.code);
             });
         })
         .catch(err => {
             authError.textContent = getAuthErrorMessage(err.code);
         });
 };
+
 
 
 

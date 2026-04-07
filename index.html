@@ -9304,15 +9304,18 @@ logoutBtn.onclick = () => {
 
 
 // Sauvegarder les données sur Firebase
-function saveUserData(uid){
+function saveUserData(uid) {
   db.collection("users").doc(uid).set({
     collection: collection,
     dust: dust,
     daily: daily
-  }, { merge: true }) // merge = ne remplace pas tout
-  .then(() => 
+  }, { merge: true }) // merge = ne remplace pas tout le document, juste ces champs
+  .then(() => {
+
+  })
   .catch(err => console.error("❌ Erreur sauvegarde Firebase :", err));
 }
+
 
 
 // Charger les données depuis Firebase

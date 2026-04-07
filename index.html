@@ -7911,35 +7911,44 @@ function openPackSequence() {
         b.onmouseenter = () => b.style.transform = "scale(1.08)";
         b.onmouseleave = () => b.style.transform = "scale(1)";
 
+// ⚠️ RAPPEL : Ces 3 lignes doivent être TOUT EN HAUT de ton script.js
+let clickHistory = []; 
+let lastClickTimestamp = 0;
+const MAX_HISTORY = 10;
+
 b.onclick = () => {
-    // 1️⃣ --- 🛡️ DÉTECTION AUTO-CLICKER (RÉGULARITÉ) ---
+    // 1️⃣ --- 🛡️ DÉTECTION AUTO-CLICKER (RÉGULARITÉ & VITESSE) ---
     const now = Date.now();
     if (lastClickTimestamp !== 0) {
         const delta = now - lastClickTimestamp;
         clickHistory.push(delta);
         
         // On garde un historique des 10 derniers intervalles
-        if (clickHistory.length > 10) clickHistory.shift();
+        if (clickHistory.length > MAX_HISTORY) clickHistory.shift();
 
-        // Si on a assez de données, on vérifie la variance (la régularité)
-        if (clickHistory.length === 10) {
-            const avg = clickHistory.reduce((a, b) => a + b) / 10;
-            const variance = clickHistory.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / 10;
+        // Si on a assez de données (10 clics), on analyse
+        if (clickHistory.length === MAX_HISTORY) {
+            // Calcul de la moyenne
+            const avg = clickHistory.reduce((a, b) => a + b) / MAX_HISTORY;
+            // Calcul de la variance
+            const variance = clickHistory.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / MAX_HISTORY;
             
-            // Si la variance est < 5ms, c'est trop parfait pour un humain
-            if (variance < 5) { 
-                console.warn("🤖 Auto-clicker détecté (clics trop réguliers) !");
+            // TEST 1 : Vitesse pure (si les 10 clics ont pris moins de 1 seconde)
+            const totalDuration = clickHistory.reduce((a, b) => a + b);
+            
+            // TEST 2 : Régularité (variance < 20 c'est très suspect pour un humain)
+            if (variance < 20 || totalDuration < 1000) { 
+                console.warn("🤖 Auto-clicker détecté ! Variance:", variance);
 
-alert("⚠️ Détection d'auto-clic : Veuillez cliquer normalement pour continuer.");
+                alert("⚠️ Détection d'auto-clic : Veuillez cliquer normalement pour continuer.");
                 
+                // On vide TOUT pour forcer le bot à recommencer son cycle
                 clickHistory = [];
-
-
+                lastClickTimestamp = 0;
                 return; // Bloque l'exécution
             }
         }
     }
-
     lastClickTimestamp = now;
 
     // 2️⃣ --- 🛡️ ANTI-SPAM : On vérifie l'état AVANT de jouer le son ---
@@ -7962,6 +7971,7 @@ alert("⚠️ Détection d'auto-clic : Veuillez cliquer normalement pour continu
                 console.log("❌ Blocage audio :", error);
             });
         }
+       
 
 
 

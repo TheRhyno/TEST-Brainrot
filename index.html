@@ -1435,6 +1435,13 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+
+
+
+
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -1747,9 +1754,9 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 <div id="collectionSection" style="display:none; height: 100vh; width: 100%; position: fixed; top: 0; left: 0; overflow: hidden; z-index: 50;">
 
-  <div style="position: absolute; top: 12%; left: 50%; transform: translateX(-50%); z-index: 100; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+  <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); z-index: 100; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
     
-    <h2 style="margin: 0; color: white; text-align: center; text-transform: uppercase; letter-spacing: 2px;">
+    <h2 style="margin: 0; color: white; text-align: center; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem;">
       Ta collection
     </h2>
 
@@ -1757,15 +1764,15 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
       type="text" 
       id="searchCollection" 
       placeholder="Rechercher dans ta collection..." 
-      style="padding:10px; border-radius:8px; border:none; margin-top:15px; width:220px; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"
+      style="padding:6px 10px; border-radius:8px; border:none; margin-top:10px; width:200px; font-size: 0.85rem; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"
     >
 
-    <div style="margin-top: 15px; display: flex; gap: 8px; pointer-events: auto;">
-      <button id="showMissingBtn" style="padding:8px 12px; border-radius:8px; border:none; background:#7c3aed; color:#fff; cursor:pointer; font-size: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+    <div style="margin-top: 10px; display: flex; gap: 6px; pointer-events: auto;">
+      <button id="showMissingBtn" style="padding:6px 10px; border-radius:8px; border:none; background:#7c3aed; color:#fff; cursor:pointer; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
         Voir les cartes manquantes
       </button>
       
-      <button id="triRareteBtn" onclick="trierParRarete()" style="padding:8px 12px; border-radius:8px; border:none; background:#facc15; color:#000; cursor:pointer; font-weight:bold; font-size: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+      <button id="triRareteBtn" onclick="trierParRarete()" style="padding:6px 10px; border-radius:8px; border:none; background:#facc15; color:#000; cursor:pointer; font-weight:bold; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
         💎 Trier par Rareté
       </button>
     </div>
@@ -1773,17 +1780,17 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
   <div id="collection" class="cards" style="
       position: absolute; 
-      top: 33%; 
+      top: 29%; 
       left: 0; 
       width: 100%; 
-      height: 57%; 
+      height: 75%; 
       overflow-y: auto; 
       display: flex; 
       flex-wrap: wrap; 
       justify-content: center; 
       gap: 10px; 
       padding: 10px;
-      padding-bottom: 120px;
+      padding-bottom: 300px;
       box-sizing: border-box;
       scrollbar-width: none;">
   </div>
@@ -1831,7 +1838,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
       justify-content: center; 
       gap: 10px; 
       padding: 10px;
-      padding-bottom: 100px;
+      padding-bottom: 170px;
       box-sizing: border-box;
       scrollbar-width: none;">
   </div>
@@ -1908,7 +1915,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
       justify-content: center; 
       gap: 10px; 
       padding: 10px;
-      padding-bottom: 50px; 
+      padding-bottom: 160px; 
       box-sizing: border-box;
       scrollbar-width: none;">
       </div>
@@ -1988,9 +1995,17 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <input type="email" id="emailInput" placeholder="Email" style="padding:10px; margin:5px; border-radius:6px; border:none; width:220px;">
     <input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px; margin:5px; border-radius:6px; border:none; width:220px;">
 
-    <div style="width: 220px; margin-top: 15px; color: #cbd5e1; font-size: 0.7rem; text-align: center; line-height: 1.3;">
-        En vous inscrivant, vous acceptez la <span onclick="openPrivacy()" style="color: #3b82f6; text-decoration: underline; font-weight: bold; cursor: pointer;">politique de confidentialité</span>.
-    </div>
+
+
+<div style="width: 220px; margin-top: 15px; color: #cbd5e1; font-size: 0.7rem; text-align: center; line-height: 1.3;">
+    En vous inscrivant, vous acceptez la 
+    <span onclick="openPrivacy()" style="color: #3b82f6; text-decoration: underline; font-weight: bold; cursor: pointer;">
+        politique de confidentialité
+    </span>.
+</div>
+
+
+
 
     <div style="margin-top:20px;">
         <button id="loginBtn" style="margin-right:10px; padding: 10px 15px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold;">Connexion</button>
@@ -2328,10 +2343,13 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     </button>
 </div> 
 
-<p onclick="document.getElementById('privacyModal').style.display='flex'" 
-   style="cursor: pointer; color: #3b82f6; font-size: 0.7rem; text-decoration: underline; margin-bottom: 10px; opacity: 0.8; display: inline-block;">
+
+
+<p onclick="openPrivacy()" style="cursor: pointer; color: #3b82f6; font-size: 0.7rem; text-decoration: underline; margin-bottom: 10px; opacity: 0.8; display: inline-block;">
     Politique de confidentialité
 </p>
+
+
 
 <div style="margin-top: 10px; opacity: 0.5; font-size: 0.7rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
     <span id="app-version">v2.3.0</span><br>© 2026 BRAINROT TCG
@@ -2344,36 +2362,55 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+</div>
+</div>
 
-<div id="privacyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 999999 !important; align-items: center; justify-content: center; backdrop-filter: blur(15px); pointer-events: auto;">
-    <div style="background: #1e293b; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; border: 2px solid #7c3aed; color: white; font-family: sans-serif; box-shadow: 0 0 50px rgba(0,0,0,1); text-align: center; position: relative;">
+
+
+
+
+
+<div id="privacyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 999999 !important; align-items: center; justify-content: center; backdrop-filter: blur(15px); pointer-events: auto; opacity: 1 !important;">
+    <div style="background: #1e293b; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; border: 2px solid #7c3aed; color: white; font-family: sans-serif; box-shadow: 0 0 50px rgba(0,0,0,1); text-align: center; position: relative; opacity: 1 !important;">
         
         <h2 style="color: #7c3aed; margin-top: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;">Confidentialité</h2>
         
-<div style="text-align: justify; font-size: 0.65rem; line-height: 1.2; color: #94a3b8; margin: 20px 0; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); max-height: 300px; overflow-y: auto; font-family: serif;">
+        <div style="text-align: justify; font-size: 0.65rem; line-height: 1.2; color: #94a3b8; margin: 20px 0; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); max-height: 300px; overflow-y: auto; font-family: serif;">
     
-    <p style="text-align: center; font-weight: bold; color: #fff; margin-bottom: 15px;">POLITIQUE DE CONFIDENTIALITÉ ET CONDITIONS GÉNÉRALES DE TRAITEMENT DES DONNÉES À CARACTÈRE PERSONNEL (RÈGLEMENT UE 2016/679)</p>
+     <p style="text-align: center; font-weight: bold; color: #fff; margin-bottom: 15px;">POLITIQUE DE CONFIDENTIALITÉ ET CONDITIONS GÉNÉRALES DE TRAITEMENT DES DONNÉES À CARACTÈRE PERSONNEL (RÈGLEMENT UE 2016/679)</p>
+
 
     <p><b>ARTICLE 1. CADRE JURIDIQUE ET CHAMP D'APPLICATION.</b> La présente politique de confidentialité (ci-après "la Politique") définit les modalités selon lesquelles l'entité éditrice de Brainrot TCG (ci-après "l'Éditeur") procède au traitement des données à caractère personnel dans le strict respect du Règlement Général sur la Protection des Données (RGPD). En accédant aux services de l'application, l'utilisateur (ci-après "l'Utilisateur") reconnaît avoir pris connaissance des présentes dispositions de manière non équivoque.</p>
 
+
     <p><b>ARTICLE 2. NATURE DES DONNÉES COLLECTÉES ET FINALITÉS.</b> L'Éditeur collecte, via l'infrastructure technique de tiers mandatés (Google Cloud Platform / Firebase), des données strictement nécessaires à l'interopérabilité logicielle. Ces données incluent sans s'y limiter : l'adresse de protocole de messagerie électronique (e-mail), l'identifiant alphanumérique de session unique (UID), les métadonnées de progression incluant l'inventaire numérique (cartes, boosters, fragments, speedies) et les variables de persistance de session. La finalité exclusive est le maintien de l'intégrité de la base de données relationnelle associée au compte de l'Utilisateur.</p>
+
 
     <p><b>ARTICLE 3. SOUS-TRAITANCE ET TRANSFERT TRANSFRONTALIER.</b> Les données susmentionnées sont hébergées sur des clusters de serveurs dont la localisation géographique peut être située hors de l'Espace Économique Européen (EEE). L'Utilisateur consent expressément au transfert de ses données vers les infrastructures de Google LLC, régies par des clauses contractuelles types approuvées par la Commission Européenne. L'Éditeur ne saurait être tenu responsable d'une interruption de service liée à une défaillance de l'infrastructure tierce.</p>
 
+
     <p><b>ARTICLE 4. CONSERVATION ET ARCHIVAGE.</b> Les données sont conservées pour une durée n'excédant pas celle nécessaire aux finalités pour lesquelles elles sont collectées. En l'espèce, les données sont maintenues tant que le compte est actif. Conformément à l'article 17 du RGPD, l'Utilisateur dispose d'un droit à l'effacement. Nonobstant ce qui précède, certaines données techniques anonymisées peuvent être conservées à des fins purement statistiques de diagnostic de charge serveur.</p>
+
 
     <p><b>ARTICLE 5. SÉCURITÉ ET INTÉGRITÉ.</b> L'Éditeur met en œuvre des mesures techniques et organisationnelles appropriées (Security Rules Firestore) pour garantir un niveau de sécurité adapté au risque, incluant le chiffrement au repos et en transit. Toutefois, l'Utilisateur est informé que la sécurité absolue sur le réseau internet n'existe pas, et l'Éditeur décline toute responsabilité en cas de compromission des identifiants d'accès imputable à la négligence de l'Utilisateur.</p>
 
+
     <p><b>ARTICLE 6. MODIFICATIONS ET MISES À JOUR.</b> L'Éditeur se réserve le droit unilatéral de modifier la présente Politique à tout moment afin de se conformer aux évolutions législatives ou techniques. La version prévalente est celle accessible en temps réel au sein de l'interface logicielle. La continuation de l'utilisation du service après modification vaut acceptation tacite des nouvelles dispositions.</p>
 
-    <p style="font-size: 0.55rem; color: #475569; margin-top: 25px;">Document généré par le protocole légal automatisé - Version 2026.4.6 - Tous droits réservés.</p>
-</div>
 
-        <button onclick="document.getElementById('privacyModal').style.display='none'" style="width: 100%; background: #7c3aed; color: white; padding: 14px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); font-size: 0.9rem;">
+    <p style="font-size: 0.55rem; color: #475569; margin-top: 25px;">Document généré par le protocole légal automatisé - Version 2026.4.6 - Tous droits réservés.</p>
+
+</div> 
+
+
+        <button onclick="closePrivacy()" style="width: 100%; background: #7c3aed; color: white; padding: 14px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); font-size: 0.9rem;">
             J'AI COMPRIS
         </button>
     </div>
 </div>
+
+
+
 
 
 
@@ -3156,32 +3193,33 @@ async function confirmDeleteAccount() {
 // Fonction pour ouvrir la popup de confidentialité
 function openPrivacy() {
     const privacy = document.getElementById('privacyModal');
-    const settings = document.getElementById('settingsMenu');
     
     if (privacy) {
-        // Affiche la popup en mode flex
+        // On affiche la politique en plein écran
         privacy.style.setProperty('display', 'flex', 'important');
-        // Force le z-index au maximum pour passer devant le menu de connexion (qui est à 20000)
-        privacy.style.zIndex = "30000"; 
         
-        // Optionnel : on peut assombrir le menu derrière si besoin
-        if (settings) settings.style.opacity = "0.5";
+        // On force l'opacité à 1 au cas où
+        privacy.style.opacity = "1";
+        
+        // On s'assure qu'elle est au premier plan absolu
+        privacy.style.zIndex = "9999999";
+        
     } else {
-        console.error("Erreur : L'élément 'privacyModal' est introuvable dans le HTML.");
+        console.error("L'élément privacyModal est introuvable !");
     }
 }
 
-// Fonction pour fermer la popup
 function closePrivacy() {
     const privacy = document.getElementById('privacyModal');
-    const settings = document.getElementById('settingsMenu');
-    
     if (privacy) {
         privacy.style.display = 'none';
-        // On remet l'opacité normale si on l'avait changée
-        if (settings) settings.style.opacity = "1";
     }
 }
+
+
+
+
+
 
 
 
@@ -7792,6 +7830,36 @@ let isAnyBoosterOpening = false; // Placée en dehors pour être globale
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
 
+
+
+
+
+// Fonction pour déverrouiller l'audio
+const soundBooster = new Audio('https://s19.aconvert.com/convert/p3r68-cdx67/3ts1q-yzl69.mp3');
+soundBooster.preload = 'auto';
+
+// 2. ENSUITE : Le système de déblocage (qui utilise soundBooster)
+const unlockAudio = () => {
+    if (!soundBooster) return;
+    soundBooster.play().then(() => {
+        soundBooster.pause();
+        soundBooster.currentTime = 0;
+    }).catch(e => {
+
+    });
+
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+};
+
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
+
+
+
+
+
+
 function openPackSequence() {
     const chooseArea = document.getElementById("choosePackArea");
     chooseArea.style.display = "flex";
@@ -7809,184 +7877,191 @@ function openPackSequence() {
         b.onmouseenter = () => b.style.transform = "scale(1.08)";
         b.onmouseleave = () => b.style.transform = "scale(1)";
 
-        b.onclick = async () => {
-            if (isAnyBoosterOpening) return; 
-            isAnyBoosterOpening = true;
+        b.onclick = () => { // Début du clic
+            // 🔊 ON JOUE LE SON TOUT DE SUITE (Lien direct avec le clic pour éviter le blocage)
+            soundBooster.currentTime = 0;
+            const playPromise = soundBooster.play();
 
-            if (b.classList.contains("booster-opening")) return;
-            b.classList.add("booster-opening");
+            // Ensuite on gère la logique asynchrone séparément
+            (async () => {
+                if (isAnyBoosterOpening) return; 
+                isAnyBoosterOpening = true;
 
-            const flash = document.createElement("div");
-            flash.className = "flash-effect";
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 450);
-
-            setTimeout(async () => {
-                chooseArea.style.display = "none";
-
-                // --- TIRAGE ---
-                currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
-
-                // --- ⚡ NOTE : Le freeze a été déplacé dans showBigCard() ---
-                // Pour que ça ne bloque que quand la carte apparaît à l'écran.
-
-                avancerQuete("open", 1);
-                ajouterXP(50);
-
-                currentPack.forEach(c => {
-                    // --- 🎁 CAS SPÉCIAL : LUCKY BLOCKS ---
-                    const listLucky = [
-                        "Mythic Lucky Block", 
-                        "Brainrot God Lucky Block", 
-                        "Secret Lucky Block", 
-                        "Admin Lucky Block"
-                    ];
-
-                    if (listLucky.includes(c.rarity)) {
-                        const uiLucky = document.getElementById("luckyBlockUI");
-                        
-                        const luckyPower = {
-                            "Mythic Lucky Block": 1,
-                            "Brainrot God Lucky Block": 2,
-                            "Secret Lucky Block": 3,
-                            "Admin Lucky Block": 4
-                        };
-
-                        const currentLuckyName = document.getElementById("luckyBlockType")?.innerText || "";
-                        let activePower = 0;
-                        if (currentLuckyName.includes("Mythic")) activePower = 1;
-                        else if (currentLuckyName.includes("Brainrot")) activePower = 2;
-                        else if (currentLuckyName.includes("Secret")) activePower = 3;
-                        else if (currentLuckyName.includes("Admin")) activePower = 4;
-
-                        const newPower = luckyPower[c.rarity];
-
-                        if (uiLucky.style.display === "none" || newPower > activePower) {
-                            let heures = 2;
-                            if (c.rarity === "Brainrot God Lucky Block") heures = 6;
-                            if (c.rarity === "Secret Lucky Block") heures = 12;
-                            if (c.rarity === "Admin Lucky Block") heures = 24;
-
-                            const delai = heures * 60 * 60 * 1000; 
-                            
-                            luckyBlockUnlockTime = Date.now() + delai;
-                            luckyBlockType = String(c.rarity); 
-                            luckyBlockReady = false;
-
-                            if (activePower > 0) {
-                                console.log(`🚀 INCROYABLE ! Ton Lucky Block a été amélioré en ${c.rarity} !`);
-                            } else {
-                                console.log(`🍀 ${c.name} ! Cadeau débloqué dans ${heures}h.`);
-                            }
-
-                            if (typeof updateLuckyTimer === "function") {
-                                updateLuckyTimer(luckyBlockUnlockTime, luckyBlockType);
-                            }
-                        }
-                        return; 
-                    }
-
-                    // --- LOGIQUE CARTES NORMALES ---
-                    if (c.rarity === "Rare") avancerQuete("rare", 1);
-                    if (c.rarity === "Mythic") {
-                        avancerQuete("mythic", 1);
-                        ajouterXP(25);
-                    }
-                    if (c.rarity === "OG") ajouterXP(500);
-
-                    const existingCard = collection.find(card => card.name === c.name);
-                    
-                    if (!existingCard) {
-                        c.isNew = true;
-                        c.level = 1;
-                        c.exp = 0;
-                        collection.push({ ...c });
-                        ajouterXP(20);
-                    } else {
-                        c.isNew = false;
-                        avancerQuete("duplicate", 1);
-                        if (existingCard.level === undefined) existingCard.level = 1;
-                        if (existingCard.exp === undefined) existingCard.exp = 0;
-
-                        const expTable = { "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7, "Mythic": 4, "Brainrot God": 3, "Secret": 1, "OG": 1 };
-                        existingCard.exp = (existingCard.exp || 0) + 1;
-                        let needed = expTable[existingCard.rarity] || 10;
-
-                        while (existingCard.exp >= needed) {
-                            existingCard.exp -= needed;
-                            existingCard.level += 1;
-                            if (existingCard.level === 5) avancerQuete("lvlup", 1);
-                        }
-
-                        const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 10000 };
-                        dust += dustValues[c.rarity] || 1;
-                    }
-                });
-
-                // --- ⚡ MISE À JOUR LOCALE POUR LE TEMPS RÉEL ---
-                if (typeof window.boostersOpened !== "undefined") {
-                    window.boostersOpened++;
-                }
-
-                // Sauvegardes locales
-                save("collection", collection);
-                save("dust", dust);
-                updateStreak();
-
-                // --- SAUVEGARDE UNIQUE FIREBASE ---
-                const user = firebase.auth().currentUser;
-                if (user) {
-                    db.collection("users").doc(user.uid).set({
-                        collection: collection,
-                        dust: dust,
-                        xp: xp,
-                        level: level,
-                        streakCount: streakCount,
-                        boostersOpened: firebase.firestore.FieldValue.increment(1),
-                        lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
-                        luckyBlockUnlockTime: luckyBlockUnlockTime || null,
-                        luckyBlockType: (typeof luckyBlockType === "string") ? luckyBlockType : (luckyBlockType?.innerText || null),
-                        luckyBlockReady: luckyBlockReady || false
-                    }, { merge: true })
-                    .then(() => {
-                        // MISE À JOUR ACCUEIL
-                        const counterEl = document.getElementById("boosterCounter");
-                        if (counterEl) {
-                            let current = parseInt(counterEl.innerText.replace(/\D/g, "")) || 0;
-                            counterEl.innerText = `Boosters ouverts : ${current + 1}`;
-                        }
-                        
-                        // MISE À JOUR PROFIL
-                        const profBoosters = document.getElementById("profileBoosters");
-                        if (profBoosters) {
-                            let actuel = parseInt(profBoosters.innerText) || 0;
-                            profBoosters.innerText = actuel + 1;
-                        }
-
-                        // SYNCHRONISATION TOTALE DU PROFIL
-                        if (typeof actualiserProfil === "function") {
-                            actualiserProfil();
-                        }
-
-                        if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
-                        if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
-                    })
-                    .catch(err => {
-                        console.error("Erreur Firebase:", err);
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("❌ Blocage persistant :", error);
                     });
                 }
 
-                // Affichage direct de la première carte
-                currentCardIndex = 0;
-                showBigCard();
+                if (b.classList.contains("booster-opening")) return;
+                b.classList.add("booster-opening");
 
-                b.classList.remove("booster-opening");
-                isAnyBoosterOpening = false; 
+                const flash = document.createElement("div");
+                flash.className = "flash-effect";
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 450);
 
-            }, 500); 
-        }; 
-    }); 
-}
+                setTimeout(async () => {
+                    chooseArea.style.display = "none";
+
+                    // --- TIRAGE ---
+                    currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
+
+                    avancerQuete("open", 1);
+                    ajouterXP(50);
+
+                    currentPack.forEach(c => {
+                        // --- 🎁 CAS SPÉCIAL : LUCKY BLOCKS ---
+                        const listLucky = [
+                            "Mythic Lucky Block", 
+                            "Brainrot God Lucky Block", 
+                            "Secret Lucky Block", 
+                            "Admin Lucky Block"
+                        ];
+
+                        if (listLucky.includes(c.rarity)) {
+                            const uiLucky = document.getElementById("luckyBlockUI");
+                            
+                            const luckyPower = {
+                                "Mythic Lucky Block": 1,
+                                "Brainrot God Lucky Block": 2,
+                                "Secret Lucky Block": 3,
+                                "Admin Lucky Block": 4
+                            };
+
+                            const currentLuckyName = document.getElementById("luckyBlockType")?.innerText || "";
+                            let activePower = 0;
+                            if (currentLuckyName.includes("Mythic")) activePower = 1;
+                            else if (currentLuckyName.includes("Brainrot")) activePower = 2;
+                            else if (currentLuckyName.includes("Secret")) activePower = 3;
+                            else if (currentLuckyName.includes("Admin")) activePower = 4;
+
+                            const newPower = luckyPower[c.rarity];
+
+                            if (uiLucky.style.display === "none" || newPower > activePower) {
+                                let heures = 2;
+                                if (c.rarity === "Brainrot God Lucky Block") heures = 6;
+                                if (c.rarity === "Secret Lucky Block") heures = 12;
+                                if (c.rarity === "Admin Lucky Block") heures = 24;
+
+                                const delai = heures * 60 * 60 * 1000; 
+                                
+                                luckyBlockUnlockTime = Date.now() + delai;
+                                luckyBlockType = String(c.rarity); 
+                                luckyBlockReady = false;
+
+                                if (activePower > 0) {
+                                    console.log(`🚀 INCROYABLE ! Ton Lucky Block a été amélioré en ${c.rarity} !`);
+                                } else {
+                                    console.log(`🍀 ${c.name} ! Cadeau débloqué dans ${heures}h.`);
+                                }
+
+                                if (typeof updateLuckyTimer === "function") {
+                                    updateLuckyTimer(luckyBlockUnlockTime, luckyBlockType);
+                                }
+                            }
+                            return; 
+                        }
+
+                        // --- LOGIQUE CARTES NORMALES ---
+                        if (c.rarity === "Rare") avancerQuete("rare", 1);
+                        if (c.rarity === "Mythic") {
+                            avancerQuete("mythic", 1);
+                            ajouterXP(25);
+                        }
+                        if (c.rarity === "OG") ajouterXP(500);
+
+                        const existingCard = collection.find(card => card.name === c.name);
+                        
+                        if (!existingCard) {
+                            c.isNew = true;
+                            c.level = 1;
+                            c.exp = 0;
+                            collection.push({ ...c });
+                            ajouterXP(20);
+                        } else {
+                            c.isNew = false;
+                            avancerQuete("duplicate", 1);
+                            if (existingCard.level === undefined) existingCard.level = 1;
+                            if (existingCard.exp === undefined) existingCard.exp = 0;
+
+                            const expTable = { "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7, "Mythic": 4, "Brainrot God": 3, "Secret": 1, "OG": 1 };
+                            existingCard.exp = (existingCard.exp || 0) + 1;
+                            let needed = expTable[existingCard.rarity] || 10;
+
+                            while (existingCard.exp >= needed) {
+                                existingCard.exp -= needed;
+                                existingCard.level += 1;
+                                if (existingCard.level === 5) avancerQuete("lvlup", 1);
+                            }
+
+                            const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 10000 };
+                            dust += dustValues[c.rarity] || 1;
+                        }
+                    });
+
+                    // --- ⚡ MISE À JOUR LOCALE ---
+                    if (typeof window.boostersOpened !== "undefined") {
+                        window.boostersOpened++;
+                    }
+
+                    save("collection", collection);
+                    save("dust", dust);
+                    updateStreak();
+
+                    // --- SAUVEGARDE FIREBASE ---
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        db.collection("users").doc(user.uid).set({
+                            collection: collection,
+                            dust: dust,
+                            xp: xp,
+                            level: level,
+                            streakCount: streakCount,
+                            boostersOpened: firebase.firestore.FieldValue.increment(1),
+                            lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
+                            luckyBlockUnlockTime: luckyBlockUnlockTime || null,
+                            luckyBlockType: (typeof luckyBlockType === "string") ? luckyBlockType : (luckyBlockType?.innerText || null),
+                            luckyBlockReady: luckyBlockReady || false
+                        }, { merge: true })
+                        .then(() => {
+                            const counterEl = document.getElementById("boosterCounter");
+                            if (counterEl) {
+                                let current = parseInt(counterEl.innerText.replace(/\D/g, "")) || 0;
+                                counterEl.innerText = `Boosters ouverts : ${current + 1}`;
+                            }
+                            
+                            const profBoosters = document.getElementById("profileBoosters");
+                            if (profBoosters) {
+                                let actuel = parseInt(profBoosters.innerText) || 0;
+                                profBoosters.innerText = actuel + 1;
+                            }
+
+                            if (typeof actualiserProfil === "function") {
+                                actualiserProfil();
+                            }
+
+                            if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
+                            if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
+                        })
+                        .catch(err => {
+                            console.error("Erreur Firebase:", err);
+                        });
+                    }
+
+                    currentCardIndex = 0;
+                    showBigCard();
+
+                    b.classList.remove("booster-opening");
+                    isAnyBoosterOpening = false; 
+
+                }, 500); 
+            })(); // Fin de l'encapsulation async
+        }; // Fin du onclick
+    }); // Fin du forEach
+} // Fin de la fonction globale
+
+
 
 
 

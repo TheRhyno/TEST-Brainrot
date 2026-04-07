@@ -3150,27 +3150,6 @@ disableSite(false);
 
 
 
-let clickHistory = []; // Stocke les délais entre les clics
-let lastClickTimestamp = 0;
-const MAX_HISTORY = 10; // Nombre de clics analysés
-
-
-function isAutoClicker() {
-    if (clickHistory.length < MAX_HISTORY) return false;
-
-    // Calcul de la moyenne des intervalles
-    const avg = clickHistory.reduce((a, b) => a + b) / clickHistory.length;
-    
-    // Calcul de la variance (est-ce que les nombres sont proches de la moyenne ?)
-    const variance = clickHistory.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / clickHistory.length;
-
-    // Si la variance est minuscule (ex: < 5ms), c'est une machine
-    return variance < 5; 
-}
-
-
-
-
 
 
 
@@ -7909,6 +7888,11 @@ document.addEventListener('touchstart', unlockAudio);
 
 
 
+let clickHistory = []; // Stocke les délais entre les clics
+let lastClickTimestamp = 0;
+const MAX_HISTORY = 10; // Nombre de clics analysés
+
+
 
 function openPackSequence() {
     const chooseArea = document.getElementById("choosePackArea");
@@ -7945,6 +7929,12 @@ b.onclick = () => {
             // Si la variance est < 5ms, c'est trop parfait pour un humain
             if (variance < 5) { 
                 console.warn("🤖 Auto-clicker détecté (clics trop réguliers) !");
+
+alert("⚠️ Détection d'auto-clic : Veuillez cliquer normalement pour continuer.");
+                
+                clickHistory = [];
+
+
                 return; // Bloque l'exécution
             }
         }

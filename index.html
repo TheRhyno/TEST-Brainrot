@@ -3993,7 +3993,6 @@ auth.onAuthStateChanged(user => {
                 // --- AJOUT : Mise à jour de la barre du Battle Pass dans le HUD ---
                 updateBPHudRealTime();
                 
-                console.log("✅ Données Battle Pass chargées.");
                 
                 if (document.getElementById('bpOverlay').style.display === 'flex') {
                     updateBattlePassUI();
@@ -6545,7 +6544,6 @@ async function avancerQuete(type, montant = 1) {
                     alert(`🏆 EXCEPTIONNEL ! Tu as terminé les 3 quêtes !`); 
                     */
                     
-                    console.log("Les 3 quêtes sont finies. Le bouton de récupération manuelle est maintenant disponible.");
                 }
             }
             aChange = true;
@@ -6602,7 +6600,6 @@ firebase.auth().onAuthStateChanged((user) => {
                 // Mise à jour visuelle de l'XP/Level au chargement
                 if (typeof updateXPBar === "function") updateXPBar();
 
-                console.log("Données chargées depuis le serveur avec succès !");
             } else {
                 console.log("Nouveau compte détecté sur le serveur.");
             }
@@ -6964,7 +6961,6 @@ if (playerSlot) {
 
         ecouterLaPartie();
         
-        console.log("Duel rejoint avec succès ! Tirage généré pour le combat.");
     } catch (e) {
         console.error("Erreur rejoindreCeDuel:", e);
         alert("Impossible de rejoindre : " + e.message);
@@ -7077,7 +7073,6 @@ function ecouterLaPartie() {
                 statusDiv.innerHTML = "<span style='color:#facc15; font-weight:bold;'>🔥 CALCUL DU VAINQUEUR... 🔥</span>";
             }
 
-            console.log("🚀 Lancement du combat synchronisé pour les deux joueurs...");
             executerCalculCombat(); 
             return; 
         }
@@ -7183,7 +7178,7 @@ function genererTirageCombat() {
     }
 
     mes3CartesCombat = tirage.slice(0, 3);
-    console.log("🎲 Tirage de combat généré :", mes3CartesCombat);
+
 }
 
 
@@ -8577,7 +8572,7 @@ function saveToFirebase(uid) {
       if (timeoutAlerteRecue) {
           console.log("%c✅ CONNEXION RÉTABLIE : Sauvegarde enfin synchronisée !", "background: green; color: white; padding: 2px;");
       } else {
-          console.log("✅ Sauvegarde Firebase réussie !");
+
       }
   })
   .catch(err => {
@@ -9315,7 +9310,7 @@ function saveUserData(uid){
     dust: dust,
     daily: daily
   }, { merge: true }) // merge = ne remplace pas tout
-  .then(() => console.log("✅ Sauvegarde Firebase réussie"))
+  .then(() => 
   .catch(err => console.error("❌ Erreur sauvegarde Firebase :", err));
 }
 
@@ -9397,7 +9392,7 @@ function queueSave() {
             boostersOpened: boostersOpened || 0
         }, { merge: true })
         .then(() => {
-            console.log("✅ Sauvegarde Firebase réussie !");
+
             pendingSave = false;
         })
         .catch(err => {
@@ -9557,7 +9552,7 @@ async function checkDailyShop() {
         
     } else {
         shopCards = shopCardsFromDb;
-        console.log("✅ Boutique du jour récupérée.");
+
     }
 
     if (typeof showShop === "function" && isVisible(shopSection)) {

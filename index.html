@@ -1986,32 +1986,53 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 </div>
 
 
-<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(14,21,37,0.95); z-index:20000; flex-direction:column; justify-content:center; align-items:center; font-family: sans-serif;"> 
-    <h2 style="color:white; text-align:center; padding: 0 20px; font-size: 1.2rem;">Connecte-toi pour sauvegarder ta progression</h2>
+<div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:20000; flex-direction:column; justify-content:center; align-items:center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; touch-action: none; background: linear-gradient(135deg, #7c3aed 0%, #a21caf 100%);"> 
     
-    <input type="text" id="reg-username" placeholder="Pseudo" style="margin-bottom:10px; display:block; width:220px; padding:10px; border-radius:5px; border:none;">
-    <input type="email" id="emailInput" placeholder="Email" style="padding:10px; margin:5px; border-radius:6px; border:none; width:220px;">
-    <input type="password" id="passwordInput" placeholder="Mot de passe" style="padding:10px; margin:5px; border-radius:6px; border:none; width:220px;">
+    <div style="width: 100%; max-width: 420px; padding: 0 25px; box-sizing: border-box;">
+        
+        <h2 style="color: white; margin: 0 0 30px 10px; font-size: 2.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; line-height: 1; text-align: left;" id="authTitle">BIENVENUE</h2>
+        
+        <div style="background: white; padding: 35px 25px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.3);">
+            
+            <div style="display: flex; flex-direction: column; gap: 18px; margin-bottom: 10px;">
+                <div id="usernameContainer">
+                    <input type="text" id="reg-username" placeholder="Pseudo" style="width:100%; padding:15px; border-radius:15px; border: 1px solid #f1f5f9; font-size: 1rem; box-sizing: border-box; outline: none; background: #f1f5f9; color: #475569;">
+                </div>
+                
+                <div>
+                    <input type="email" id="emailInput" placeholder="Email" style="width:100%; padding:15px; border-radius:15px; border: 1px solid #f1f5f9; font-size: 1rem; box-sizing: border-box; outline: none; background: #f1f5f9; color: #475569;">
+                </div>
+                
+                <div>
+                    <input type="password" id="passwordInput" placeholder="Mot de passe" style="width:100%; padding:15px; border-radius:15px; border: 1px solid #f1f5f9; font-size: 1rem; box-sizing: border-box; outline: none; background: #f1f5f9; color: #475569;">
+                </div>
+            </div>
 
+            <div id="forgotPasswordLink" style="text-align: right; margin-bottom: 20px; display: none;">
+                <span onclick="resetPassword()" style="color: #9333ea; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none;">Mot de passe oublié ?</span>
+            </div>
 
+            <div style="text-align: center; width: 100%; margin-top: 10px;">
+                <button id="mainAuthBtn" style="width: 80%; background: #9333ea; color: white; padding: 14px; border-radius: 25px; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3);">
+                    S'inscrire
+                </button>
+            </div>
 
-<div style="width: 220px; margin-top: 15px; color: #cbd5e1; font-size: 0.7rem; text-align: center; line-height: 1.3;">
-    En vous inscrivant, vous acceptez la 
-    <span onclick="openPrivacy()" style="color: #3b82f6; text-decoration: underline; font-weight: bold; cursor: pointer;">
-        politique de confidentialité
-    </span>.
+            <p style="text-align: center; color: #64748b; font-size: 0.85rem; margin-top: 20px;" id="toggleText">
+                Pas de compte ? 
+                <span onclick="toggleAuthMode(false)" style="color: #ef4444; font-weight: 700; cursor: pointer; margin-left: 5px;">S'inscrire</span>
+            </p>
+        </div>
+
+        <div id="authError" style="color:#ffe4e6; margin-top:15px; font-size: 0.85rem; text-align: center; font-weight: 500; min-height: 20px;"></div>
+        
+        <div style="margin-top: 30px; text-align: center; font-size: 0.75rem; color: rgba(255,255,255,0.8); line-height: 1.4;">
+            En continuant, tu acceptes notre <br>
+            <span onclick="openPrivacy()" style="color: white; text-decoration: underline; cursor: pointer; font-weight: 600;">politique de confidentialité</span>.
+        </div>
+    </div>
 </div>
 
-
-
-
-    <div style="margin-top:20px;">
-        <button id="loginBtn" style="margin-right:10px; padding: 10px 15px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold;">Connexion</button>
-        <button id="signupBtn" style="padding: 10px 15px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; background: #3b82f6; color: white;">Inscription</button>
-    </div> 
-    
-    <div id="authError" style="color:#f88; margin-top:15px; font-size: 0.8rem; text-align: center; width: 220px;"></div>
-</div>
 
 
 
@@ -2290,7 +2311,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
     <div style="display: flex; gap: 12px; width: 95%; max-width: 400px; margin-top: 10px; margin-bottom: 30px;">
         <button onclick="document.getElementById('accountSection').style.display='none';" style="flex: 1; background:#444; color:white; padding:15px; border-radius:10px; border:0; font-weight:bold; cursor:pointer;">← Retour</button>
-        <button id="logoutBtn" style="flex: 1; background:#ef4444; color:white; padding:15px; border-radius:10px; border:0; font-weight:bold; cursor:pointer;">Déconnexion</button>
+
     </div>
 </div>
 
@@ -2352,7 +2373,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid #333;">
-  <span style="font-weight: bold;">Effets Sonores</span>
+  <span style="font-weight: bold;">Effets sonores</span>
   <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
     <input type="checkbox" id="sfxCheckbox" onchange="toggleSFXFromMenu()" checked style="opacity: 0; width: 0; height: 0;">
     <span class="slider"></span>
@@ -2379,6 +2400,16 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
         Zone de danger
     </p>
 
+
+
+<button id="logoutBtn" 
+    style="display: block !important; width: 100%; background: none; border: 1px solid #ef4444; color: #ef4444; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; margin-bottom: 12px; transition: 0.3s;" 
+    onmouseover="this.style.background='#ef4444'; this.style.color='white'" 
+    onmouseout="this.style.background='none'; this.style.color='#ef4444'">
+    Déconnexion
+</button>
+
+
     <button id="resetCollection" style="display: block !important; background: none; border: 1px solid #ef4444; color: #ef4444; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; width: 100%; font-weight: bold; margin-bottom: 12px; transition: 0.3s;" 
         onmouseover="this.style.background='#ef4444'; this.style.color='white'" 
         onmouseout="this.style.background='none'; this.style.color='#ef4444'">
@@ -2394,17 +2425,21 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-<p onclick="openPrivacy()" style="cursor: pointer; color: #3b82f6; font-size: 0.7rem; text-decoration: underline; margin-bottom: 10px; opacity: 0.8; display: inline-block;">
-    Politique de confidentialité
-</p>
+<div style="margin-top: 15px; opacity: 0.5; font-size: 0.7rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+    
+    <p onclick="openPrivacy()" style="cursor: pointer; color: #3b82f6; font-size: 0.7rem; text-decoration: underline; margin-bottom: 20px; opacity: 0.8; display: inline-block;">
+        Politique de confidentialité
+    </p>
+
+    <br>
+
+    <div style="margin-top: 5px; line-height: 1.5;">
+        <span id="app-version">v2.3.0</span><br>
+        © 2026 BRAINROT TCG
+    </div>
 
 
-
-<div style="margin-top: 10px; opacity: 0.5; font-size: 0.7rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-    <span id="app-version">v2.3.0</span><br>© 2026 BRAINROT TCG
-</div>
-
-<button onclick="closeSettingsMenu()" style="margin-top: 20px; width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">
+</div> <button onclick="closeSettingsMenu()" style="margin-top: 20px; width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 10px; border: 0; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">
     ← Retour au jeu
 </button>
 
@@ -3189,6 +3224,181 @@ disableSite(false);
 
 
 
+function resetPassword() {
+    const email = document.getElementById('emailInput').value.trim();
+    const authError = document.getElementById("authError");
+
+    if (!email) {
+        authError.textContent = "Entre ton email pour recevoir le lien de réinitialisation.";
+        authError.style.color = "#fecdd3"; // Couleur claire pour ton fond violet
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            authError.textContent = "Email de récupération envoyé ! Vérifie tes spams.";
+            authError.style.color = "#4ade80"; // Vert pour le succès
+        })
+        .catch((error) => {
+            console.error("Erreur reset:", error);
+            authError.textContent = getAuthErrorMessage(error.code);
+            authError.style.color = "#fecdd3";
+        });
+}
+
+
+
+
+
+
+
+
+
+let isLoginMode = false;
+
+// --- Fonction de réinitialisation de mot de passe ---
+function resetPassword() {
+    const email = emailInput.value.trim();
+    const authError = document.getElementById("authError");
+
+    if (!email) {
+        authError.style.color = "#ffe4e6";
+        authError.textContent = "Veuillez entrer votre email pour réinitialiser.";
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            authError.style.color = "#4ade80"; // Vert succès
+            authError.textContent = "Email de réinitialisation envoyé !";
+        })
+        .catch(err => {
+            authError.style.color = "#ffe4e6";
+            authError.textContent = getAuthErrorMessage(err.code);
+        });
+}
+
+// --- Fonction de bascule (Toggle) ---
+function toggleAuthMode(login) {
+    isLoginMode = login;
+    const usernameContainer = document.getElementById('usernameContainer');
+    const mainBtn = document.getElementById('mainAuthBtn');
+    const toggleText = document.getElementById('toggleText');
+    const authTitle = document.getElementById('authTitle');
+    const authError = document.getElementById("authError");
+    const forgotLink = document.getElementById('forgotPasswordLink');
+
+    // SÉCURITÉ : On vérifie si les éléments existent
+    if (!mainBtn || !usernameContainer || !authTitle) return;
+
+    // Réinitialiser les messages d'erreur lors du switch
+    authError.textContent = "";
+    authError.style.color = "#ffe4e6";
+
+    if (isLoginMode) {
+        // --- MODE CONNEXION ---
+        usernameContainer.style.display = 'none';
+        if (forgotLink) forgotLink.style.display = 'block'; // Affiche le lien MDP oublié
+        
+        authTitle.innerText = "CONNEXION";
+        mainBtn.innerText = "Se connecter";
+        toggleText.innerHTML = `Pas encore de compte ? <span onclick="toggleAuthMode(false)" style="color: #ef4444; font-weight: 700; cursor: pointer; margin-left: 5px;">S'inscrire</span>`;
+        
+        mainBtn.onclick = () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!email || !password) {
+                authError.textContent = "Email et mot de passe requis.";
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const uid = userCredential.user.uid;
+                    loadUserData(uid);
+                    loadBoosterCounter(uid);
+                    authOverlay.style.display = "none";
+                    logoutBtn.style.display = "block";
+                    authError.textContent = "";
+                })
+                .catch(err => {
+                    if ((!err.code || err.code === "") && err.message && err.message.toLowerCase().includes("password")) {
+                        authError.textContent = "Email ou mot de passe incorrect.";
+                    } else {
+                        authError.textContent = getAuthErrorMessage(err.code);
+                    }
+                });
+        };
+    } else {
+        // --- MODE INSCRIPTION ---
+        usernameContainer.style.display = 'block';
+        if (forgotLink) forgotLink.style.display = 'none'; // Cache le lien MDP oublié
+        
+        authTitle.innerText = "BIENVENUE !";
+        mainBtn.innerText = "S'inscrire";
+        toggleText.innerHTML = `Tu as déjà un compte ? <span onclick="toggleAuthMode(true)" style="color: #9333ea; font-weight: 700; cursor: pointer; margin-left: 5px;">Connexion</span>`;
+        
+        mainBtn.onclick = () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const username = document.getElementById("reg-username").value.trim();
+
+            if (!username || username.length < 3) {
+                authError.textContent = "Choisis un pseudo d'au moins 3 caractères !";
+                return;
+            }
+            if (!email || !password) {
+                authError.textContent = "Email et mot de passe requis.";
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const uid = userCredential.user.uid;
+
+                    db.collection("users").doc(uid).set({
+                        username: username,
+                        boostersOpened: 0,
+                        collection: [],
+                        dust: 0,
+                        xp: 0,
+                        level: 1,
+                        streakCount: 0,
+                        isPremium: false,
+                        claimedRewards: [],
+                        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => {
+                        console.log("Document utilisateur créé avec succès !");
+                        loadUserData(uid);
+                        loadBoosterCounter(uid);
+                        authOverlay.style.display = "none";
+                        logoutBtn.style.display = "block";
+                        authError.textContent = "";
+                    }).catch(err => {
+                        console.error("Erreur création doc :", err);
+                        authError.textContent = getAuthErrorMessage(err.code);
+                    });
+                })
+                .catch(err => {
+                    authError.textContent = getAuthErrorMessage(err.code);
+                });
+        };
+    }
+}
+
+// Initialisation au chargement
+window.addEventListener('DOMContentLoaded', () => {
+    toggleAuthMode(false);
+});
+
+
+
+
+
+
+
+
 
 
 async function confirmDeleteAccount() {
@@ -3199,11 +3409,20 @@ async function confirmDeleteAccount() {
         return;
     }
 
+    // --- PREMIÈRE VÉRIFICATION (Confirmation classique) ---
     const firstCheck = confirm("⚠️ Es-tu sûr de vouloir supprimer ton compte ?");
     if (!firstCheck) return;
 
-    const secondCheck = confirm("Dernier avertissement : Toutes tes cartes et tes fragments seront PERDUS à jamais. Continuer ?");
-    if (!secondCheck) return;
+    // --- DEUXIÈME VÉRIFICATION (Saisie manuelle) ---
+    // On remplace le confirm par un prompt pour forcer l'écriture de "SUPPRIMER"
+    const confirmationWord = "SUPPRIMER";
+    const secondCheck = prompt(`Dernier avertissement : Toutes tes cartes et tes fragments seront PERDUS à jamais.\n\nTape "${confirmationWord}" en majuscules pour confirmer la suppression définitive :`);
+
+    // On vérifie si la saisie est correcte (on gère aussi l'annulation du prompt)
+    if (secondCheck !== confirmationWord) {
+        alert("Action annulée. Le mot de confirmation était incorrect.");
+        return;
+    }
 
     try {
         // --- ÉTAPE 0 : DÉSACTIVER LES LISTENERS ---
@@ -3229,7 +3448,7 @@ async function confirmDeleteAccount() {
         console.error("Erreur suppression :", error);
 
         if (error.code === 'auth/requires-recent-login') {
-            alert("Sécurité : Déconnecte-toi et reconnecte-toi avant de supprimer ton compte.");
+            alert("Sécurité : Pour supprimer ton compte, tu dois t'être connecté très récemment. Déconnecte-toi et reconnecte-toi avant de réessayer.");
         } else {
             alert("Erreur lors de la suppression : " + error.message);
         }
@@ -8795,17 +9014,25 @@ tabAllCards.addEventListener("click", showAllCards);
 openPackBtn.addEventListener("click", openPackSequence);
 
 resetCollectionBtn.addEventListener("click", () => {
-    // Premier avertissement
+    // Premier avertissement (Confirmation classique)
     if (confirm("Êtes-vous sûr de vouloir réinitialiser la collection ?")) {
-        // Deuxième avertissement (Double sécurité)
-        if (confirm("⚠️ ATTENTION : Cette action est irréversible. Êtes-vous VRAIMENT sûr de vouloir supprimer votre collection ?")) {
+        
+        // Deuxième avertissement (Saisie manuelle pour double sécurité)
+        const confirmationWord = "RÉINITIALISER";
+        const secondCheck = prompt(`⚠️ ATTENTION : Cette action est irréversible.\nToutes vos cartes seront supprimées.\n\nTapez "${confirmationWord}" en majuscules pour confirmer :`);
+
+        // On vérifie si la saisie est strictement identique
+        if (secondCheck === confirmationWord) {
             collection = [];
             save("collection", collection);
             refreshCollection();
-            alert("Collection réinitialisée");
+            alert("Collection réinitialisée avec succès.");
+        } else {
+            alert("Action annulée. Le mot de confirmation était incorrect.");
         }
     }
 });
+
 
 
 // --- Init ---
@@ -8956,84 +9183,96 @@ function getAuthErrorMessage(errorCode) {
 
 
 // --- Connexion ---
-loginBtn.onclick = () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
+// --- GESTION UNIQUE DE L'AUTHENTIFICATION ---
+const mainAuthBtn = document.getElementById('mainAuthBtn');
 
-    // --- Vérification si les champs sont remplis ---
-    if (!email && !password) {
-        authError.textContent = "Email et mot de passe requis.";
-        return;
-    } else if (!email) {
-        authError.textContent = "Email requis.";
-        return;
-    } else if (!password) {
-        authError.textContent = "Mot de passe requis.";
-        return;
-    }
+if (mainAuthBtn) {
+    mainAuthBtn.onclick = () => {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        const authError = document.getElementById("authError");
 
-    // --- Connexion Firebase ---
-    auth.signInWithEmailAndPassword(email, password)
-        .then(userCredential => {
-            const uid = userCredential.user.uid;
-            loadUserData(uid);
-            loadBoosterCounter(uid);
-            authOverlay.style.display = "none";
-            logoutBtn.style.display = "block";
-            authError.textContent = "";
-        })
-        .catch(err => {
-
-            if ((!err.code || err.code === "") && err.message && err.message.toLowerCase().includes("password")) {
-                authError.textContent = "Email ou mot de passe incorrect.";
-            } else {
-                authError.textContent = getAuthErrorMessage(err.code);
+        // --- MODE CONNEXION (isLoginMode = true) ---
+        if (isLoginMode) {
+            // --- Vérification si les champs sont remplis ---
+            if (!email && !password) {
+                authError.textContent = "Email et mot de passe requis.";
+                return;
+            } else if (!email) {
+                authError.textContent = "Email requis.";
+                return;
+            } else if (!password) {
+                authError.textContent = "Mot de passe requis.";
+                return;
             }
-        });
-};
 
-// --- Inscription ---
-signupBtn.onclick = () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    const username = document.getElementById("reg-username").value.trim();
+            // --- Connexion Firebase ---
+            auth.signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const uid = userCredential.user.uid;
+                    loadUserData(uid);
+                    loadBoosterCounter(uid);
+                    authOverlay.style.display = "none";
+                    logoutBtn.style.display = "block";
+                    authError.textContent = "";
+                })
+                .catch(err => {
+                    if ((!err.code || err.code === "") && err.message && err.message.toLowerCase().includes("password")) {
+                        authError.textContent = "Email ou mot de passe incorrect.";
+                    } else {
+                        authError.textContent = getAuthErrorMessage(err.code);
+                    }
+                });
+        } 
+        
+        // --- MODE INSCRIPTION (isLoginMode = false) ---
+        else {
+            const username = document.getElementById("reg-username").value.trim();
 
-    if (!username || username.length < 3) {
-        authError.textContent = "Choisis un pseudo d'au moins 3 caractères !";
-        return;
-    }
+            if (!username || username.length < 3) {
+                authError.textContent = "Choisis un pseudo d'au moins 3 caractères !";
+                return;
+            }
 
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(userCredential => {
-            const uid = userCredential.user.uid;
+            if (!email || !password) {
+                authError.textContent = "Email et mot de passe requis.";
+                return;
+            }
 
-            db.collection("users").doc(uid).set({
-                username: username,
-                boostersOpened: 0,
-                collection: [],
-                dust: 0,
-                xp: 0,
-                level: 1,
-                streakCount: 0,
-                isPremium: false,
-                claimedRewards: [],
-                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                console.log("Document utilisateur créé avec succès !");
-                loadUserData(uid);
-                loadBoosterCounter(uid);
-                authOverlay.style.display = "none";
-                logoutBtn.style.display = "block";
-                authError.textContent = "";
-            }).catch(err => {
-                console.error("Erreur création doc :", err);
-                authError.textContent = getAuthErrorMessage(err.code);
-            });
-        })
-        .catch(err => {
-            authError.textContent = getAuthErrorMessage(err.code);
-        });
-};
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const uid = userCredential.user.uid;
+
+                    // Création du document utilisateur dans Firestore
+                    db.collection("users").doc(uid).set({
+                        username: username,
+                        boostersOpened: 0,
+                        collection: [],
+                        dust: 0,
+                        xp: 0,
+                        level: 1,
+                        streakCount: 0,
+                        isPremium: false,
+                        claimedRewards: [],
+                        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => {
+                        console.log("Document utilisateur créé avec succès !");
+                        loadUserData(uid);
+                        loadBoosterCounter(uid);
+                        authOverlay.style.display = "none";
+                        logoutBtn.style.display = "block";
+                        authError.textContent = "";
+                    }).catch(err => {
+                        console.error("Erreur création doc :", err);
+                        authError.textContent = getAuthErrorMessage(err.code);
+                    });
+                })
+                .catch(err => {
+                    authError.textContent = getAuthErrorMessage(err.code);
+                });
+        }
+    };
+}
 
 
 

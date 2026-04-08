@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainrot-v4';
+const CACHE_NAME = 'brainrot-v5'; // Passe en v5 pour que le changement soit pris en compte
 const ASSETS = [
   'index.html',
   'manifest.json'
@@ -54,7 +54,18 @@ self.addEventListener('message', (event) => {
 // Action quand on clique sur la notification
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  
   event.waitUntil(
-    clients.openWindow('/') 
+    // On cherche si une fenêtre du jeu est déjà ouverte
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Si oui, on remet juste le focus dessus au lieu d'en ouvrir une nouvelle
+      for (const client of clientList) {
+        if ('focus' in client) return client.focus();
+      }
+      // Si aucune fenêtre n'est ouverte, on ouvre l'URL précise du jeu (le scope)
+      if (clients.openWindow) {
+        return clients.openWindow(self.registration.scope);
+      }
+    })
   );
 });

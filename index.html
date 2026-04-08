@@ -1493,6 +1493,14 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+
+
+
 <div id="sync-status-banner" style="display:none; position:fixed; top:0; left:0; width:100%; padding:10px; text-align:center; font-weight:bold; z-index:10000; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); transition: background 0.3s;">
     <span id="sync-status-text"></span>
 </div>
@@ -1533,7 +1541,12 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-
+<div style="background: linear-gradient(45deg, #7c3aed, #4f46e5); padding: 15px; border-radius: 12px; margin-top: 20px;">
+    <h3 style="margin: 0 0 10px 0;">Version Application</h3>
+    <button onclick="installerLeJeu()" style="background: #fff; color: #7c3aed; font-weight: bold; width: 100%;">
+        📲 INSTALLER SUR MON MOBILE
+    </button>
+</div>
 
 
 
@@ -5932,7 +5945,7 @@ async function chargerMarche() {
 
         if (count === 0) {
             const message = currentMarketTab === 'mySales' 
-                ? "Vous n'avez aucune vente en cours ou passée." 
+                ? "Vous n'avez aucune vente en cours." 
                 : "Aucune carte n'est disponible sur le marché.";
                 
             marketDiv.innerHTML = `
@@ -9743,6 +9756,37 @@ if (logoutBtnEl) {
         }
     };
 }
+
+
+
+
+
+
+
+
+
+// Enregistrement du Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Optionnel : afficher un bouton "Installer" ici
+});
+
+async function installerLeJeu() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  } else {
+    alert("Pour installer : Clique sur les 3 points (menu) de ton navigateur et choisis 'Installer l'application'.");
+  }
+}
+
 
 
 

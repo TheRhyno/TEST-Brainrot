@@ -1,7 +1,7 @@
 {
   "name": "Brainrot TCG",
-  "short_name": "Brainrot",
-  "description": "Collectionne les cartes les plus cursed du web",
+  "short_name": "Brainrot TCG",
+  "description": "Jeu de cartes à collectionner.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0e1525",
@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5261/5261831.png",
+      "src": "https://i.postimg.cc/fbKwpCBG/LOGO.png",
       "sizes": "512x512",
       "type": "image/png"
     }

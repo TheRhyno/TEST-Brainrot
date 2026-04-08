@@ -1,14 +1,32 @@
-const CACHE_NAME = 'brainrot-v3';
+const CACHE_NAME = 'brainrot-v4';
 const ASSETS = [
   'index.html',
   'manifest.json'
 ];
 
-
 // Installation du service worker
 self.addEventListener('install', (e) => {
+  // FORCE LA MISE À JOUR : Le nouveau SW s'installe sans attendre
+  self.skipWaiting(); 
+  
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
+});
+
+// Activation : NETTOYAGE DES ANCIENS CACHES
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          // Si le cache trouvé n'est pas celui qu'on vient de définir, on le supprime
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim()) // Prend le contrôle des pages immédiatement
   );
 });
 
@@ -19,14 +37,13 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-
+// Notifications
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SCHEDULE_NOTIF') {
-
     setTimeout(() => {
       self.registration.showNotification("Brainrot TCG", {
         body: "Ça fait 20 secondes ! Reviens tenter ta chance !",
-        icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png", // Ton logo
+        icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
         badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
         vibrate: [200, 100, 200]
       });
@@ -38,6 +55,6 @@ self.addEventListener('message', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    clients.openWindow('/') // Ouvre ton jeu
+    clients.openWindow('/') 
   );
 });

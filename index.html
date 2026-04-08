@@ -2008,9 +2008,11 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
                 </div>
             </div>
 
-            <div id="forgotPasswordLink" style="text-align: right; margin-bottom: 20px; display: none;">
-                <span onclick="resetPassword()" style="color: #9333ea; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none;">Mot de passe oublié ?</span>
-            </div>
+<div id="forgotPasswordLink" style="text-align: right; margin-bottom: 20px; display: none;">
+    <span onclick="toggleAuthMode('forgot')" style="color: #9333ea; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none;">
+        Mot de passe oublié ?
+    </span>
+</div>
 
             <div style="text-align: center; width: 100%; margin-top: 10px;">
                 <button id="mainAuthBtn" style="width: 80%; background: #9333ea; color: white; padding: 14px; border-radius: 25px; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3);">
@@ -2947,7 +2949,7 @@ const ALL_CARDS = [
 ];
 
 
-const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 0.5, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.05, 'Admin Lucky Block': 0.0001 };
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 0.5, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
 
 
 const BOOSTER_IMAGES = [
@@ -3253,10 +3255,9 @@ function resetPassword() {
 
 
 
-
 let isLoginMode = false;
 
-// --- Fonction de réinitialisation de mot de passe ---
+// --- Fonction de réinitialisation (envoi du mail) ---
 function resetPassword() {
     const email = emailInput.value.trim();
     const authError = document.getElementById("authError");
@@ -3269,8 +3270,15 @@ function resetPassword() {
 
     auth.sendPasswordResetEmail(email)
         .then(() => {
+            // Message de succès
             authError.style.color = "#4ade80"; // Vert succès
-            authError.textContent = "Email de réinitialisation envoyé !";
+           authError.innerHTML = "Email de réinitialisation envoyé !<br>Vérifie tes spams.";
+
+            // Redirection vers la page de connexion après un court délai (ex: 2 secondes)
+            // Ou immédiatement selon ta préférence :
+            setTimeout(() => {
+                toggleAuthMode('login');
+            }, 2000);
         })
         .catch(err => {
             authError.style.color = "#ffe4e6";
@@ -3278,40 +3286,38 @@ function resetPassword() {
         });
 }
 
-// --- Fonction de bascule (Toggle) ---
-function toggleAuthMode(login) {
-    isLoginMode = login;
+
+
+// --- Fonction de bascule (Toggle) avec 3 états ---
+function toggleAuthMode(mode) {
+    // mode peut être : 'login' (true), 'signup' (false), ou 'forgot'
     const usernameContainer = document.getElementById('usernameContainer');
+    const passwordInputParent = passwordInput.parentElement; // Pour cacher le champ MDP
     const mainBtn = document.getElementById('mainAuthBtn');
     const toggleText = document.getElementById('toggleText');
     const authTitle = document.getElementById('authTitle');
     const authError = document.getElementById("authError");
     const forgotLink = document.getElementById('forgotPasswordLink');
 
-    // SÉCURITÉ : On vérifie si les éléments existent
     if (!mainBtn || !usernameContainer || !authTitle) return;
 
-    // Réinitialiser les messages d'erreur lors du switch
     authError.textContent = "";
     authError.style.color = "#ffe4e6";
 
-    if (isLoginMode) {
+    if (mode === 'login' || mode === true) {
         // --- MODE CONNEXION ---
         usernameContainer.style.display = 'none';
-        if (forgotLink) forgotLink.style.display = 'block'; // Affiche le lien MDP oublié
+        passwordInputParent.style.display = 'block';
+        if (forgotLink) forgotLink.style.display = 'block';
         
         authTitle.innerText = "CONNEXION";
         mainBtn.innerText = "Se connecter";
-        toggleText.innerHTML = `Pas encore de compte ? <span onclick="toggleAuthMode(false)" style="color: #ef4444; font-weight: 700; cursor: pointer; margin-left: 5px;">S'inscrire</span>`;
+        toggleText.innerHTML = `Pas encore de compte ? <span onclick="toggleAuthMode('signup')" style="color: #ef4444; font-weight: 700; cursor: pointer; margin-left: 5px;">S'inscrire</span>`;
         
         mainBtn.onclick = () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
-
-            if (!email || !password) {
-                authError.textContent = "Email et mot de passe requis.";
-                return;
-            }
+            if (!email || !password) { authError.textContent = "Email et mot de passe requis."; return; }
 
             auth.signInWithEmailAndPassword(email, password)
                 .then(userCredential => {
@@ -3330,67 +3336,62 @@ function toggleAuthMode(login) {
                     }
                 });
         };
-    } else {
+
+    } else if (mode === 'signup' || mode === false) {
         // --- MODE INSCRIPTION ---
         usernameContainer.style.display = 'block';
-        if (forgotLink) forgotLink.style.display = 'none'; // Cache le lien MDP oublié
+        passwordInputParent.style.display = 'block';
+        if (forgotLink) forgotLink.style.display = 'none';
         
         authTitle.innerText = "BIENVENUE !";
         mainBtn.innerText = "S'inscrire";
-        toggleText.innerHTML = `Tu as déjà un compte ? <span onclick="toggleAuthMode(true)" style="color: #9333ea; font-weight: 700; cursor: pointer; margin-left: 5px;">Connexion</span>`;
+        toggleText.innerHTML = `Tu as déjà un compte ? <span onclick="toggleAuthMode('login')" style="color: #9333ea; font-weight: 700; cursor: pointer; margin-left: 5px;">Connexion</span>`;
         
         mainBtn.onclick = () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
             const username = document.getElementById("reg-username").value.trim();
 
-            if (!username || username.length < 3) {
-                authError.textContent = "Choisis un pseudo d'au moins 3 caractères !";
-                return;
-            }
-            if (!email || !password) {
-                authError.textContent = "Email et mot de passe requis.";
-                return;
-            }
+            if (!username || username.length < 3) { authError.textContent = "Pseudo trop court !"; return; }
+            if (!email || !password) { authError.textContent = "Champs requis."; return; }
 
             auth.createUserWithEmailAndPassword(email, password)
                 .then(userCredential => {
                     const uid = userCredential.user.uid;
-
                     db.collection("users").doc(uid).set({
-                        username: username,
-                        boostersOpened: 0,
-                        collection: [],
-                        dust: 0,
-                        xp: 0,
-                        level: 1,
-                        streakCount: 0,
-                        isPremium: false,
-                        claimedRewards: [],
-                        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                        username: username, boostersOpened: 0, collection: [], dust: 0, xp: 0, level: 1, streakCount: 0, isPremium: false, claimedRewards: [], lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
                     }).then(() => {
-                        console.log("Document utilisateur créé avec succès !");
-                        loadUserData(uid);
-                        loadBoosterCounter(uid);
-                        authOverlay.style.display = "none";
-                        logoutBtn.style.display = "block";
+                        loadUserData(uid); loadBoosterCounter(uid);
+                        authOverlay.style.display = "none"; logoutBtn.style.display = "block";
                         authError.textContent = "";
-                    }).catch(err => {
-                        console.error("Erreur création doc :", err);
-                        authError.textContent = getAuthErrorMessage(err.code);
                     });
                 })
-                .catch(err => {
-                    authError.textContent = getAuthErrorMessage(err.code);
-                });
+                .catch(err => authError.textContent = getAuthErrorMessage(err.code));
+        };
+
+    } else if (mode === 'forgot') {
+        // --- MODE RÉCUPÉRATION (MDP OUBLIÉ) ---
+        usernameContainer.style.display = 'none';
+        passwordInputParent.style.display = 'none';
+        if (forgotLink) forgotLink.style.display = 'none';
+
+        authTitle.innerText = "RÉCUPÉRATION";
+        mainBtn.innerText = "Réinitialiser mon MDP";
+        toggleText.innerHTML = `Retour à la <span onclick="toggleAuthMode('login')" style="color: #9333ea; font-weight: 700; cursor: pointer; margin-left: 5px;">Connexion</span>`;
+
+        mainBtn.onclick = () => {
+            resetPassword();
         };
     }
 }
 
+
 // Initialisation au chargement
 window.addEventListener('DOMContentLoaded', () => {
-    toggleAuthMode(false);
+    toggleAuthMode('signup');
 });
+
+
 
 
 
@@ -5505,7 +5506,7 @@ function ouvrirSelecteurVente() {
         // --- MODIFICATION : GESTION DES CARTES DÉJÀ EN VENTE ---
         if (card.enVente) {
             // La carte est en vente : on la grise et on désactive le clic
-            cardEl.className = `card r-${card.rarity}`;
+            cardEl.className = `card r-${card.rarity.toLowerCase().replace(/\s+/g, '-')}`;
             cardEl.style.opacity = "0.5";
             cardEl.style.filter = "grayscale(1)";
             cardEl.style.cursor = "not-allowed";
@@ -5513,21 +5514,37 @@ function ouvrirSelecteurVente() {
             cardEl.onclick = null; 
         } else {
             // La carte est disponible : comportement normal
-            cardEl.className = `card r-${card.rarity}`;
+            cardEl.className = `card r-${card.rarity.toLowerCase().replace(/\s+/g, '-')}`;
             cardEl.style.cursor = "pointer";
+            cardEl.style.position = "relative"; // Pour le positionnement du badge niveau
             cardEl.onclick = () => choisirPrixVente(index);
         }
         
+        // Construction du HTML interne en gardant tes styles et en affichant le niveau
         cardEl.innerHTML = `
-            <div style="color:#fbbf24; font-size:0.8rem; font-weight:bold;">Lvl. ${card.level || 1}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <div style="background:#fbbf24; color:#000; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold;">
+                    Lvl. ${card.level || 1}
+                </div>
+            </div>
+
             ${card.enVente ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(239, 68, 68, 0.9); color:white; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; z-index:2; border:1px solid white;">EN VENTE</div>` : ''}
-            <img src="${card.image}" style="width:100%; border-radius:5px;">
-            <strong>${card.name}</strong>
-            <small>${card.rarity.toUpperCase()}</small>
+            
+            <div style="width: 100%; height: 80px; overflow: hidden; border-radius: 5px; margin-bottom: 5px;">
+                <img src="${card.image}" style="width:100%; height:100%; object-fit: contain;">
+            </div>
+
+            <strong style="font-size: 0.85rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${card.name}
+            </strong>
+            <small style="color: ${getRarityColor ? getRarityColor(card.rarity) : '#ccc'}; font-size: 0.7rem;">
+                ${card.rarity.toUpperCase()}
+            </small>
         `;
         grid.appendChild(cardEl);
     });
 }
+
 
 
 
@@ -5645,7 +5662,6 @@ function quitterMarche() {
     if (typeof marketUnsubscribe === "function") {
         marketUnsubscribe();
         marketUnsubscribe = null;
-        console.log("Écouteur du marché arrêté.");
     }
 
     // 1. Cacher le marché
@@ -5833,60 +5849,90 @@ async function chargerMarche() {
     marketUnsubscribe = db.collection("market").orderBy("date", "desc").onSnapshot(snapshot => {
         marketDiv.innerHTML = "";
 
-        // --- AJOUT : Compteur pour vérifier si la liste est vide ---
         let count = 0;
-        let index = 0; // Utilisé pour le délai de l'animation
+        let index = 0; 
 
         snapshot.forEach(doc => {
             const item = doc.data();
             const isMine = item.sellerId === auth.currentUser.uid;
 
-            if (currentMarketTab === 'buy' && isMine) return;
-            if (currentMarketTab === 'mySales' && !isMine) return;
+            // --- LOGIQUE DE FILTRAGE MISE À JOUR ---
+            // 1. Sur l'onglet "Acheter" : on cache mes cartes ET les cartes déjà vendues
+            if (currentMarketTab === 'buy') {
+                if (isMine || item.vendu) return;
+            }
+            // 2. Sur l'onglet "Mes Ventes" : on ne montre que les miennes (disponibles OU vendues)
+            if (currentMarketTab === 'mySales') {
+                if (!isMine) return;
+            }
 
-            // Si on arrive ici, c'est qu'une carte va être affichée
             count++;
 
             const cardEl = document.createElement('div');
-            // On force un style de base pour éviter que le bouton disparaisse
-            // AJOUT : classe 'market-card-animate' et délai dynamique
             cardEl.className = `card r-${item.card.rarity.toLowerCase().replace(/\s+/g, '-')} market-card-animate`;
             cardEl.style.display = "flex";
             cardEl.style.flexDirection = "column";
             cardEl.style.height = "auto";
             cardEl.style.padding = "10px";
-            cardEl.style.animationDelay = `${index * 0.05}s`; // Délai cascade (50ms par carte)
+            cardEl.style.animationDelay = `${index * 0.05}s`;
+            
+            // Effet visuel si la carte est vendue
+            if (item.vendu) {
+                cardEl.style.opacity = "0.85";
+            }
+
             index++;
 
             cardEl.innerHTML = `
-                <div style="color: ${getRarityColor(item.card.rarity)}; text-transform: uppercase; font-weight: bold; font-size: 0.65rem; text-align: center; margin-bottom: 5px;">
-                    ${item.card.rarity}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <div style="color: ${getRarityColor(item.card.rarity)}; text-transform: uppercase; font-weight: bold; font-size: 0.65rem;">
+                        ${item.card.rarity}
+                    </div>
+                    <div style="background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">
+                        Lvl ${item.card.level || 1}
+                    </div>
                 </div>
 
-                <div style="width: 100%; height: 100px; overflow: hidden; border-radius: 4px; margin-bottom: 5px;">
-                    <img src="${item.card.image}" style="width: 100%; height: 100%; object-fit: contain;">
+                <div style="width: 100%; height: 100px; overflow: hidden; border-radius: 4px; margin-bottom: 5px; position: relative;">
+                    <img src="${item.card.image}" style="width: 100%; height: 100%; object-fit: contain; ${item.vendu ? 'filter: brightness(0.5);' : ''}">
+                    
+                    ${item.vendu ? `
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 2; border: 1px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                            VENDU
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <div style="flex-grow: 1; text-align: center;">
                     <strong style="display:block; font-size: 0.9rem; line-height: 1.1;">${item.card.name}</strong>
+                    
+                    ${item.vendu && isMine ? `
+                        <div style="font-size: 0.65rem; color: #10b981; margin: 3px 0; font-weight: bold;">
+                            🤝 Par: ${item.acheteurPseudo || "Un joueur"}
+                        </div>
+                    ` : ''}
+
                     ${!isMine ? `<div style="font-size: 0.65rem; color: #a855f7; margin: 3px 0;">👤 ${item.sellerName || "Joueur"}</div>` : ''}
                     <div style="font-weight: bold; color: #fbbf24; margin: 5px 0;">${item.price} 💎</div>
                 </div>
                 
                 <div style="margin-top: auto;">
-                    ${isMine 
-                        ? `<button onclick="annulerVente('${doc.id}')" style="background:#ef4444; width:100%; border:none; border-radius:5px; padding:8px; cursor:pointer; color:white; font-weight:bold; font-size:0.8rem;">Annuler</button>`
-                        : `<button onclick="acheterCarte('${doc.id}', ${item.price}, '${item.sellerId}')" style="background:#10b981; width:100%; border:none; border-radius:5px; padding:8px; cursor:pointer; color:white; font-weight:bold; font-size:0.8rem;">Acheter</button>`
+                    ${item.vendu 
+                        ? (isMine 
+                            ? `<button onclick="recupererArgent('${doc.id}', ${item.price})" style="background: #fbbf24; color: #000; width: 100%; border: none; border-radius: 5px; padding: 8px; cursor: pointer; font-weight: bold; font-size: 0.75rem;">💰 RÉCUPÉRER ${item.price}</button>`
+                            : `<button disabled style="background:#4b5563; width:100%; border:none; border-radius:5px; padding:8px; color:white; font-weight:bold; font-size:0.75rem; cursor:not-allowed;">Déjà vendue</button>`)
+                        : (isMine 
+                            ? `<button onclick="annulerVente('${doc.id}')" style="background:#ef4444; width:100%; border:none; border-radius:5px; padding:8px; cursor:pointer; color:white; font-weight:bold; font-size:0.8rem;">Annuler</button>`
+                            : `<button onclick="acheterCarte('${doc.id}', ${item.price}, '${item.sellerId}')" style="background:#10b981; width:100%; border:none; border-radius:5px; padding:8px; cursor:pointer; color:white; font-weight:bold; font-size:0.8rem;">Acheter</button>`)
                     }
                 </div>
             `;
             marketDiv.appendChild(cardEl);
         });
 
-        // --- AJOUT : Affichage du message si aucune carte n'est trouvée ---
         if (count === 0) {
             const message = currentMarketTab === 'mySales' 
-                ? "Vous n'avez aucune vente en cours." 
+                ? "Vous n'avez aucune vente en cours ou passée." 
                 : "Aucune carte n'est disponible sur le marché.";
                 
             marketDiv.innerHTML = `
@@ -5904,12 +5950,54 @@ async function chargerMarche() {
 
 
 
+
+
+async function recupererArgent(docId, price) {
+    const userRef = db.collection("users").doc(auth.currentUser.uid);
+    const marketRef = db.collection("market").doc(docId);
+
+    try {
+        // 1. On ajoute les fragments au vendeur (Lui-même, donc autorisé par les règles)
+        await userRef.update({
+            dust: firebase.firestore.FieldValue.increment(price)
+        });
+
+        // 2. Mise à jour locale du montant pour un affichage immédiat
+        dust += price;
+
+const pDust = document.getElementById("profileDust");
+    if(pDust) pDust.innerText = dust;
+
+        localStorage.setItem("dust", dust);
+        
+        // 3. Si tu as une fonction pour rafraîchir ton interface globale (XP, Dust, etc.)
+        if (typeof updateUI === "function") updateUI();
+
+        // 4. On supprime l'annonce du marché maintenant que l'argent est récupéré
+        await marketRef.delete();
+
+        alert(`Gain récupéré ! +${price} fragments ajoutés à votre compte. 💎`);
+        
+    } catch (error) {
+        console.error("Erreur lors de la récupération des gains :", error);
+        alert("Une erreur est survenue lors de la récupération de vos fragments.");
+    }
+}
+
+
+
+
+
+
+
+
+
+
 // 4. Acheter une carte
 async function acheterCarte(id, price, sellerId) {
     if (dust < price) return alert("Pas assez de fragments !");
     
     const marketRef = db.collection("market").doc(id);
-    const sellerRef = db.collection("users").doc(sellerId);
     const buyerRef = db.collection("users").doc(auth.currentUser.uid);
 
     try {
@@ -5917,52 +6005,55 @@ async function acheterCarte(id, price, sellerId) {
         if(!snap.exists) return alert("Cette carte n'est plus disponible !");
 
         const item = snap.data();
+        
+        // SÉCURITÉ : Vérifier si la carte n'est pas déjà vendue (anti-double clic)
+        if (item.vendu) return alert("Cette carte a déjà été vendue !");
+
         const purchasedCard = item.card;
 
         // --- ✨ CONFIRMATION D'ACHAT ---
         const confirmation = confirm(`Êtes-vous sûr de vouloir acheter "${purchasedCard.name}" pour ${price} fragments ?`);
         if (!confirmation) return;
 
-        // --- ACTION DE L'ACHETEUR SUR LE SERVEUR POUR LE VENDEUR ---
-        const sellerDoc = await sellerRef.get();
-        if (sellerDoc.exists) {
-            let sellerCollection = sellerDoc.data().collection || [];
-            const cardIndex = sellerCollection.findIndex(c => 
-                c.name === purchasedCard.name && c.enVente === true
-            );
+        // --- 🆕 AJOUT : RÉCUPÉRATION DU PSEUDO DE L'ACHETEUR ---
+        // On récupère le nom affiché dans ton profil actuel
+        const buyerName = document.getElementById('profileName')?.innerText || "Un joueur";
 
-            if (cardIndex !== -1) {
-                sellerCollection.splice(cardIndex, 1);
-                await sellerRef.update({
-                    collection: sellerCollection,
-                    dust: firebase.firestore.FieldValue.increment(price)
-                });
-            }
-        }
+        // --- ACTION 1 : MARQUER COMME VENDU SUR LE MARCHÉ ---
+        // L'argent reste virtuellement "bloqué" sur l'annonce jusqu'à ce que le vendeur le récupère.
+        await marketRef.update({
+            vendu: true,
+            acheteurId: auth.currentUser.uid,
+            acheteurPseudo: buyerName, // On enregistre le pseudo pour le vendeur
+            dateVente: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-        // --- APRES LE MÉNAGE, L'ACHETEUR PREND LA CARTE ---
-        await marketRef.delete();
-
+        // --- LOGIQUE LOCALE (PRÉPARATION CARTE ACHETEUR) ---
         purchasedCard.enVente = false;
-        delete purchasedCard.prixVente;
+        if (purchasedCard.prixVente) delete purchasedCard.prixVente;
 
-        // --- 🆙 GESTION DES DOUBLONS + PRÉPARATION DU MESSAGE ---
+        // --- 🆙 GESTION DES DOUBLONS AVEC ADDITION DES NIVEAUX ---
         let messageSucces = "";
         let existingCard = collection.find(c => c.name === purchasedCard.name);
-        
+        const levelFromMarket = parseInt(purchasedCard.level) || 1;
+
         if (existingCard) {
-            existingCard.level = (existingCard.level || 1) + 1;
-            // On prépare le message pour un doublon
-            messageSucces = `Achat réussi ! Vous possédiez déjà "${purchasedCard.name}", son niveau passe à ${existingCard.level}.`;
+            const ancienNiveau = parseInt(existingCard.level) || 1;
+            existingCard.level = ancienNiveau + levelFromMarket;
+            messageSucces = `Achat réussi ! Fusion effectuée : Votre "${purchasedCard.name}" passe du Lvl ${ancienNiveau} au Lvl ${existingCard.level} ! 🔥`;
         } else {
-            purchasedCard.level = 1;
+            purchasedCard.level = levelFromMarket;
             collection.push(purchasedCard);
-            // On prépare le message pour une nouvelle carte
-            messageSucces = `Achat réussi ! "${purchasedCard.name}" a été ajoutée à votre collection.`;
+            messageSucces = `Achat réussi ! "${purchasedCard.name}" (Lvl ${levelFromMarket}) a été ajoutée à votre collection.`;
         }
 
-        // --- MISE À JOUR COMPTE ACHETEUR ---
+        // --- ACTION 2 : MISE À JOUR COMPTE ACHETEUR ---
+        // L'acheteur perd ses fragments ici.
         dust -= price;
+
+        const pDust = document.getElementById("profileDust");
+        if(pDust) pDust.innerText = dust;
+
         await buyerRef.update({
             dust: dust,
             collection: collection
@@ -5974,12 +6065,11 @@ async function acheterCarte(id, price, sellerId) {
 
         if (typeof displayCollection === "function") displayCollection();
         
-        // Affichage du message personnalisé
         alert(messageSucces);
 
     } catch (error) {
-        console.error("Erreur transaction:", error);
-        alert("Une erreur est survenue.");
+        console.error("Erreur transaction détaillée:", error);
+        alert("Erreur lors de l'achat : " + error.message);
     }
 }
 
@@ -5990,40 +6080,54 @@ async function acheterCarte(id, price, sellerId) {
 
 
 function surveillerMesVentes() {
-    const userId = auth.currentUser.uid;
+    const userId = auth.currentUser.uid;
 
-    // On écoute le marché en filtrant uniquement MES ventes
-    db.collection("market").where("sellerId", "==", userId)
-      .onSnapshot((snapshot) => {
-          // On récupère les IDs des cartes qui sont ENCORE sur le marché
-          const cartesEncoreEnVente = [];
-          snapshot.forEach(doc => {
-              cartesEncoreEnVente.push(doc.data().card.name); 
-          });
+    // On écoute le marché en filtrant uniquement MES ventes
+    db.collection("market").where("sellerId", "==", userId)
+      .onSnapshot((snapshot) => {
+          // On récupère les noms des cartes qui sont ENCORE disponibles (non vendues)
+          const cartesEncoreEnVente = [];
+          snapshot.forEach(doc => {
+              const data = doc.data();
+              // Une carte est encore en vente seulement si 'vendu' n'est pas vrai
+              if (!data.vendu) {
+                  cartesEncoreEnVente.push(data.card.name);
+              }
+          });
 
-          let aChange = false;
+          let aChange = false;
 
-          // On vérifie notre collection locale
-          collection.forEach((card, index) => {
-              // SI la carte est marquée "enVente" MAIS n'est plus dans la liste du marché
-              if (card.enVente && !cartesEncoreEnVente.includes(card.name)) {
-                  console.log(`La carte ${card.name} a été vendue ! Suppression...`);
-                  collection.splice(index, 1); // Elle part de la collection
-                  aChange = true;
-              }
-          });
+          // On parcourt la collection à l'envers pour éviter les problèmes d'index lors du splice
+          for (let i = collection.length - 1; i >= 0; i--) {
+              const card = collection[i];
 
-          if (aChange) {
-              // On sauvegarde la collection propre sur Firebase (Action faite par le VENDEUR lui-même)
-              db.collection("users").doc(userId).update({
-                  collection: collection
-              }).then(() => {
-                  if (typeof displayCollection === "function") displayCollection();
-                  console.log("Collection synchronisée après vente.");
-              });
-          }
-      });
+              // SI la carte est marquée locale "enVente" 
+              // MAIS qu'elle n'est plus dans la liste des objets disponibles du marché
+              if (card.enVente && !cartesEncoreEnVente.includes(card.name)) {
+                  console.log(`La carte ${card.name} a été confirmée comme vendue ou retirée !`);
+                  
+                  // On la retire de la collection locale du vendeur
+                  collection.splice(i, 1); 
+                  aChange = true;
+              }
+          }
+
+          if (aChange) {
+              // On met à jour les données locales et serveur
+              localStorage.setItem("collection", JSON.stringify(collection));
+              
+              db.collection("users").doc(userId).update({
+                  collection: collection
+              }).then(() => {
+                  if (typeof displayCollection === "function") displayCollection();
+                  console.log("Collection synchronisée après détection de vente.");
+              }).catch(err => {
+                  console.error("Erreur synchro collection:", err);
+              });
+          }
+      });
 }
+
 
 
 
@@ -9094,7 +9198,6 @@ auth.onAuthStateChanged(async (user) => {
               // On parcourt notre collection locale pour voir si une carte "enVente" n'est plus au marché
               collection.forEach((card, index) => {
                   if (card.enVente && !cartesEncoreEnVente.includes(card.name)) {
-                      console.log("Une carte a été vendue par un acheteur, suppression de l'inventaire...");
                       collection.splice(index, 1); // Suppression réelle chez le vendeur
                       aEteVendue = true;
                   }
@@ -9105,9 +9208,19 @@ auth.onAuthStateChanged(async (user) => {
                   db.collection("users").doc(user.uid).update({
                       collection: collection
                   }).then(() => {
-                      if (typeof displayCollection === "function") displayCollection();
-                      if (typeof showCollection === "function") showCollection();
-                      console.log("Collection du vendeur synchronisée après l'achat d'un tiers.");
+                      // --- ⚡ MODIFICATION ICI POUR ÉVITER LA REDIRECTION FORCÉE ---
+                      // On vérifie si la section "Collection" est actuellement affichée à l'écran
+                      const collectionSection = document.getElementById("collectionSection"); 
+                      const estSurLaCollection = collectionSection && collectionSection.style.display !== "none";
+
+                      if (estSurLaCollection) {
+                          if (typeof displayCollection === "function") displayCollection();
+                          if (typeof showCollection === "function") showCollection();
+                      } else {
+                          // Si on est ailleurs (ex: Marché), on rafraîchit juste les données du marché
+                          if (typeof chargerMarche === "function") chargerMarche();
+                      }
+                      
                   });
               }
           });

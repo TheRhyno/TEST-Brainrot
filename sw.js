@@ -1,0 +1,19 @@
+const CACHE_NAME = 'brainrot-v1';
+const ASSETS = [
+  '24.html',
+  'manifest.json'
+];
+
+// Installation du service worker
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
+});
+
+// Gestion des requêtes
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((res) => res || fetch(e.request))
+  );
+});

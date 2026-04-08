@@ -2447,7 +2447,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.2</span><br>
+        <span id="app-version">v2.3.1</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -5006,6 +5006,21 @@ let luckyBlockReady = false;
 function updateLuckyTimer(unlockTime, type) {
     luckyBlockUnlockTime = unlockTime;
 
+    // --- AJOUT : PROGRAMMATION DE LA NOTIFICATION ---
+    if (unlockTime && unlockTime > Date.now()) {
+        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+            const delai = unlockTime - Date.now();
+            navigator.serviceWorker.ready.then((reg) => {
+                reg.active.postMessage({
+                    type: 'SCHEDULE_NOTIF',
+                    delay: delai,
+                    title: "Lucky Block Prêt ! 🎁",
+                    body: `Ton ${type || 'Lucky Block'} est enfin disponible ! Viens l'ouvrir !`
+                });
+            });
+        }
+    }
+
     const ui = document.getElementById("luckyBlockUI");
     const timerText = document.getElementById("luckyTimerDisplay");
     const btn = document.getElementById("btnRecupereLucky");
@@ -5020,7 +5035,6 @@ function updateLuckyTimer(unlockTime, type) {
     }
 
     // --- MISE À JOUR DU TYPE ---
-    // Si 'type' est fourni (ex: "Rare"), on l'affiche, sinon on met "Lucky Block" par défaut
     if (typeText) {
         typeText.innerHTML = type ? type : "Lucky Block";
     }
@@ -5053,10 +5067,10 @@ function updateLuckyTimer(unlockTime, type) {
             clearInterval(luckyInterval);
             
             // --- LOGIQUE DE REMPLACEMENT ---
-            if (timerText) timerText.style.display = "none"; // On cache le chrono (plus de texte "Prêt")
-            if (typeText) typeText.style.display = "block";  // On garde le type (ex: "Mythique")
+            if (timerText) timerText.style.display = "none"; 
+            if (typeText) typeText.style.display = "block";  
             
-            btn.style.display = "block"; // On affiche le bouton OUVRIR
+            btn.style.display = "block"; 
             ui.style.borderColor = "#10b981"; 
             
             if (btnSpeedy) btnSpeedy.style.display = "none";
@@ -5065,7 +5079,7 @@ function updateLuckyTimer(unlockTime, type) {
             
             // --- AFFICHAGE PENDANT LE TIMER ---
             if (timerText) {
-                timerText.style.display = "block"; // On réaffiche le chrono s'il était caché
+                timerText.style.display = "block"; 
                 const h = Math.floor(reste / 3600000);
                 const m = Math.floor((reste % 3600000) / 60000);
                 const s = Math.floor((reste % 60000) / 1000);
@@ -5184,9 +5198,25 @@ async function appliquerBoost(cout, minutesAReduire) {
             speedyProfileDisplay.innerText = speedies;
         }
         
+        // On récupère le type actuel pour la notification
+        const typeActuel = document.getElementById("luckyBlockType") ? document.getElementById("luckyBlockType").innerText : "Lucky Block";
+
         // On relance le timer avec la nouvelle heure
-        const typeActuel = document.getElementById("luckyBlockType").innerText;
         updateLuckyTimer(nouveauTemps, typeActuel);
+        
+        // --- AJOUT : REPROGRAMMATION DE LA NOTIFICATION ---
+        // On prévient le Service Worker que l'heure a changé
+        if ('serviceWorker' in navigator && Notification.permission === 'granted' && nouveauTemps > Date.now()) {
+            const delai = nouveauTemps - Date.now();
+            navigator.serviceWorker.ready.then((reg) => {
+                reg.active.postMessage({
+                    type: 'SCHEDULE_NOTIF',
+                    delay: delai,
+                    title: "Boost appliqué ! ⚡",
+                    body: `Ton ${typeActuel} sera prêt plus vite !`
+                });
+            });
+        }
         
         // Rafraîchir l'affichage de tes monnaies (si tu as une fonction dédiée)
         if (typeof refreshStats === "function") refreshStats();
@@ -5198,6 +5228,26 @@ async function appliquerBoost(cout, minutesAReduire) {
     }
 }
 
+
+
+
+function programmerNotificationLucky(unlockTime, type) {
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        const maintenant = Date.now();
+        const delai = unlockTime - maintenant;
+
+        if (delai > 0) {
+            navigator.serviceWorker.ready.then((registration) => {
+                registration.active.postMessage({
+                    type: 'SCHEDULE_NOTIF',
+                    delay: delai,
+                    title: "Lucky Block Prêt ! 🎁",
+                    body: `Ton ${type || 'Lucky Block'} est enfin disponible ! Viens l'ouvrir !`
+                });
+            });
+        }
+    }
+}
 
 
 
@@ -9779,9 +9829,12 @@ if ('serviceWorker' in navigator) {
         }
       };
     };
+    
+    // Force une vérification de mise à jour à chaque chargement
+    reg.update();
   }).catch(err => console.log("Erreur SW:", err));
 
-  // Force le refresh si le Service Worker prend le contrôle
+  // Force le refresh si le Service Worker prend le contrôle (indispensable pour skipWaiting)
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload();
   });
@@ -9818,7 +9871,7 @@ async function installerLeJeu() {
 
 // 4. Vérification au chargement et Notifications
 window.addEventListener('load', () => {
-  // Check mode standalone
+  // Check mode standalone (si l'app est déjà lancée en mode installé)
   if (window.matchMedia('(display-mode: standalone)').matches) {
     if (installBox) installBox.style.display = 'none';
   }
@@ -9835,17 +9888,23 @@ window.addEventListener('appinstalled', (evt) => {
   if (installBox) installBox.style.display = 'none';
 });
 
-// 6. Détecter quand le joueur quitte ou réduit l'application (Notif 20s)
-window.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+
+
+// 6. Fonction utilitaire pour les notifications de Lucky Block (à appeler dans ton code de jeu)
+function programmerNotificationLucky(unlockTime, type) {
+  if (navigator.serviceWorker && navigator.serviceWorker.controller && Notification.permission === 'granted') {
+    const delai = unlockTime - Date.now();
+    if (delai > 0) {
       navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_NOTIF'
+        type: 'SCHEDULE_NOTIF',
+        delay: delai,
+        title: "Lucky Block Prêt ! 🎁",
+        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
       });
-      console.log("Signal envoyé au SW : notification prévue dans 20s");
     }
   }
-});
+}
+
 
 
 

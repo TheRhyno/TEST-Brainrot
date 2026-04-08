@@ -1,6 +1,6 @@
 const CACHE_NAME = 'brainrot-v1';
 const ASSETS = [
-  '24.html',
+  'index.html',
   'manifest.json'
 ];
 

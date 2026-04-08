@@ -9763,11 +9763,28 @@ if (logoutBtnEl) {
 
 
 
-// 1. Enregistrement du Service Worker
+// 1. Enregistrement du Service Worker avec détection de mise à jour
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
-    .then(() => console.log("Service Worker enregistré !"))
-    .catch(err => console.log("Erreur SW:", err));
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    console.log("Service Worker enregistré !");
+
+    // --- AJOUT : DETECTION MAJ INSTANTANÉE ---
+    reg.onupdatefound = () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // Une nouvelle version a été téléchargée et est prête
+          console.log("Nouvelle version détectée, rechargement immédiat...");
+          window.location.reload(); 
+        }
+      };
+    };
+  }).catch(err => console.log("Erreur SW:", err));
+
+  // Force le refresh si le Service Worker prend le contrôle
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
 }
 
 let deferredPrompt;
@@ -9775,45 +9792,40 @@ const installBox = document.getElementById('install-btn-container');
 
 // 2. Écoute de l'événement d'installation
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Empêche Chrome d'afficher sa propre bannière
   e.preventDefault();
-  // Stocke l'événement pour l'utiliser plus tard
   deferredPrompt = e;
   
-  // Affiche ton bloc de bouton dans les paramètres si on n'est pas déjà en mode app
   if (installBox && !window.matchMedia('(display-mode: standalone)').matches) {
     installBox.style.display = 'block';
   }
 });
 
-// 3. Fonction pour déclencher l'installation (appelée par ton bouton)
+// 3. Fonction pour déclencher l'installation
 async function installerLeJeu() {
   if (deferredPrompt) {
-    // Affiche la fenêtre d'installation officielle
     deferredPrompt.prompt();
-    
-    // Attend le choix du joueur
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`Choix utilisateur : ${outcome}`);
     
     if (outcome === 'accepted') {
-      // Si installé, on cache le bouton
       if (installBox) installBox.style.display = 'none';
     }
-    
-    // On vide le prompt car il ne peut servir qu'une fois
     deferredPrompt = null;
   } else {
-    // Message de secours si le navigateur ne déclenche pas le prompt automatique
     alert("Pour installer : Clique sur les 3 points (menu) de ton navigateur et choisis 'Installer l'application'.");
   }
 }
 
-// 4. Vérification au chargement (Sécurité supplémentaire)
+// 4. Vérification au chargement et Notifications
 window.addEventListener('load', () => {
+  // Check mode standalone
   if (window.matchMedia('(display-mode: standalone)').matches) {
-    // Si le joueur lance déjà l'app depuis son écran d'accueil
     if (installBox) installBox.style.display = 'none';
+  }
+
+  // Demande permission notifications
+  if ("Notification" in window) {
+    Notification.requestPermission();
   }
 });
 
@@ -9823,6 +9835,17 @@ window.addEventListener('appinstalled', (evt) => {
   if (installBox) installBox.style.display = 'none';
 });
 
+// 6. Détecter quand le joueur quitte ou réduit l'application (Notif 20s)
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SCHEDULE_NOTIF'
+      });
+      console.log("Signal envoyé au SW : notification prévue dans 20s");
+    }
+  }
+});
 
 
 

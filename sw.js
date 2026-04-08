@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainrot-v5'; // Passe en v5 pour que le changement soit pris en compte
+const CACHE_NAME = 'brainrot-v6';
 const ASSETS = [
   'index.html',
   'manifest.json'
@@ -6,8 +6,7 @@ const ASSETS = [
 
 // Installation du service worker
 self.addEventListener('install', (e) => {
-  // FORCE LA MISE À JOUR : Le nouveau SW s'installe sans attendre
-  self.skipWaiting(); 
+  self.skipWaiting();  
   
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -20,13 +19,12 @@ self.addEventListener('activate', (e) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          // Si le cache trouvé n'est pas celui qu'on vient de définir, on le supprime
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
       );
-    }).then(() => self.clients.claim()) // Prend le contrôle des pages immédiatement
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -37,17 +35,26 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-// Notifications
+// Notifications (Uniquement sur commande précise désormais)
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SCHEDULE_NOTIF') {
-    setTimeout(() => {
-      self.registration.showNotification("Brainrot TCG", {
-        body: "Ça fait 20 secondes ! Reviens tenter ta chance !",
-        icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-        badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-        vibrate: [200, 100, 200]
-      });
-    }, 20000);
+    
+    // On récupère uniquement ce qui est envoyé, pas de texte automatique "20s"
+    const delai = event.data.delay;
+    const titre = event.data.title;
+    const message = event.data.body;
+
+    // On ne lance la notification que si on a au moins un titre et un délai
+    if (delai && titre) {
+      setTimeout(() => {
+        self.registration.showNotification(titre, {
+          body: message || "",
+          icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+          badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+          vibrate: [200, 100, 200]
+        });
+      }, delai);
+    }
   }
 });
 
@@ -56,13 +63,10 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
   event.waitUntil(
-    // On cherche si une fenêtre du jeu est déjà ouverte
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Si oui, on remet juste le focus dessus au lieu d'en ouvrir une nouvelle
       for (const client of clientList) {
         if ('focus' in client) return client.focus();
       }
-      // Si aucune fenêtre n'est ouverte, on ouvre l'URL précise du jeu (le scope)
       if (clients.openWindow) {
         return clients.openWindow(self.registration.scope);
       }

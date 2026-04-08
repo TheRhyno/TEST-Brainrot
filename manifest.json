@@ -2,7 +2,7 @@
   "name": "Brainrot TCG",
   "short_name": "Brainrot",
   "description": "Collectionne les cartes les plus cursed du web",
-  "start_url": "24.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0e1525",
   "theme_color": "#7c3aed",

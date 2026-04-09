@@ -5005,21 +5005,18 @@ let luckyBlockReady = false;
 function updateLuckyTimer(unlockTime, type) {
     luckyBlockUnlockTime = unlockTime;
 
-    // --- AJOUT : PROGRAMMATION DE LA NOTIFICATION (Version Blindée) ---
+    // --- AJOUT : Notification (S'exécute une seule fois quand on appelle la fonction) ---
     if (unlockTime && unlockTime > Date.now()) {
         if ('serviceWorker' in navigator && Notification.permission === 'granted') {
             const delai = unlockTime - Date.now();
-            
-            // On utilise .ready pour garantir que le canal est ouvert
             navigator.serviceWorker.ready.then((reg) => {
                 if (reg.active) {
                     reg.active.postMessage({
                         type: 'SCHEDULE_NOTIF',
                         delay: delai,
                         title: "Lucky Block Prêt ! 🎁",
-                        body: `Ton ${type || 'Lucky Block'} est enfin disponible ! Viens l'ouvrir !`
+                        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
                     });
-                    console.log("🚀 Notification programmée via updateLuckyTimer dans : " + Math.round(delai/1000) + "s");
                 }
             });
         }
@@ -5038,7 +5035,6 @@ function updateLuckyTimer(unlockTime, type) {
         return;
     }
 
-    // --- MISE À JOUR DU TYPE ---
     if (typeText) {
         typeText.innerHTML = type ? type : "Lucky Block";
     }
@@ -5049,7 +5045,6 @@ function updateLuckyTimer(unlockTime, type) {
         const maintenant = Date.now();
         const reste = unlockTime - maintenant;
 
-        // --- CONDITION : AFFICHAGE UNIQUEMENT SUR L'ACCUEIL ---
         const menuOuvert = document.getElementById('shopSection')?.style.display === 'flex' || 
                            document.getElementById('inventorySection')?.style.display === 'flex' ||
                            document.getElementById('accountSection')?.style.display === 'flex' ||
@@ -5069,19 +5064,13 @@ function updateLuckyTimer(unlockTime, type) {
         if (reste <= 0) {
             luckyBlockReady = true; 
             clearInterval(luckyInterval);
-            
-            // --- LOGIQUE DE REMPLACEMENT ---
             if (timerText) timerText.style.display = "none"; 
             if (typeText) typeText.style.display = "block";  
-            
-            if (btn) btn.style.display = "block"; 
-            if (ui) ui.style.borderColor = "#10b981"; 
-            
+            btn.style.display = "block"; 
+            ui.style.borderColor = "#10b981"; 
             if (btnSpeedy) btnSpeedy.style.display = "none";
         } else {
             luckyBlockReady = false;
-            
-            // --- AFFICHAGE PENDANT LE TIMER ---
             if (timerText) {
                 timerText.style.display = "block"; 
                 const h = Math.floor(reste / 3600000);
@@ -5090,10 +5079,8 @@ function updateLuckyTimer(unlockTime, type) {
                 timerText.innerHTML = `${h}h ${m}m ${s}s`;
                 timerText.style.color = "#fbbf24";
             }
-            
-            if (btn) btn.style.display = "none";
-            if (ui) ui.style.borderColor = "#fbbf24";
-
+            btn.style.display = "none";
+            ui.style.borderColor = "#fbbf24";
             if (btnSpeedy) {
                 btnSpeedy.style.display = "inline-block";
                 btnSpeedy.innerHTML = `⚡`; 

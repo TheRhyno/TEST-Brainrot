@@ -1857,8 +1857,8 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-<nav style="position:fixed; bottom:0; left:0; width:100%; height:75px; background:#111a2e; display:flex; justify-content:space-around; align-items:flex-end; border-top:2px solid #0d1220; z-index:9999; padding:0; font-family: sans-serif;">
-    
+<nav id="mainNav" style="position:fixed; bottom:0; left:0; width:100%; height:75px; background:#111a2e; display:flex; justify-content:space-around; align-items:flex-end; border-top:2px solid #0d1220; z-index:9999; padding:0; font-family: sans-serif;">
+ 
     <button id="tabCombat" style="flex:1; background:transparent; border:none; color:white; display:flex; flex-direction:column; align-items:center; cursor:pointer; font-weight:900; font-size:9px; padding-bottom:8px; outline:none;">
         <span style="font-size:24px; transform:translateY(-5px);">⚔️</span>
         COMBAT
@@ -2480,7 +2480,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <p><b>ARTICLE 1. CADRE JURIDIQUE ET CHAMP D'APPLICATION.</b> La présente politique de confidentialité (ci-après "la Politique") définit les modalités selon lesquelles l'entité éditrice de Brainrot TCG (ci-après "l'Éditeur") procède au traitement des données à caractère personnel dans le strict respect du Règlement Général sur la Protection des Données (RGPD). En accédant aux services de l'application, l'utilisateur (ci-après "l'Utilisateur") reconnaît avoir pris connaissance des présentes dispositions de manière non équivoque.</p>
 
 
-    <p><b>ARTICLE 2. NATURE DES DONNÉES COLLECTÉES ET FINALITÉS.</b> L'Éditeur collecte, via l'infrastructure technique de tiers mandatés (Google Cloud Platform / Firebase), des données strictement nécessaires à l'interopérabilité logicielle. Ces données incluent sans s'y limiter : l'adresse de protocole de messagerie électronique (e-mail), l'identifiant alphanumérique de session unique (UID), les métadonnées de progression incluant l'inventaire numérique (cartes, boosters, fragments, speedies) et les variables de persistance de session. La finalité exclusive est le maintien de l'intégrité de la base de données relationnelle associée au compte de l'Utilisateur.</p>
+    <p><b>ARTICLE 2. NATURE DES DONNÉES COLLECTÉES ET FINALITÉS.</b> L'Éditeur collecte, via l'infrastructure technique de tiers mandatés (Google Cloud Platform / Firebase), des données strictement nécessaires à l'interopérabilité logicielle. Ces données incluent sans s'y limiter : l'adresse de protocole de messagerie électronique (e-mail), l'identifiant alphanumérique de session unique (UID), les métadonnées de progression incluant l'inventaire numérique (cartes, boosters, fragments, speedies) et les variables de persistance de session. La finalité exclusive est le maintien de l'intégrité de la base de données ainsi que l'envoi de notifications de jeu après consentement explicite de l'Utilisateur.</p>
 
 
     <p><b>ARTICLE 3. SOUS-TRAITANCE ET TRANSFERT TRANSFRONTALIER.</b> Les données susmentionnées sont hébergées sur des clusters de serveurs dont la localisation géographique peut être située hors de l'Espace Économique Européen (EEE). L'Utilisateur consent expressément au transfert de ses données vers les infrastructures de Google LLC, régies par des clauses contractuelles types approuvées par la Commission Européenne. L'Éditeur ne saurait être tenu responsable d'une interruption de service liée à une défaillance de l'infrastructure tierce.</p>
@@ -2489,7 +2489,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <p><b>ARTICLE 4. CONSERVATION ET ARCHIVAGE.</b> Les données sont conservées pour une durée n'excédant pas celle nécessaire aux finalités pour lesquelles elles sont collectées. En l'espèce, les données sont maintenues tant que le compte est actif. Conformément à l'article 17 du RGPD, l'Utilisateur dispose d'un droit à l'effacement. Nonobstant ce qui précède, certaines données techniques anonymisées peuvent être conservées à des fins purement statistiques de diagnostic de charge serveur.</p>
 
 
-    <p><b>ARTICLE 5. SÉCURITÉ ET INTÉGRITÉ.</b> L'Éditeur met en œuvre des mesures techniques et organisationnelles appropriées (Security Rules Firestore) pour garantir un niveau de sécurité adapté au risque, incluant le chiffrement au repos et en transit. Toutefois, l'Utilisateur est informé que la sécurité absolue sur le réseau internet n'existe pas, et l'Éditeur décline toute responsabilité en cas de compromission des identifiants d'accès imputable à la négligence de l'Utilisateur.</p>
+    <p><b>ARTICLE 5. SÉCURITÉ ET INTÉGRITÉ.</b> L'Éditeur met en œuvre des mesures techniques et organisationnelles appropriées (Security Rules Firestore) pour garantir un niveau de sécurité adapté au risque, incluant le chiffrement au repos et en transit. L'Utilisateur est informé que l'application utilise des technologies de stockage local (Service Worker et Cache API) afin de permettre le fonctionnement hors-ligne et d'optimiser les performances techniques ; ces ressources sont stockées exclusivement sur l'appareil de l'Utilisateur. Toutefois, l'Utilisateur est informé que la sécurité absolue sur le réseau internet n'existe pas, et l'Éditeur décline toute responsabilité en cas de compromission des identifiants d'accès imputable à la négligence de l'Utilisateur.</p>
 
 
     <p><b>ARTICLE 6. MODIFICATIONS ET MISES À JOUR.</b> L'Éditeur se réserve le droit unilatéral de modifier la présente Politique à tout moment afin de se conformer aux évolutions législatives ou techniques. La version prévalente est celle accessible en temps réel au sein de l'interface logicielle. La continuation de l'utilisation du service après modification vaut acceptation tacite des nouvelles dispositions.</p>
@@ -4150,11 +4150,21 @@ function toggleBattlePass() {
     const overlay = document.getElementById('bpOverlay');
     const icon = document.getElementById('bpIcon');
     
+    // --- AJOUT : Récupération du menu et du profil ---
+    const nav = document.querySelector('nav');
+    const accountBtn = document.getElementById('accountBtn');
+    
     // OUVERTURE
     if (overlay.style.display === 'none' || overlay.style.display === '') {
         overlay.style.display = 'flex';
         overlay.classList.remove('bp-closing'); // Sécurité au cas où on ouvre vite
+        
         if(icon) icon.style.display = 'none'; 
+        
+        // --- AJOUT : Masquer le menu et le profil ---
+        if (nav) nav.style.display = 'none';
+        if (accountBtn) accountBtn.style.display = 'none';
+
         updateBattlePassUI();
     } 
     // FERMETURE (C'est ici qu'on ajoute l'animation)
@@ -4165,10 +4175,17 @@ function toggleBattlePass() {
         setTimeout(() => {
             overlay.style.display = 'none';
             overlay.classList.remove('bp-closing'); // On nettoie la classe
+            
             if(icon) icon.style.display = 'flex';
+            
+            // --- AJOUT : Réafficher le menu et le profil ---
+            if (nav) nav.style.display = 'flex';
+            if (accountBtn) accountBtn.style.display = 'block';
+            
         }, 400); 
     }
 }
+
 
 
 
@@ -5690,17 +5707,27 @@ let cardToSellIndex = null;
 
 // Gestion du clic sur le bouton flottant
 document.getElementById('tabMarket').onclick = () => {
-    // On nettoie tout
-   
+    // On nettoie tout
+    
+    // --- AJOUT : Masquer la navigation et les éléments gênants ---
+    const nav = document.querySelector('nav');
+    if (nav) nav.style.display = 'none';
+    
+    const accountBtn = document.getElementById('accountBtn');
+    if (accountBtn) accountBtn.style.display = 'none';
+    
+    // On cache aussi le bouton flottant lui-même pour ne pas qu'il reste par-dessus le marché
+    document.getElementById('tabMarket').style.display = 'none';
 
-    // On affiche la section marché
-    const marketSection = document.getElementById('marketSection');
-    marketSection.style.display = 'block'; 
-    
-    // On force le chargement des données
-    currentMarketTab = 'buy';
-    chargerMarche(); 
+    // On affiche la section marché
+    const marketSection = document.getElementById('marketSection');
+    marketSection.style.display = 'block'; 
+    
+    // On force le chargement des données
+    currentMarketTab = 'buy';
+    chargerMarche(); 
 };
+
 
 
 // Intégration dans ton hideAllSections existant
@@ -6283,6 +6310,10 @@ function toggleQuests() {
     
     // On récupère le bouton musique au cas où tu voudrais le cacher aussi (comme pour le lobby)
     const musicBtn = document.getElementById("musicBtn");
+    
+    // --- AJOUT : Récupération du menu et du profil ---
+    const nav = document.querySelector('nav');
+    const accountBtn = document.getElementById('accountBtn');
 
     // Alterne entre 'none' et 'flex'
     if (overlay.style.display === "none" || overlay.style.display === "") {
@@ -6294,6 +6325,10 @@ function toggleQuests() {
         overlay.classList.add("quest-overlay-animate");
 
         if (musicBtn) musicBtn.style.display = "none";
+        
+        // --- AJOUT : Masquer le menu et le profil ---
+        if (nav) nav.style.display = "none";
+        if (accountBtn) accountBtn.style.display = "none";
 
         // On recharge les quêtes depuis Firebase à chaque ouverture pour être à jour
         chargerQuetesFirebase();
@@ -6309,9 +6344,15 @@ function toggleQuests() {
             overlay.classList.remove("quest-exit-animate"); // Reset pour la prochaine fois
             
             if (musicBtn) musicBtn.style.display = "flex";
+            
+            // --- AJOUT : Réafficher le menu et le profil ---
+            if (nav) nav.style.display = "flex";
+            if (accountBtn) accountBtn.style.display = "block";
+            
         }, 300);
     }
 }
+
 
 
 
@@ -6786,6 +6827,12 @@ function ouvrirLobby() {
     const musicBtn = document.getElementById("musicBtn");
     if (musicBtn) musicBtn.style.display = "none";
     
+    // --- AJOUT : MASQUER LE MENU ET LE PROFIL ---
+    const nav = document.querySelector('nav');
+    const accountBtn = document.getElementById('accountBtn');
+    if (nav) nav.style.display = "none";
+    if (accountBtn) accountBtn.style.display = "none";
+    
     // --- TRANSITION FLUIDE ET MODERNE ---
     lobby.style.display = "block";
     // Ajout des classes d'animation définies dans le HTML/CSS
@@ -6899,6 +6946,10 @@ function fermerLobby() {
     const content = document.getElementById("lobby-content-container");
     const musicBtn = document.getElementById("musicBtn");
 
+    // --- AJOUT : Récupération du menu et du profil ---
+    const nav = document.querySelector('nav');
+    const accountBtn = document.getElementById('accountBtn');
+
     if (lobby && content) {
         // --- 🟢 DÉCLENCHEMENT DE L'ANIMATION DE SORTIE ---
         // On retire les classes d'entrée pour éviter les conflits
@@ -6921,13 +6972,23 @@ function fermerLobby() {
 
             // 3. On réaffiche le bouton de musique (après la fermeture)
             if (musicBtn) musicBtn.style.display = "flex";
+
+            // --- AJOUT : Réafficher le menu et le profil ---
+            if (nav) nav.style.display = "flex";
+            if (accountBtn) accountBtn.style.display = "block";
+
         }, 300); // 300ms correspond à la durée de l'animation CSS
     } else {
         // Sécurité si le lobby n'existe pas, on cache quand même
         if (lobby) lobby.style.display = "none";
         if (musicBtn) musicBtn.style.display = "flex";
+
+        // --- AJOUT : Sécurité réaffichage ---
+        if (nav) nav.style.display = "flex";
+        if (accountBtn) accountBtn.style.display = "block";
     }
 }
+
 
 
 

@@ -4866,9 +4866,8 @@ window.addEventListener('load', () => {
 
 
 
-// On surveille le scroll de la section collection
+
 // --- GESTION DU SCROLL POUR LA COLLECTION ---
-// On cible "collection" car c'est la zone qui a le scroll-y maintenant
 const sectionCol = document.getElementById("collection"); 
 if (sectionCol) {
     sectionCol.onscroll = function() {
@@ -5006,17 +5005,22 @@ let luckyBlockReady = false;
 function updateLuckyTimer(unlockTime, type) {
     luckyBlockUnlockTime = unlockTime;
 
-    // --- AJOUT : PROGRAMMATION DE LA NOTIFICATION ---
+    // --- AJOUT : PROGRAMMATION DE LA NOTIFICATION (Version Blindée) ---
     if (unlockTime && unlockTime > Date.now()) {
         if ('serviceWorker' in navigator && Notification.permission === 'granted') {
             const delai = unlockTime - Date.now();
+            
+            // On utilise .ready pour garantir que le canal est ouvert
             navigator.serviceWorker.ready.then((reg) => {
-                reg.active.postMessage({
-                    type: 'SCHEDULE_NOTIF',
-                    delay: delai,
-                    title: "Lucky Block Prêt ! 🎁",
-                    body: `Ton ${type || 'Lucky Block'} est enfin disponible ! Viens l'ouvrir !`
-                });
+                if (reg.active) {
+                    reg.active.postMessage({
+                        type: 'SCHEDULE_NOTIF',
+                        delay: delai,
+                        title: "Lucky Block Prêt ! 🎁",
+                        body: `Ton ${type || 'Lucky Block'} est enfin disponible ! Viens l'ouvrir !`
+                    });
+                    console.log("🚀 Notification programmée via updateLuckyTimer dans : " + Math.round(delai/1000) + "s");
+                }
             });
         }
     }
@@ -5070,8 +5074,8 @@ function updateLuckyTimer(unlockTime, type) {
             if (timerText) timerText.style.display = "none"; 
             if (typeText) typeText.style.display = "block";  
             
-            btn.style.display = "block"; 
-            ui.style.borderColor = "#10b981"; 
+            if (btn) btn.style.display = "block"; 
+            if (ui) ui.style.borderColor = "#10b981"; 
             
             if (btnSpeedy) btnSpeedy.style.display = "none";
         } else {
@@ -5087,8 +5091,8 @@ function updateLuckyTimer(unlockTime, type) {
                 timerText.style.color = "#fbbf24";
             }
             
-            btn.style.display = "none";
-            ui.style.borderColor = "#fbbf24";
+            if (btn) btn.style.display = "none";
+            if (ui) ui.style.borderColor = "#fbbf24";
 
             if (btnSpeedy) {
                 btnSpeedy.style.display = "inline-block";
@@ -5101,7 +5105,6 @@ function updateLuckyTimer(unlockTime, type) {
         }
     }, 1000);
 }
-
 
 
 
@@ -5208,13 +5211,18 @@ async function appliquerBoost(cout, minutesAReduire) {
         // On prévient le Service Worker que l'heure a changé
         if ('serviceWorker' in navigator && Notification.permission === 'granted' && nouveauTemps > Date.now()) {
             const delai = nouveauTemps - Date.now();
+            
+            // Utilisation de .ready pour garantir la connexion au SW actif
             navigator.serviceWorker.ready.then((reg) => {
-                reg.active.postMessage({
-                    type: 'SCHEDULE_NOTIF',
-                    delay: delai,
-                    title: "Boost appliqué ! ⚡",
-                    body: `Ton ${typeActuel} sera prêt plus vite !`
-                });
+                if (reg.active) {
+                    reg.active.postMessage({
+                        type: 'SCHEDULE_NOTIF',
+                        delay: delai,
+                        title: "Boost appliqué ! ⚡",
+                        body: `Ton ${typeActuel} sera prêt plus vite !`
+                    });
+                    console.log("🚀 Notification de boost envoyée au SW !");
+                }
             });
         }
         
@@ -5231,23 +5239,55 @@ async function appliquerBoost(cout, minutesAReduire) {
 
 
 
-function programmerNotificationLucky(unlockTime, type) {
-    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        const maintenant = Date.now();
-        const delai = unlockTime - maintenant;
 
-        if (delai > 0) {
-            navigator.serviceWorker.ready.then((registration) => {
+/**
+ * Programme une notification locale via le Service Worker
+ * @param {number} unlockTime - Timestamp (ms) du déblocage
+ * @param {string} type - Nom du Lucky Block (ex: "Secret Lucky Block")
+ */
+function programmerNotificationLucky(unlockTime, type) {
+    // 1. Vérifications de base (SW supporté et Permission accordée)
+    if (!('serviceWorker' in navigator)) {
+        console.warn("Service Worker non supporté sur ce navigateur.");
+        return;
+    }
+
+    if (Notification.permission !== 'granted') {
+        console.warn("Notifications non autorisées. Demande de permission...");
+        Notification.requestPermission();
+        return;
+    }
+
+    // 2. Calcul du délai
+    const maintenant = Date.now();
+    const delai = unlockTime - maintenant;
+
+    // 3. Envoi au Service Worker uniquement si le temps est dans le futur
+    if (delai > 0) {
+        navigator.serviceWorker.ready.then((registration) => {
+            if (registration.active) {
                 registration.active.postMessage({
                     type: 'SCHEDULE_NOTIF',
                     delay: delai,
                     title: "Lucky Block Prêt ! 🎁",
                     body: `Ton ${type || 'Lucky Block'} est enfin disponible ! Viens l'ouvrir !`
                 });
-            });
-        }
+                
+                // Log de confirmation pratique pour le débug
+                const secondes = Math.round(delai / 1000);
+                const minutes = Math.floor(secondes / 60);
+                console.log(`🚀 Notification programmée avec succès dans ${minutes}min ${secondes % 60}s`);
+            } else {
+                console.error("Le Service Worker est prêt mais pas encore 'actif'.");
+            }
+        }).catch(err => {
+            console.error("Erreur lors de l'accès au Service Worker :", err);
+        });
+    } else {
+        console.log("Délai déjà passé (ou nul), aucune notification programmée.");
     }
 }
+
 
 
 

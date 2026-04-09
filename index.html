@@ -1965,28 +1965,41 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-<div style="display: flex; justify-content: center; align-items: center; margin: 30px 0; background: #162037; padding: 20px; border-radius: 15px; border: 2px solid #7c3aed;">
-        <div id="player-slot" onclick="ouvrirSelectionCombat()" style="width: 140px; height: 200px; border: 2px dashed #8da0b8; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #0e1525;">
-            <span style="color: #8da0b8; font-size: 0.8rem; text-align:center;">Clique ici pour<br>choisir ta carte</span>
-        </div>
-        <div style="font-size: 2.5em; font-weight: bold; color: #ff4444; margin: 0 10px;">VS</div>
-        <div id="opponent-slot" style="width: 140px; height: 200px; border: 2px solid #ff4444; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #0e1525;">
-            <span style="font-size: 3em;">?</span>
-        </div>
+<div style="display: flex; justify-content: center; align-items: center; margin: 15px 0; background: #162037; padding: 12px; border-radius: 12px; border: 2px solid #7c3aed; max-width: fit-content; margin-left: auto; margin-right: auto;">
+    
+    <div id="player-slot" onclick="ouvrirSelectionCombat()" style="width: 120px; height: 175px; border: 2px dashed #8da0b8; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #0e1525;">
+        <span style="color: #8da0b8; font-size: 0.65rem; text-align:center;">Clique ici pour<br>choisir ta carte</span>
     </div>
-    <div id="battle-info" style="margin: 15px 0; font-weight: bold; color: white;"></div>
-    <button id="btn-start-fight" style="display:none; background: #ff4444; padding: 15px 30px; border-radius: 10px;" onclick="lancerLeCombat()">🔥 LANCER LE COMBAT ! 🔥</button>
-</div> <div id="selection-combat-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
-    <div style="background:#162037; width:100%; max-width:320px; border-radius:20px; border:2px solid #7c3aed; padding:20px; position:relative; box-shadow: 0 0 30px rgba(124,58,237,0.5); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center;">
+
+    <div style="font-size: 1.8em; font-weight: bold; color: #ff4444; margin: 0 12px;">VS</div>
+
+    <div id="opponent-slot" style="width: 120px; height: 175px; border: 2px solid #ff4444; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #0e1525;">
+        <span style="font-size: 2.2em;">?</span>
+
+        </div>
+
+
+    </div>
+    <div id="battle-info" style="margin: 15px 0; font-weight: bold; color: white;"></div>
+    <button id="btn-start-fight" style="display:none; background: #ff4444; padding: 15px 30px; border-radius: 10px;" onclick="lancerLeCombat()">🔥 LANCER LE COMBAT ! 🔥</button>
+
+
+
+
+</div> 
+<div id="selection-combat-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; padding:20px; box-sizing:border-box;">
+
+    <div style="background:#162037; width:90%; max-width:260px; margin: 10vh auto; border-radius:20px; border:2px solid #7c3aed; padding:15px; position:relative; box-shadow: 0 0 30px rgba(124,58,237,0.5); max-height: 70vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center;">
         
         <button onclick="document.getElementById('selection-combat-overlay').style.display='none'" style="position:absolute; top:10px; right:10px; background:#ef4444; border-radius:50%; width:30px; height:30px; border:none; color:white; font-weight:bold; cursor:pointer; z-index:100;">X</button>
         
-        <h2 style="color:white; margin:10px 0 20px; font-size:1.3rem; text-align:center;">Choisis ton Brainrot</h2>
+        <h2 style="color:white; margin:10px 0 15px; font-size:1.1rem; text-align:center;">Choisis ton Brainrot</h2>
         
         <div id="selection-list" style="display:flex; flex-direction: column; gap:15px; width:100%; align-items:center;">
-            </div>
+             </div>
     </div>
 </div>
+
 
 
 <div id="authOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:20000; flex-direction:column; justify-content:center; align-items:center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; touch-action: none; background: linear-gradient(135deg, #7c3aed 0%, #a21caf 100%);"> 
@@ -2447,7 +2460,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.1</span><br>
+        <span id="app-version">v2.3.0</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -7448,13 +7461,39 @@ async function lancerLeCombat() {
 
     const roomRef = db.collection("battles").doc(currentRoomId);
     const btn = document.getElementById("btn-start-fight");
+    const infoZone = document.getElementById("battle-info"); // On récupère la zone d'info
 
     btn.disabled = true;
     btn.innerText = "Envoi du signal...";
 
+    // --- MODIFICATION POUR FORCER L'AFFICHAGE ---
+    try {
+        // On récupère les données fraîches de la base de données
+        const doc = await roomRef.get();
+        const data = doc.data();
+
+        if (data && data.playerCard && data.opponentCard) {
+            // On affiche les stats qui sont stockées dans Firebase
+            infoZone.innerHTML = `
+                <span style="color: #7c3aed; font-size: 1.2rem;">Ton ATK: ${data.playerCard.attaque}</span> 
+                <span style="color: #ff4444; margin-left: 15px; font-size: 1.2rem;">ATK Adv: ${data.opponentCard.attaque}</span>
+            `;
+        } else if (window.carteSelectionnee && window.carteAdversaire) {
+            // Backup : si Firebase n'est pas encore prêt, on utilise les variables locales
+            infoZone.innerHTML = `
+                <span style="color: #7c3aed;">Ton ATK: ${window.carteSelectionnee.attaque}</span> 
+                <span style="color: #ff4444; margin-left: 15px;">ATK Adv: ${window.carteAdversaire.attaque}</span>
+            `;
+        }
+    } catch (error) {
+        console.error("Erreur lors de l'affichage des ATK:", error);
+    }
+
     // 2. IMPORTANT : Le changement de statut va déclencher la quête chez TOUT LE MONDE
     await roomRef.update({ status: "processing" });
 }
+
+
 
 
 
@@ -7474,13 +7513,23 @@ async function executerCalculCombat() {
     p1Power = getPower(maCarte);
     p2Power = getPower(carteAdversaire);
 
-    // Révélation visuelle
+    // --- AJOUT : RÉVÉLATION VISUELLE DE TA CARTE (Taille fixée) ---
+    document.getElementById("player-slot").innerHTML = `
+        <div class="card ${maCarte.rarity?.toLowerCase()}" style="width: 100%; height: 100%; margin: 0; padding: 0; box-sizing: border-box; overflow: hidden;">
+            <div class="card-inner" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-around;">
+                <img src="${maCarte.image}" class="card-img" style="width: 100%; height: 100px; object-fit: contain;">
+                <div class="card-name" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; text-align: center;">${maCarte.name}</div>
+                <div class="card-power" style="font-size: 0.85rem; font-weight: bold; color: #ff4444;">${p1Power} ATK</div>
+            </div>
+        </div>`;
+
+    // Révélation visuelle de l'ADVERSAIRE (Taille fixée)
     document.getElementById("opponent-slot").innerHTML = `
-        <div class="card ${carteAdversaire.rarity?.toLowerCase()}">
-            <div class="card-inner">
-                <img src="${carteAdversaire.image}" class="card-img">
-                <div class="card-name">${carteAdversaire.name}</div>
-                <div class="card-power">${p2Power} ATK</div>
+        <div class="card ${carteAdversaire.rarity?.toLowerCase()}" style="width: 100%; height: 100%; margin: 0; padding: 0; box-sizing: border-box; overflow: hidden;">
+            <div class="card-inner" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-around;">
+                <img src="${carteAdversaire.image}" class="card-img" style="width: 100%; height: 100px; object-fit: contain;">
+                <div class="card-name" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; text-align: center;">${carteAdversaire.name}</div>
+                <div class="card-power" style="font-size: 0.85rem; font-weight: bold; color: #ff4444;">${p2Power} ATK</div>
             </div>
         </div>`;
 
@@ -7529,7 +7578,7 @@ async function executerCalculCombat() {
         await ajouterXP(xpGagne);
     }
 
-    // 4. SAUVEGARDE
+// 4. SAUVEGARDE
     if (auth.currentUser) {
         await saveUserData(auth.currentUser.uid);
     }
@@ -7545,9 +7594,18 @@ async function executerCalculCombat() {
     }
 
     resetArena();
-    showCollection(); 
+    
+    // On remplace l'affichage de la collection par celui du combat
+    // showCollection(); <-- Supprimé pour éviter de quitter l'écran de combat
+    if (typeof showCombat === "function") {
+        showCombat(); 
+    } else if (typeof showSection === "function") {
+        showSection('combat');
+    }
+
     currentRoomId = null; 
 }
+
 
 
 

@@ -9890,16 +9890,24 @@ window.addEventListener('appinstalled', (evt) => {
 
 
 
-// 6. Fonction utilitaire pour les notifications de Lucky Block (à appeler dans ton code de jeu)
+// 6. Fonction utilitaire blindée
 function programmerNotificationLucky(unlockTime, type) {
-  if (navigator.serviceWorker && navigator.serviceWorker.controller && Notification.permission === 'granted') {
+  // Changement ici : on vérifie la présence du SW et la permission
+  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     const delai = unlockTime - Date.now();
+    
     if (delai > 0) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_NOTIF',
-        delay: delai,
-        title: "Lucky Block Prêt ! 🎁",
-        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
+      // .ready est beaucoup plus fiable que .controller
+      navigator.serviceWorker.ready.then((registration) => {
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'SCHEDULE_NOTIF',
+            delay: delai,
+            title: "Lucky Block Prêt ! 🎁",
+            body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
+          });
+          console.log("🚀 Notif envoyée au SW ! Délai :", Math.round(delai/1000), "s");
+        }
       });
     }
   }

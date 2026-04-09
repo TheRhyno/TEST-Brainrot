@@ -2447,7 +2447,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.0</span><br>
+        <span id="app-version">v2.3.1</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -4866,9 +4866,8 @@ window.addEventListener('load', () => {
 
 
 
-// On surveille le scroll de la section collection
+
 // --- GESTION DU SCROLL POUR LA COLLECTION ---
-// On cible "collection" car c'est la zone qui a le scroll-y maintenant
 const sectionCol = document.getElementById("collection"); 
 if (sectionCol) {
     sectionCol.onscroll = function() {
@@ -5001,10 +5000,25 @@ let luckyInterval;
 let luckyBlockUnlockTime = null; 
 let luckyBlockReady = false; 
 
-
-
 function updateLuckyTimer(unlockTime, type) {
     luckyBlockUnlockTime = unlockTime;
+
+    // --- 🔔 AJOUT : SYSTÈME DE NOTIFICATION ---
+    if (unlockTime && unlockTime > Date.now()) {
+        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+            const delai = unlockTime - Date.now();
+            navigator.serviceWorker.ready.then((reg) => {
+                if (reg.active) {
+                    reg.active.postMessage({
+                        type: 'SCHEDULE_NOTIF',
+                        delay: delai,
+                        title: "Lucky Block Prêt ! 🎁",
+                        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
+                    });
+                }
+            });
+        }
+    }
 
     const ui = document.getElementById("luckyBlockUI");
     const timerText = document.getElementById("luckyTimerDisplay");
@@ -5020,7 +5034,6 @@ function updateLuckyTimer(unlockTime, type) {
     }
 
     // --- MISE À JOUR DU TYPE ---
-    // Si 'type' est fourni (ex: "Rare"), on l'affiche, sinon on met "Lucky Block" par défaut
     if (typeText) {
         typeText.innerHTML = type ? type : "Lucky Block";
     }
@@ -5053,10 +5066,10 @@ function updateLuckyTimer(unlockTime, type) {
             clearInterval(luckyInterval);
             
             // --- LOGIQUE DE REMPLACEMENT ---
-            if (timerText) timerText.style.display = "none"; // On cache le chrono (plus de texte "Prêt")
-            if (typeText) typeText.style.display = "block";  // On garde le type (ex: "Mythique")
+            if (timerText) timerText.style.display = "none"; 
+            if (typeText) typeText.style.display = "block";  
             
-            btn.style.display = "block"; // On affiche le bouton OUVRIR
+            btn.style.display = "block"; 
             ui.style.borderColor = "#10b981"; 
             
             if (btnSpeedy) btnSpeedy.style.display = "none";
@@ -5065,7 +5078,7 @@ function updateLuckyTimer(unlockTime, type) {
             
             // --- AFFICHAGE PENDANT LE TIMER ---
             if (timerText) {
-                timerText.style.display = "block"; // On réaffiche le chrono s'il était caché
+                timerText.style.display = "block"; 
                 const h = Math.floor(reste / 3600000);
                 const m = Math.floor((reste % 3600000) / 60000);
                 const s = Math.floor((reste % 60000) / 1000);
@@ -5088,27 +5101,19 @@ function updateLuckyTimer(unlockTime, type) {
     }, 1000);
 }
 
-
-
-
-
-
-
 async function ouvrirCadeauLuckyBlock() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    // On récupère les données fraîches du serveur pour être sûr
     const doc = await db.collection("users").doc(user.uid).get();
     const data = doc.data();
 
     if (data && data.luckyBlockUnlockTime) {
         if (Date.now() < data.luckyBlockUnlockTime) return;
 
-        // --- 1. CALCUL DES GAINS ---
         let gainDust = 5000;
         let gainXP = 500;
-        const typeOrigine = data.luckyBlockType; // On stocke le nom pour l'alert finale
+        const typeOrigine = data.luckyBlockType; 
 
         if (typeOrigine === "Brainrot God Lucky Block") {
             gainDust = 15000; gainXP = 1500;
@@ -5118,77 +5123,61 @@ async function ouvrirCadeauLuckyBlock() {
             gainDust = 250000; gainXP = 25000;
         }
 
-        // --- 2. MISE À JOUR GLOBALE IMMÉDIATE (Anti-bug de synchro) ---
-        // On vide les variables AVANT le "await" Firebase pour que saveToFirebase 
-        // ne puisse pas récupérer les anciennes valeurs par erreur.
         luckyBlockUnlockTime = null;
         luckyBlockType = null;
         luckyBlockReady = false;
         dust += gainDust;
 
-        // --- 3. MISE À JOUR UI ---
         if (typeof ajouterXP === "function") await ajouterXP(gainXP);
 
         const uiContainer = document.getElementById("luckyBlockUI");
         if (uiContainer) uiContainer.style.display = "none";
 
-        // --- 4. NETTOYAGE SERVEUR ---
         await db.collection("users").doc(user.uid).update({
             luckyBlockUnlockTime: null,
             luckyBlockType: null,
             luckyBlockReady: false,
             dust: dust,
-            xp: typeof xp !== 'undefined' ? xp : 0 // On synchronise l'XP aussi
+            xp: typeof xp !== 'undefined' ? xp : 0 
         });
 
         alert(`🎉 BOOM !\nTon ${typeOrigine} contenait :\n💰 +${gainDust} Fragments\n✨ +${gainXP} XP !`);
     }
 }
 
-
-
 async function appliquerBoost(cout, minutesAReduire) {
     const user = firebase.auth().currentUser;
     if (!user || !luckyBlockUnlockTime) return;
 
-    // 1. Vérification des Speedies (on suppose que ta variable s'appelle 'speedies')
     if (typeof speedies === 'undefined' || speedies < cout) {
         alert("Tu n'as pas assez de Speedies ! ⚡");
         return;
     }
 
-    // 2. Calcul de la réduction
     const reductionMs = minutesAReduire * 60 * 1000;
     let nouveauTemps = luckyBlockUnlockTime - reductionMs;
 
-    // Si on réduit plus que le temps restant, on met à "maintenant"
     if (nouveauTemps < Date.now()) nouveauTemps = Date.now();
 
     try {
-        // 3. Mise à jour locale
         speedies -= cout;
         luckyBlockUnlockTime = nouveauTemps;
 
-        // 4. Mise à jour Firebase
         await db.collection("users").doc(user.uid).update({
             speedies: speedies,
             luckyBlockUnlockTime: nouveauTemps
         });
 
-        // 5. Interface
         document.getElementById('speedyMenu').style.display = 'none';
         
-        // --- AJOUT : Mise à jour du compteur dans le Profil ---
         const speedyProfileDisplay = document.getElementById("profileSpeedies");
         if (speedyProfileDisplay) {
             speedyProfileDisplay.innerText = speedies;
         }
         
-        // On relance le timer avec la nouvelle heure
         const typeActuel = document.getElementById("luckyBlockType").innerText;
         updateLuckyTimer(nouveauTemps, typeActuel);
         
-        // Rafraîchir l'affichage de tes monnaies (si tu as une fonction dédiée)
         if (typeof refreshStats === "function") refreshStats();
         
         console.log(`Boost de -${minutesAReduire}min appliqué avec succès !`);
@@ -5197,7 +5186,6 @@ async function appliquerBoost(cout, minutesAReduire) {
         alert("Erreur de connexion au serveur.");
     }
 }
-
 
 
 
@@ -8386,6 +8374,8 @@ const MAX_HISTORY = 10; // Nombre de clics analysés
 
 
 
+
+
 function openPackSequence() {
     const chooseArea = document.getElementById("choosePackArea");
     chooseArea.style.display = "flex";
@@ -8403,71 +8393,42 @@ function openPackSequence() {
         b.onmouseenter = () => b.style.transform = "scale(1.08)";
         b.onmouseleave = () => b.style.transform = "scale(1)";
 
-// ⚠️ RAPPEL : Ces 3 lignes doivent être TOUT EN HAUT de ton script.js
-let clickHistory = []; 
-let lastClickTimestamp = 0;
-const MAX_HISTORY = 10;
+        b.onclick = () => {
+            // 1️⃣ --- 🛡️ DÉTECTION AUTO-CLICKER ---
+            const now = Date.now();
+            if (typeof lastClickTimestamp !== 'undefined' && lastClickTimestamp !== 0) {
+                const delta = now - lastClickTimestamp;
+                clickHistory.push(delta);
+                if (clickHistory.length > MAX_HISTORY) clickHistory.shift();
 
-b.onclick = () => {
-    // 1️⃣ --- 🛡️ DÉTECTION AUTO-CLICKER (RÉGULARITÉ & VITESSE) ---
-    const now = Date.now();
-    if (lastClickTimestamp !== 0) {
-        const delta = now - lastClickTimestamp;
-        clickHistory.push(delta);
-        
-        // On garde un historique des 10 derniers intervalles
-        if (clickHistory.length > MAX_HISTORY) clickHistory.shift();
-
-        // Si on a assez de données (10 clics), on analyse
-        if (clickHistory.length === MAX_HISTORY) {
-            // Calcul de la moyenne
-            const avg = clickHistory.reduce((a, b) => a + b) / MAX_HISTORY;
-            // Calcul de la variance
-            const variance = clickHistory.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / MAX_HISTORY;
-            
-            // TEST 1 : Vitesse pure (si les 10 clics ont pris moins de 1 seconde)
-            const totalDuration = clickHistory.reduce((a, b) => a + b);
-            
-            // TEST 2 : Régularité (variance < 20 c'est très suspect pour un humain)
-            if (variance < 20 || totalDuration < 1000) { 
-                console.warn("🤖 Auto-clicker détecté ! Variance:", variance);
-
-                alert("⚠️ Détection d'auto-clic : Veuillez cliquer normalement pour continuer.");
-                
-                // On vide TOUT pour forcer le bot à recommencer son cycle
-                clickHistory = [];
-                lastClickTimestamp = 0;
-                return; // Bloque l'exécution
+                if (clickHistory.length === MAX_HISTORY) {
+                    const avg = clickHistory.reduce((a, b) => a + b) / MAX_HISTORY;
+                    const variance = clickHistory.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / MAX_HISTORY;
+                    const totalDuration = clickHistory.reduce((a, b) => a + b);
+                    
+                    if (variance < 20 || totalDuration < 1000) { 
+                        alert("⚠️ Détection d'auto-clic : Veuillez cliquer normalement.");
+                        clickHistory = []; lastClickTimestamp = 0; return;
+                    }
+                }
             }
-        }
-    }
-    lastClickTimestamp = now;
+            lastClickTimestamp = now;
 
-    // 2️⃣ --- 🛡️ ANTI-SPAM : On vérifie l'état AVANT de jouer le son ---
-    if (isAnyBoosterOpening) return; 
-    
-    // 3️⃣ --- 🔊 LE SON (Joué uniquement si activé dans les paramètres) ---
-    let playPromise;
-    if (isSoundEnabled) {
-        soundBooster.currentTime = 0;
-        playPromise = soundBooster.play();
-    }
+            // 2️⃣ --- 🛡️ ANTI-SPAM ---
+            if (isAnyBoosterOpening) return; 
+            
+            // 3️⃣ --- 🔊 SON ---
+            let playPromise;
+            if (isSoundEnabled) {
+                soundBooster.currentTime = 0;
+                playPromise = soundBooster.play();
+            }
 
-    // 4️⃣ --- ⚡ ON VERROUILLE TOUT DE SUITE ---
-    isAnyBoosterOpening = true;
+            // 4️⃣ --- ⚡ VERROUILLAGE ---
+            isAnyBoosterOpening = true;
 
-    // Ensuite on gère la logique asynchrone...
-    (async () => {
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.log("❌ Blocage audio :", error);
-            });
-        }
-       
-
-
-
-
+            (async () => {
+                if (playPromise !== undefined) playPromise.catch(e => {});
                 if (b.classList.contains("booster-opening")) return;
                 b.classList.add("booster-opening");
 
@@ -8481,159 +8442,124 @@ b.onclick = () => {
 
                     // --- TIRAGE ---
                     currentPack = [pickRandomCard(), pickRandomCard(), pickRandomCard()];
+                    
+                    const user = firebase.auth().currentUser;
+                    let serverLuckyTime = null;
+                    let serverLuckyType = "";
 
-                    avancerQuete("open", 1);
-                    ajouterXP(50);
+                    // --- 🔍 VÉRIFICATION SERVEUR (LUCKY BLOCK) ---
+                    if (user) {
+                        try {
+                            const doc = await db.collection("users").doc(user.uid).get();
+                            if (doc.exists) {
+                                const data = doc.data();
+                                serverLuckyTime = data.luckyBlockUnlockTime || null;
+                                serverLuckyType = data.luckyBlockType || "";
+                            }
+                        } catch (e) { console.error("Erreur check serveur:", e); }
+                    }
+
+                    const luckyPower = { 
+                        "Mythic Lucky Block": 1, 
+                        "Brainrot God Lucky Block": 2, 
+                        "Secret Lucky Block": 3, 
+                        "Admin Lucky Block": 4 
+                    };
 
                     currentPack.forEach(c => {
-                        // --- 🎁 CAS SPÉCIAL : LUCKY BLOCKS ---
-                        const listLucky = [
-                            "Mythic Lucky Block", 
-                            "Brainrot God Lucky Block", 
-                            "Secret Lucky Block", 
-                            "Admin Lucky Block"
-                        ];
-
-                        if (listLucky.includes(c.rarity)) {
-                            const uiLucky = document.getElementById("luckyBlockUI");
-                            
-                            const luckyPower = {
-                                "Mythic Lucky Block": 1,
-                                "Brainrot God Lucky Block": 2,
-                                "Secret Lucky Block": 3,
-                                "Admin Lucky Block": 4
-                            };
-
-                            const currentLuckyName = document.getElementById("luckyBlockType")?.innerText || "";
+                        if (Object.keys(luckyPower).includes(c.rarity)) {
                             let activePower = 0;
-                            if (currentLuckyName.includes("Mythic")) activePower = 1;
-                            else if (currentLuckyName.includes("Brainrot")) activePower = 2;
-                            else if (currentLuckyName.includes("Secret")) activePower = 3;
-                            else if (currentLuckyName.includes("Admin")) activePower = 4;
+                            // Si le serveur dit qu'un bloc est déjà en cours (timer non fini)
+                            if (serverLuckyTime && serverLuckyTime > Date.now()) {
+                                activePower = luckyPower[serverLuckyType] || 0;
+                            }
 
                             const newPower = luckyPower[c.rarity];
 
-                            if (uiLucky.style.display === "none" || newPower > activePower) {
+                            // On n'écrase que si le nouveau est plus puissant (ou si rien n'est actif)
+                            if (activePower === 0 || newPower > activePower) {
                                 let heures = 2;
                                 if (c.rarity === "Brainrot God Lucky Block") heures = 6;
                                 if (c.rarity === "Secret Lucky Block") heures = 12;
                                 if (c.rarity === "Admin Lucky Block") heures = 24;
 
-                                const delai = heures * 60 * 60 * 1000; 
+                                serverLuckyTime = Date.now() + (heures * 60 * 60 * 1000);
+                                serverLuckyType = String(c.rarity);
                                 
-                                luckyBlockUnlockTime = Date.now() + delai;
-                                luckyBlockType = String(c.rarity); 
+                                // Mise à jour locale pour l'interface
+                                luckyBlockUnlockTime = serverLuckyTime;
+                                luckyBlockType = serverLuckyType;
                                 luckyBlockReady = false;
 
-                                if (activePower > 0) {
-
-                                } else {
-                                }
-
-                                if (typeof updateLuckyTimer === "function") {
-                                    updateLuckyTimer(luckyBlockUnlockTime, luckyBlockType);
-                                }
+                                if (typeof updateLuckyTimer === "function") updateLuckyTimer(luckyBlockUnlockTime, luckyBlockType);
                             }
-                            return; 
-                        }
-
-                        // --- LOGIQUE CARTES NORMALES ---
-                        if (c.rarity === "Rare") avancerQuete("rare", 1);
-                        if (c.rarity === "Mythic") {
-                            avancerQuete("mythic", 1);
-                            ajouterXP(25);
-                        }
-                        if (c.rarity === "OG") ajouterXP(500);
-
-                        const existingCard = collection.find(card => card.name === c.name);
-                        
-                        if (!existingCard) {
-                            c.isNew = true;
-                            c.level = 1;
-                            c.exp = 0;
-                            collection.push({ ...c });
-                            ajouterXP(20);
                         } else {
-                            c.isNew = false;
-                            avancerQuete("duplicate", 1);
-                            if (existingCard.level === undefined) existingCard.level = 1;
-                            if (existingCard.exp === undefined) existingCard.exp = 0;
+                            // --- LOGIQUE CARTES NORMALES ---
+                            if (c.rarity === "Rare") avancerQuete("rare", 1);
+                            if (c.rarity === "Mythic") { avancerQuete("mythic", 1); ajouterXP(25); }
+                            if (c.rarity === "OG") ajouterXP(500);
 
-                            const expTable = { "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7, "Mythic": 4, "Brainrot God": 3, "Secret": 1, "OG": 1 };
-                            existingCard.exp = (existingCard.exp || 0) + 1;
-                            let needed = expTable[existingCard.rarity] || 10;
-
-                            while (existingCard.exp >= needed) {
-                                existingCard.exp -= needed;
-                                existingCard.level += 1;
-                                if (existingCard.level === 5) avancerQuete("lvlup", 1);
+                            const existingCard = collection.find(card => card.name === c.name);
+                            if (!existingCard) {
+                                c.isNew = true; c.level = 1; c.exp = 0;
+                                collection.push({ ...c }); ajouterXP(20);
+                            } else {
+                                c.isNew = false; avancerQuete("duplicate", 1);
+                                existingCard.exp = (existingCard.exp || 0) + 1;
+                                const expTable = { "Commun": 15, "Rare": 12, "Epic": 10, "Legendary": 7, "Mythic": 4, "Brainrot God": 3, "Secret": 1, "OG": 1 };
+                                let needed = expTable[existingCard.rarity] || 10;
+                                while (existingCard.exp >= needed) {
+                                    existingCard.exp -= needed;
+                                    existingCard.level = (existingCard.level || 1) + 1;
+                                    if (existingCard.level === 5) avancerQuete("lvlup", 1);
+                                }
+                                const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 10000 };
+                                dust += dustValues[c.rarity] || 1;
                             }
-
-                            const dustValues = { "Commun": 1, "Rare": 3, "Epic": 8, "Legendary": 20, "Mythic": 50, "Brainrot God": 200, "Secret": 500, "OG": 10000 };
-                            dust += dustValues[c.rarity] || 1;
                         }
                     });
 
-                    // --- ⚡ MISE À JOUR LOCALE ---
-                    if (typeof window.boostersOpened !== "undefined") {
-                        window.boostersOpened++;
-                    }
-
+                    // --- SAUVEGARDE FINALE ---
+                    avancerQuete("open", 1);
+                    ajouterXP(50);
+                    if (typeof window.boostersOpened !== "undefined") window.boostersOpened++;
                     save("collection", collection);
                     save("dust", dust);
                     updateStreak();
 
-                    // --- SAUVEGARDE FIREBASE ---
-                    const user = firebase.auth().currentUser;
                     if (user) {
                         db.collection("users").doc(user.uid).set({
                             collection: collection,
                             dust: dust,
                             xp: xp,
                             level: level,
-                            streakCount: streakCount,
+                            streakCount: streakCount || 0,
                             boostersOpened: firebase.firestore.FieldValue.increment(1),
                             lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
-                            luckyBlockUnlockTime: luckyBlockUnlockTime || null,
-                            luckyBlockType: (typeof luckyBlockType === "string") ? luckyBlockType : (luckyBlockType?.innerText || null),
-                            luckyBlockReady: luckyBlockReady || false
-                        }, { merge: true })
-                        .then(() => {
-                            const counterEl = document.getElementById("boosterCounter");
-                            if (counterEl) {
-                                let current = parseInt(counterEl.innerText.replace(/\D/g, "")) || 0;
-                                counterEl.innerText = `Boosters ouverts : ${current + 1}`;
+                            luckyBlockUnlockTime: serverLuckyTime,
+                            luckyBlockType: String(serverLuckyType),
+                            luckyBlockReady: false
+                        }, { merge: true }).then(() => {
+                            if (document.getElementById("boosterCounter")) {
+                                let cur = parseInt(document.getElementById("boosterCounter").innerText.replace(/\D/g, "")) || 0;
+                                document.getElementById("boosterCounter").innerText = `Boosters ouverts : ${cur + 1}`;
                             }
-                            
-                            const profBoosters = document.getElementById("profileBoosters");
-                            if (profBoosters) {
-                                let actuel = parseInt(profBoosters.innerText) || 0;
-                                profBoosters.innerText = actuel + 1;
-                            }
-
-                            if (typeof actualiserProfil === "function") {
-                                actualiserProfil();
-                            }
-
-                            if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = dust;
-                            if (document.getElementById("profileCards")) document.getElementById("profileCards").innerText = `${collection.length} / ${ALL_CARDS.length}`;
-                        })
-                        .catch(err => {
-                            console.error("Erreur Firebase:", err);
+                            if (typeof actualiserProfil === "function") actualiserProfil();
                         });
                     }
 
                     currentCardIndex = 0;
                     showBigCard();
-
                     b.classList.remove("booster-opening");
                     isAnyBoosterOpening = false; 
-
                 }, 500); 
-            })(); // Fin de l'encapsulation async
-        }; // Fin du onclick
-    }); // Fin du forEach
-} // Fin de la fonction globale
+            })();
+        };
+    });
+}
+
+
+
 
 
 
@@ -9779,9 +9705,12 @@ if ('serviceWorker' in navigator) {
         }
       };
     };
+    
+    // Force une vérification de mise à jour à chaque chargement
+    reg.update();
   }).catch(err => console.log("Erreur SW:", err));
 
-  // Force le refresh si le Service Worker prend le contrôle
+  // Force le refresh si le Service Worker prend le contrôle (indispensable pour skipWaiting)
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload();
   });
@@ -9818,7 +9747,7 @@ async function installerLeJeu() {
 
 // 4. Vérification au chargement et Notifications
 window.addEventListener('load', () => {
-  // Check mode standalone
+  // Check mode standalone (si l'app est déjà lancée en mode installé)
   if (window.matchMedia('(display-mode: standalone)').matches) {
     if (installBox) installBox.style.display = 'none';
   }
@@ -9835,17 +9764,23 @@ window.addEventListener('appinstalled', (evt) => {
   if (installBox) installBox.style.display = 'none';
 });
 
-// 6. Détecter quand le joueur quitte ou réduit l'application (Notif 20s)
-window.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+
+
+// 6. Fonction utilitaire pour les notifications de Lucky Block (à appeler dans ton code de jeu)
+function programmerNotificationLucky(unlockTime, type) {
+  if (navigator.serviceWorker && navigator.serviceWorker.controller && Notification.permission === 'granted') {
+    const delai = unlockTime - Date.now();
+    if (delai > 0) {
       navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_NOTIF'
+        type: 'SCHEDULE_NOTIF',
+        delay: delai,
+        title: "Lucky Block Prêt ! 🎁",
+        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
       });
-      console.log("Signal envoyé au SW : notification prévue dans 20s");
     }
   }
-});
+}
+
 
 
 

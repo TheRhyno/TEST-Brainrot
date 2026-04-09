@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainrot-v13'; // Change la version ici pour forcer la mise à jour chez les joueurs
+const CACHE_NAME = 'brainrot-v14'; // Change la version ici pour forcer la mise à jour chez les joueurs
 const ASSETS = [
   'index.html',
   'manifest.json'

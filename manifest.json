@@ -1,6 +1,6 @@
 {
-  "name": "Brainrot TCG",
-  "short_name": "Brainrot TCG",
+  "name": "Brainrot TCG TEST",
+  "short_name": "Brainrot TEST",
   "description": "Jeu de cartes à collectionner.",
   "start_url": "index.html",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+      "src": "https://cdn.phototourl.com/free/2026-04-09-161b47ee-9c04-43e0-8111-9aecf3335e1e.jpg",
       "sizes": "512x512",
       "type": "image/png"
     }

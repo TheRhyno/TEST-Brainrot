@@ -2960,11 +2960,11 @@ const ALL_CARDS = [
 ];
 
 
-const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 0.5, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 50, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
 
 
 const BOOSTER_IMAGES = [
-  "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png",
+  "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png",         // 0.5
   "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png",
   "https://cdn.phototourl.com/uploads/2026-03-17-f809674f-b5b6-4b59-9785-8c5bdb113b28.png"
 ];
@@ -9890,24 +9890,16 @@ window.addEventListener('appinstalled', (evt) => {
 
 
 
-// 6. Fonction utilitaire blindée
+// 6. Fonction utilitaire pour les notifications de Lucky Block (à appeler dans ton code de jeu)
 function programmerNotificationLucky(unlockTime, type) {
-  // Changement ici : on vérifie la présence du SW et la permission
-  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+  if (navigator.serviceWorker && navigator.serviceWorker.controller && Notification.permission === 'granted') {
     const delai = unlockTime - Date.now();
-    
     if (delai > 0) {
-      // .ready est beaucoup plus fiable que .controller
-      navigator.serviceWorker.ready.then((registration) => {
-        if (registration.active) {
-          registration.active.postMessage({
-            type: 'SCHEDULE_NOTIF',
-            delay: delai,
-            title: "Lucky Block Prêt ! 🎁",
-            body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
-          });
-          console.log("🚀 Notif envoyée au SW ! Délai :", Math.round(delai/1000), "s");
-        }
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SCHEDULE_NOTIF',
+        delay: delai,
+        title: "Lucky Block Prêt ! 🎁",
+        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
       });
     }
   }

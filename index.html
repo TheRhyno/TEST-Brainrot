@@ -765,7 +765,6 @@ body:has(#marketSection[style*="display: block"]) #subway-hud {
 
 
 
-
 #combatSection {
     display: none; 
     flex-direction: column;
@@ -775,14 +774,16 @@ body:has(#marketSection[style*="display: block"]) #subway-hud {
     max-width: 600px;
     margin: 0 auto;
 
-    /* --- ON REMONTE TOUT ICI --- */
-    margin-top: -20px; /* Force le bloc à monter vers le titre */
-    padding-top: 0;    /* Supprime l'espace interne en haut */
+
+    margin-top: 0px;    /* Remplacé -20px par 0px pour libérer de l'espace */
+    padding-top: 60px;  /* Ajout de 60px pour passer sous la barre de navigation */
     
     height: auto; 
     padding-bottom: 100px; 
     box-sizing: border-box;
 }
+
+
 
 /* On réduit l'espace entre le titre et l'arène */
 #battle-info {
@@ -1937,6 +1938,15 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <div id="status-recherche" style="margin-top: 12px; color: #8da0b8; font-style: italic; font-size: 0.9rem;">
         Consulte les salons ou crée le tien pour combattre !
     </div>
+
+
+<div id="combat-timer-display" style="display:none; margin-top: 15px; font-family: 'Courier New', Courier, monospace;">
+            <div style="font-size: 0.8rem; color: #8da0b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Temps de décision</div>
+            <div id="timer-seconds" style="font-size: 2.5rem; font-weight: 900; color: #ff4444; text-shadow: 0 0 15px rgba(255, 68, 68, 0.5);">30s</div>
+            <div style="width: 150px; height: 4px; background: #1e293b; margin: 8px auto; border-radius: 10px; overflow: hidden;">
+                <div id="timer-bar" style="width: 100%; height: 100%; background: #ff4444; transition: width 1s linear;"></div>
+            </div>
+        </div>
 </div>
 
 
@@ -6923,7 +6933,6 @@ async function supprimerMonSalon(id) {
     try {
         await db.collection("battles").doc(id).delete();
 
-
         const statusDiv = document.getElementById("status-recherche");
         if (statusDiv) {
             statusDiv.innerHTML = ""; 
@@ -6934,19 +6943,27 @@ async function supprimerMonSalon(id) {
             battleInfo.innerText = "";
         }
 
-
         currentRoomId = null;
+
+        // --- AJOUT : Réafficher le menu, le profil et la musique ---
+        const nav = document.querySelector('nav');
+        const accountBtn = document.getElementById('accountBtn');
+        const musicBtn = document.getElementById('musicBtn');
+
+        if (nav) nav.style.display = "flex";
+        if (accountBtn) accountBtn.style.display = "block";
+        if (musicBtn) musicBtn.style.display = "flex";
 
         if (typeof resetArena === 'function') {
             resetArena();
         }
-
 
     } catch (e) {
         console.error("Erreur suppression:", e);
         alert("Erreur lors de la suppression.");
     }
 }
+
 
 
 
@@ -6983,22 +7000,27 @@ function fermerLobby() {
             content.classList.remove("lobby-content-exit-animate");
             content.style.opacity = "0"; // On le remet invisible pour le prochain slideIn
 
-            // 3. On réaffiche le bouton de musique (après la fermeture)
-            if (musicBtn) musicBtn.style.display = "flex";
+            // --- CONDITION DE SÉCURITÉ : Réaffichage uniquement si AUCUN combat n'est en cours ---
+            if (!currentRoomId) {
+                // 3. On réaffiche le bouton de musique (après la fermeture)
+                if (musicBtn) musicBtn.style.display = "flex";
 
-            // --- AJOUT : Réafficher le menu et le profil ---
-            if (nav) nav.style.display = "flex";
-            if (accountBtn) accountBtn.style.display = "block";
+                // --- AJOUT : Réafficher le menu et le profil ---
+                if (nav) nav.style.display = "flex";
+                if (accountBtn) accountBtn.style.display = "block";
+            }
 
         }, 300); // 300ms correspond à la durée de l'animation CSS
     } else {
         // Sécurité si le lobby n'existe pas, on cache quand même
         if (lobby) lobby.style.display = "none";
-        if (musicBtn) musicBtn.style.display = "flex";
-
-        // --- AJOUT : Sécurité réaffichage ---
-        if (nav) nav.style.display = "flex";
-        if (accountBtn) accountBtn.style.display = "block";
+        
+        // Réaffichage de sécurité si aucun combat n'est lancé
+        if (!currentRoomId) {
+            if (musicBtn) musicBtn.style.display = "flex";
+            if (nav) nav.style.display = "flex";
+            if (accountBtn) accountBtn.style.display = "block";
+        }
     }
 }
 
@@ -7038,28 +7060,38 @@ async function creerNouvellePartie() {
             card1: null,
             card2: null,
             status: "waiting",
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            // On initialise timerEnd à null, il sera fixé par le Player 2
+            timerEnd: null 
         });
 
         currentRoomId = docRef.id;
         role = "player1";
         
+        // --- 🛡️ MASQUAGE DES RUBRIQUES DU BAS ---
+        const nav = document.querySelector('nav');
+        const accountBtn = document.getElementById('accountBtn');
+        const musicBtn = document.getElementById("musicBtn");
+
+        if (nav) nav.style.display = "none";
+        if (accountBtn) accountBtn.style.display = "none";
+        if (musicBtn) musicBtn.style.display = "none";
+
         fermerLobby();
         
         // --- 🔓 DÉVERROUILLAGE DU TAPIS ET DU DECK (NOUVEAU) ---
         const playerSlot = document.getElementById("player-slot");
         const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
 
-if (playerSlot) {
-    playerSlot.style.pointerEvents = "auto";
-    playerSlot.style.opacity = "1";
-    // On remet le message d'action !
-    playerSlot.innerHTML = `
-        <span style="color: #4ade80; font-size: 0.8rem; text-align:center; font-weight:bold;">
-            Clique ici pour<br>choisir ta carte
-        </span>
-    `;
-}
+        if (playerSlot) {
+            playerSlot.style.pointerEvents = "auto";
+            playerSlot.style.opacity = "1";
+            playerSlot.innerHTML = `
+                <span style="color: #4ade80; font-size: 0.8rem; text-align:center; font-weight:bold;">
+                    Clique ici pour<br>choisir ta carte
+                </span>
+            `;
+        }
         if (deckZone) {
             deckZone.style.pointerEvents = "auto";
             deckZone.style.filter = "none";
@@ -7077,6 +7109,7 @@ if (playerSlot) {
         alert("Erreur lors de la création : " + e.message);
     }
 }
+
 
 async function rejoindreCeDuel(id) {
     const user = auth.currentUser;
@@ -7105,13 +7138,29 @@ async function rejoindreCeDuel(id) {
         currentRoomId = id;
         role = "player2";
 
+        // --- 🛡️ MASQUAGE DES RUBRIQUES DU BAS ---
+        const nav = document.querySelector('nav');
+        const accountBtn = document.getElementById('accountBtn');
+        const musicBtn = document.getElementById("musicBtn");
+
+        if (nav) nav.style.display = "none";
+        if (accountBtn) accountBtn.style.display = "none";
+        if (musicBtn) musicBtn.style.display = "none";
+
         // Utilisation du pseudo global si disponible, sinon l'email
         const monPseudo = window.userPseudo || user.email.split('@')[0];
+
+        // --- ⏳ CALCUL DU TIMER SERVEUR ---
+        // On définit la fin du combat à : Heure Actuelle + 32 secondes 
+        // (30s de jeu + 2s de marge pour la synchronisation)
+        const tempsFinCombat = Date.now() + 32000;
 
         await db.collection("battles").doc(id).update({
             player2: user.uid,
             player2Name: monPseudo,
-            status: "ready"
+            status: "ready",
+            // On enregistre l'heure de fin officielle sur le serveur
+            timerEnd: tempsFinCombat 
         });
 
         fermerLobby();
@@ -7120,16 +7169,15 @@ async function rejoindreCeDuel(id) {
         const playerSlot = document.getElementById("player-slot");
         const deckZone = document.getElementById("choix-cartes") || document.getElementById("cards-container");
 
-if (playerSlot) {
-    playerSlot.style.pointerEvents = "auto";
-    playerSlot.style.opacity = "1";
-    // On remet le message d'action !
-    playerSlot.innerHTML = `
-        <span style="color: #4ade80; font-size: 0.8rem; text-align:center; font-weight:bold;">
-            Clique ici pour<br>choisir ta carte
-        </span>
-    `;
-}
+        if (playerSlot) {
+            playerSlot.style.pointerEvents = "auto";
+            playerSlot.style.opacity = "1";
+            playerSlot.innerHTML = `
+                <span style="color: #4ade80; font-size: 0.8rem; text-align:center; font-weight:bold;">
+                    Clique ici pour<br>choisir ta carte
+                </span>
+            `;
+        }
         if (deckZone) {
             deckZone.style.pointerEvents = "auto";
             deckZone.style.filter = "none";
@@ -7143,6 +7191,7 @@ if (playerSlot) {
         alert("Impossible de rejoindre : " + e.message);
     }
 }
+
 
 
 
@@ -7200,69 +7249,130 @@ async function chercherPartie() {
 let combatEnCours = false; 
 
 
+
+let forfaitAffiche = false; // Variable globale
+
 function ecouterLaPartie() {
     if (!currentRoomId) return;
+    
+    forfaitAffiche = false;
 
-    db.collection("battles").doc(currentRoomId).onSnapshot((doc) => {
+    db.collection("battles").doc(currentRoomId).onSnapshot(async (doc) => {
+        if (!currentRoomId) return;
+
         const data = doc.data();
-        if (!data || combatEnCours) return;
+        if (!data) return;
 
+        // --- 1. GESTION DU FORFAIT (DÉCONNEXION OU TEMPS ÉCOULÉ) ---
+        if (data.status === "forfait") {
+            stopperTimer(); 
+            combatEnCours = false;
+            
+            const monId = auth.currentUser.uid;
+            const cEstMoiLeFautif = (data.quitterId === monId);
+
+            if (!forfaitAffiche) {
+                forfaitAffiche = true; 
+
+                if (!cEstMoiLeFautif) {
+                    // SCÉNARIO : JE SUIS LE GAGNANT
+                    const fautif = data.quitterName || "L'adversaire";
+                    alert(`🏆 VICTOIRE PAR FORFAIT : ${fautif} n'a pas joué à temps.`);
+                    
+                    resetArena();
+                    currentRoomId = null;
+                } else {
+                    // SCÉNARIO : JE SUIS LE FAUTIF ET JE SUIS EN LIGNE
+                    // On lance la sanction directe (débit immédiat + maj visuelle)
+                    await appliquerSanctionForfait("Temps écoulé !");
+                    return; 
+                }
+            }
+            
+            const nav = document.querySelector('nav');
+            if (nav) nav.style.display = "flex";
+            return; 
+        }
+
+        // --- 2. SURVEILLANCE DU TIMER SERVEUR (ARBITRAGE AVEC DÉLAI) ---
+        if (data.status === "ready" && data.timerEnd && !forfaitAffiche) {
+            const maintenant = Date.now();
+            
+            // On attend 3 secondes de plus que le timer officiel.
+            // Cela laisse le temps au fautif de se sanctionner lui-même s'il est connecté.
+            const delaiDeGrace = 3000; 
+
+            if (maintenant > (data.timerEnd + delaiDeGrace)) {
+                const jAiJoue = (role === "player1" ? data.card1 : data.card2);
+                const lAdversaireAJoue = (role === "player1" ? data.card2 : data.card1);
+
+                if (jAiJoue && !lAdversaireAJoue) {
+                    console.log("Arbitrage : L'adversaire semble déconnecté. Envoi de l'amende en attente.");
+                    
+                    const adversaireId = (role === "player1" ? data.player2 : data.player1);
+                    const adversaireNom = (role === "player1" ? data.player2Name : data.player1Name);
+
+                    // 1. On déclare le forfait pour tout le monde
+                    await db.collection("battles").doc(currentRoomId).update({
+                        status: "forfait",
+                        quitterName: adversaireNom,
+                        quitterId: adversaireId,
+                        raison: "Déconnexion"
+                    });
+
+                    // 2. On punit le déconnecté (amende en attente)
+                    await db.collection("users").doc(adversaireId).update({
+                        amendeEnAttente: firebase.firestore.FieldValue.increment(1000)
+                    });
+                    return;
+                }
+            }
+        }
+
+        if (combatEnCours) return;
+
+        // --- 3. DÉMARRAGE DU TIMER ---
+        if (data.player1 && data.player2 && data.status === "ready" && !combatTimer && !forfaitAffiche) {
+            lancerTimerCombat();
+        }
+
+        // --- 4. AFFICHAGE DES ÉLÉMENTS DE COMBAT ---
         const btnStart = document.getElementById("btn-start-fight");
         const opponentSlot = document.getElementById("opponent-slot");
         const battleInfo = document.getElementById("battle-info");
         const statusDiv = document.getElementById("status-recherche");
 
-        // --- 1. AFFICHAGE DE L'ADVERSAIRE (DÈS QU'IL REJOINT) ---
         if (data.player1 && data.player2) {
-            
-            // --- MODIFICATION ICI : On change le message au lieu de l'effacer ---
             if (statusDiv) {
-                statusDiv.innerHTML = "<span style='color:#ff4444; font-weight:bold; text-transform:uppercase; letter-spacing:1px;'>⚡ COMBAT EN COURS ⚡</span>";
+                statusDiv.innerHTML = "<span style='color:#ff4444; font-weight:bold; text-transform:uppercase;'>⚡ COMBAT EN COURS ⚡</span>";
             }
-
             const nomAdversaire = (role === "player1") ? data.player2Name : data.player1Name;
-            
-            if (battleInfo) {
+            if (battleInfo && !combatTimer) { 
                 battleInfo.innerHTML = `⚔️ Adversaire : <span style="color:#ff4444; font-weight:bold;">${nomAdversaire || "Joueur..."}</span>`;
             }
-        } else if (data.status === "waiting") {
-            if (battleInfo) battleInfo.innerText = "En attente d'un adversaire...";
         }
 
-        // --- 2. DÉTECTION DU SIGNAL DE DÉPART (SYNCHRONISÉ) ---
+        // --- 5. PROCESSING (CALCUL VAINQUEUR) ---
         if (data.status === "processing") {
+            stopperTimer(); 
             combatEnCours = true; 
-
-            // --- ✨ NOUVEAUTÉ : Validation de quête pour les DEUX joueurs ---
-            // Puisque les deux joueurs écoutent ce changement de statut, 
-            // la quête avance sur les deux comptes simultanément.
-            if (typeof avancerQuete === "function") {
-                avancerQuete("combat", 1);
-            }
-
+            if (typeof avancerQuete === "function") avancerQuete("combat", 1);
             if (btnStart) {
                 btnStart.disabled = true;
                 btnStart.style.display = "none";
             }
-            
-            // On peut aussi mettre à jour le message ici pour plus de dynamisme
-            if (statusDiv) {
-                statusDiv.innerHTML = "<span style='color:#facc15; font-weight:bold;'>🔥 CALCUL DU VAINQUEUR... 🔥</span>";
-            }
-
+            if (statusDiv) statusDiv.innerHTML = "<span style='color:#facc15; font-weight:bold;'>🔥 CALCUL... 🔥</span>";
             executerCalculCombat(); 
             return; 
         }
 
-        // --- 3. SI LES DEUX ONT CHOISI UNE CARTE ---
+        // --- 6. CARTES PRÊTES ---
         if (data.card1 && data.card2 && data.status === "ready") {
-            if (battleInfo) {
-                battleInfo.innerHTML = `<span style="color:#4ade80; font-weight:bold;">🔥 LES DEUX SONT PRÊTS ! 🔥</span>`;
-            }
+            stopperTimer(); 
+            if (battleInfo) battleInfo.innerHTML = `<span style="color:#4ade80; font-weight:bold;">🔥 PRÊTS ! 🔥</span>`;
             if (btnStart) btnStart.style.display = "block";
         }
 
-        // Affichage du "?" pour l'adversaire
         const opponentCard = (role === "player1") ? data.card2 : data.card1;
         if (opponentCard && opponentSlot && data.status === "ready") {
             opponentSlot.innerHTML = `
@@ -7273,9 +7383,6 @@ function ecouterLaPartie() {
         }
     });
 }
-
-
-
 
 
 
@@ -7364,7 +7471,16 @@ function genererTirageCombat() {
 
 
 async function choisirCetteCarte(card, index) {
-    // --- PARTIE LOGIQUE MULTIJOUEUR ---
+    // --- 1. SÉCURITÉ ET ADAPTATION DU TIMER ---
+    // MODIF : On ne stoppe plus le timer ici pour permettre l'arbitrage.
+    // Le texte du chrono changera automatiquement grâce à "selectedPlayerCard" dans lancerTimerCombat.
+
+    // --- 2. MISE À JOUR DES VARIABLES LOCALES ---
+    // On définit ces variables tout de suite pour bloquer les relances inutiles
+    selectedPlayerCard = card;
+    selectedPlayerCardIndex = index;
+
+    // --- 3. PARTIE LOGIQUE MULTIJOUEUR ---
     if (currentRoomId) {
         const updateData = {};
         // On vérifie si on est le joueur 1 ou 2 pour remplir le bon champ sur Firebase
@@ -7373,37 +7489,47 @@ async function choisirCetteCarte(card, index) {
         } else {
             updateData.card2 = card;
         }
+        
         // On envoie la carte choisie sur le serveur
+        // L'utilisation de "await" ici attend que la DB soit à jour
         await db.collection("battles").doc(currentRoomId).update(updateData);
     }
 
-    // --- MISE À JOUR DES VARIABLES LOCALES ---
-    selectedPlayerCard = card;
-    selectedPlayerCardIndex = index;
-
+    // --- 4. MISE À JOUR VISUELLE DU SLOT ---
     const playerSlot = document.getElementById("player-slot");
-    
-    // On applique la rareté pour la bordure (ex: r-Legendary)
-    const rarityClass = `r-${card.rarity.replace(/\s+/g, '-')}`;
-    
-    // On injecte le design SANS l'ATK
-    playerSlot.innerHTML = `
-        <div class="card ${rarityClass}" style="width:100%; height:100%; margin:0; border:none; box-shadow: 0 0 15px rgba(124,58,237,0.4);">
-            <div class="card-inner" style="height:100%; padding: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <img src="${card.image}" class="card-img" style="max-height: 85%; width: auto; object-fit: contain; border-radius: 5px;">
-                <div class="card-name" style="font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #fff;">${card.name}</div>
+    if (playerSlot) {
+        // On applique la rareté pour la bordure (ex: r-Legendary)
+        const rarityClass = `r-${card.rarity.replace(/\s+/g, '-')}`;
+        
+        // On injecte le design SANS l'ATK (Révélée au calcul final)
+        playerSlot.innerHTML = `
+            <div class="card ${rarityClass}" style="width:100%; height:100%; margin:0; border:none; box-shadow: 0 0 15px rgba(124,58,237,0.4);">
+                <div class="card-inner" style="height:100%; padding: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <img src="${card.image}" class="card-img" style="max-height: 85%; width: auto; object-fit: contain; border-radius: 5px;">
+                    <div class="card-name" style="font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #fff;">${card.name}</div>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    }
 
+    // --- 5. NETTOYAGE DE L'INTERFACE ---
     // On ferme l'overlay de sélection
-    document.getElementById("selection-combat-overlay").style.display = "none";
+    const overlay = document.getElementById("selection-combat-overlay");
+    if (overlay) {
+        overlay.style.display = "none";
+    }
     
+    // --- 6. LOGIQUE SOLO (IA) ---
     // On ne lance l'IA que si on n'est pas en mode multijoueur
-    if (!currentRoomId && typeof preparerAdversaire === 'function') {
-        preparerAdversaire();
+    if (!currentRoomId) {
+        // En mode solo, on arrête le timer car il n'y a pas d'arbitrage réseau nécessaire
+        stopperTimer();
+        if (typeof preparerAdversaire === 'function') {
+            preparerAdversaire();
+        }
     }
 }
+
 
 
 
@@ -7559,17 +7685,17 @@ async function executerCalculCombat() {
         if (possèdeDéjà) {
             // BONUS DOUBLON : +1000 fragments
             dust += 1000;
-            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Dust.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Dust ! (Total: 1500)`);
+            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Fragments ! (Total: 1500 💎)`);
         } else {
             // NOUVELLE CARTE : On l'ajoute normalement
             collection.push({ ...carteAdversaire });
-            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Dust.\nNouveau champion capturé : ${carteAdversaire.name} !`);
+            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\nNouveau Brainrot capturé : ${carteAdversaire.name} !`);
         }
     } else if (p1Power < p2Power) {
         // DÉFAITE
         dust = Math.max(0, dust - 500);
         if (selectedPlayerCardIndex !== -1) collection.splice(selectedPlayerCardIndex, 1);
-        alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Dust. Ta carte ${maCarte.name} est détruite.`);
+        alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Fragments. Ta carte ${maCarte.name} est détruite.`);
     } else {
         alert(`🤝 MATCH NUL !\n+${xpGagne} XP gagnés.`);
     }
@@ -7655,6 +7781,15 @@ function resetArena() {
         deckZone.style.filter = "grayscale(1)"; 
         deckZone.style.opacity = "0.6";
     }
+
+    // --- 🏠 RÉAFFICHAGE DU MENU, DU PROFIL ET DE LA MUSIQUE ---
+    const nav = document.querySelector('nav');
+    const accountBtn = document.getElementById('accountBtn');
+    const musicBtn = document.getElementById('musicBtn');
+
+    if (nav) nav.style.display = "flex";
+    if (accountBtn) accountBtn.style.display = "block";
+    if (musicBtn) musicBtn.style.display = "flex";
 }
 
 
@@ -7776,6 +7911,299 @@ function showCombat() {
 tabCombat.onclick = () => {
     showCombat();
 };
+
+
+
+
+
+
+
+let combatTimer = null;
+let tempsRestant = 30;
+
+function lancerTimerCombat() {
+    // 1. NETTOYAGE PRÉALABLE
+    if (combatTimer) { 
+        clearInterval(combatTimer); 
+        combatTimer = null; 
+    }
+
+    // 2. INITIALISATION DES PARAMÈTRES
+    tempsRestant = 30;
+    const battleInfo = document.getElementById("battle-info");
+    const timerDisplay = document.getElementById("combat-timer-display");
+    const timerBar = document.getElementById("timer-bar");
+
+    if (timerDisplay) timerDisplay.style.display = "block";
+    if (timerBar) {
+        timerBar.style.width = "100%";
+        timerBar.style.background = "#7c3aed";
+    }
+
+    // 3. LANCEMENT DE LA BOUCLE
+    combatTimer = setInterval(async () => {
+        try {
+            tempsRestant--;
+
+            // A. MISE À JOUR VISUELLE
+            if (battleInfo) {
+                battleInfo.innerHTML = selectedPlayerCard 
+                    ? `⏳ L'adversaire a : <span style="color:#facc15;">${tempsRestant}s</span>`
+                    : `⚔️ Choisis vite ! <span style="color:#ff4444;">${tempsRestant}s</span>`;
+            }
+
+            if (timerBar) {
+                const pourcentage = (tempsRestant / 30) * 100;
+                timerBar.style.width = Math.max(0, pourcentage) + "%";
+                if (tempsRestant <= 10) timerBar.style.background = "#ff4444";
+            }
+
+            // B. LOGIQUE DE FIN DE TEMPS
+            if (tempsRestant <= 0) { 
+                clearInterval(combatTimer);
+                combatTimer = null;
+
+                console.log("Fin du temps imparti. Analyse des joueurs...");
+
+                // --- CAS 1 : MOI je suis connecté mais je n'ai pas choisi (Je suis le fautif) ---
+                if (!selectedPlayerCard) {
+                    console.warn("Joueur AFK (Connecté) : Application de la sanction immédiate.");
+                    if (timerDisplay) timerDisplay.style.display = "none";
+                    
+                    // On applique la sanction EN DIRECT (Débit immédiat + mise à jour statut forfait)
+                    await appliquerSanctionForfait("Temps écoulé !");
+                    return; 
+                } 
+                
+                // --- CAS 2 : MOI j'ai choisi, mais l'ADVERSAIRE ne répond pas ---
+                // On ajoute un DELAI DE GRACE pour vérifier s'il est vraiment déconnecté
+                console.log("Arbitrage : Attente du délai de grâce (3s)...");
+                
+                setTimeout(async () => {
+                    const docRef = db.collection("battles").doc(currentRoomId);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        const data = doc.data();
+                        
+                        // Si après 3s, le statut n'est TOUJOURS PAS "forfait", 
+                        // cela veut dire que l'adversaire n'a pas traité sa sanction (donc il est déco)
+                        if (data.status !== "forfait") {
+                            const lAdversaireAJoue = (role === "player1" ? data.card2 : data.card1);
+                            const adversaireId = (role === "player1" ? data.player2 : data.player1);
+
+                            if (!lAdversaireAJoue) {
+                                console.log("Arbitrage : L'adversaire est absent (Déconnecté). Inscription amende en attente.");
+                                
+                                // 1. On déclare le forfait
+                                await docRef.update({
+                                    status: "forfait",
+                                    quitterName: (role === "player1" ? data.player2Name : data.player1Name),
+                                    quitterId: adversaireId,
+                                    raison: "déconnexion_timeout"
+                                });
+
+                                // 2. On met l'amende EN ATTENTE (il la paiera au prochain refresh)
+                                await db.collection("users").doc(adversaireId).update({
+                                    amendeEnAttente: firebase.firestore.FieldValue.increment(1000)
+                                });
+                            }
+                        } else {
+                            console.log("Arbitrage annulé : L'adversaire était connecté et a déjà traité son forfait.");
+                        }
+                    }
+                }, 3000); // 3 secondes de battement
+            }
+        } catch (error) {
+            console.error("Erreur dans la boucle du timer :", error);
+            if (combatTimer) {
+                clearInterval(combatTimer);
+                combatTimer = null;
+            }
+        }
+    }, 1000);
+}
+
+
+
+
+
+
+async function appliquerDefaiteForfait() {
+    // Sanction financière
+    dust = Math.max(0, dust - 1000);
+    if (auth.currentUser) await saveUserData(auth.currentUser.uid);
+    
+    // Notification à l'adversaire via Firebase
+    if (currentRoomId) {
+        await db.collection("battles").doc(currentRoomId).update({
+            status: "forfait",
+            quitterName: window.userPseudo || auth.currentUser.email.split('@')[0]
+        });
+    }
+    resetArena();
+    currentRoomId = null;
+}
+
+
+
+function stopperTimer() {
+    // 1. ARRÊT LOGIQUE (Backend local)
+    if (combatTimer) {
+        clearInterval(combatTimer);
+        combatTimer = null; // Crucial pour éviter les doubles déclenchements
+        console.log("Timer de combat arrêté.");
+    }
+
+    // 2. NETTOYAGE VISUEL (UI)
+    const timerDisplay = document.getElementById("combat-timer-display");
+    const timerBar = document.getElementById("timer-bar");
+
+    // Cache le conteneur du timer
+    if (timerDisplay) {
+        timerDisplay.style.display = "none";
+    }
+
+    // Reset complet de la barre de progression pour le prochain combat
+    if (timerBar) {
+        timerBar.style.width = "100%";
+        // On remet la couleur d'origine (violet ou vert) si elle était passée en rouge (danger)
+        timerBar.style.background = "#7c3aed"; 
+    }
+
+    // Optionnel : On peut aussi vider le texte du décompte dans battle-info
+    const battleInfo = document.getElementById("battle-info");
+    if (battleInfo && !combatEnCours) {
+        battleInfo.innerText = "";
+    }
+}
+
+
+
+
+async function appliquerSanctionForfait(raison) {
+    const user = auth.currentUser;
+    // Sécurité : si pas d'utilisateur ou si la sanction est déjà en cours d'affichage
+    if (!user || forfaitAffiche) return; 
+
+    // 1. VERROUILLAGE & NETTOYAGE IMMÉDIAT
+    forfaitAffiche = true; 
+    stopperTimer(); // On arrête tout de suite le visuel du chrono
+    console.log("Application de la sanction pour : " + raison);
+
+    // 2. MISE À JOUR VISUELLE IMMÉDIATE (Évite le besoin de refresh)
+    // On le fait avant le 'await' pour que ce soit instantané à l'écran
+    dust = Math.max(0, dust - 1000);
+    if (typeof actualiserAffichageDust === 'function') {
+        actualiserAffichageDust();
+    }
+
+    try {
+        // 3. MISE À JOUR BASE DE DONNÉES
+        const userRef = db.collection("users").doc(user.uid);
+        
+        // On lance les deux updates en parallèle pour gagner du temps
+        const updates = [];
+
+        // Update 1 : Retrait des fragments
+        updates.push(userRef.update({
+            dust: firebase.firestore.FieldValue.increment(-1000),
+            amendeEnAttente: 0 // On remet à zéro car il paie maintenant
+        }));
+
+        // Update 2 : Signalement du forfait dans le salon
+        if (currentRoomId) {
+            const monPseudo = window.userPseudo || user.email.split('@')[0];
+            updates.push(db.collection("battles").doc(currentRoomId).update({
+                status: "forfait",
+                quitterName: monPseudo,
+                quitterId: user.uid,
+                raison: raison
+            }));
+        }
+
+        await Promise.all(updates);
+        console.log("Succès : Base de données synchronisée (-1000 fragments).");
+
+        // 4. ALERTE À L'UTILISATEUR
+        alert(`❌ DÉFAITE PAR FORFAIT\n${raison}\n\nRetrait de 1000 Fragments.`);
+
+    } catch (error) {
+        console.error("Erreur lors de la synchronisation de la sanction :", error);
+        // Note: Le dust visuel a déjà été baissé, donc le joueur voit la sanction quoi qu'il arrive
+    } finally {
+        // 5. RÉINITIALISATION DE L'INTERFACE (RESET ARENA)
+        combatEnCours = false;
+        
+        if (typeof resetArena === 'function') {
+            resetArena();
+        }
+        
+        currentRoomId = null;
+
+        // 6. RÉAFFICHAGE DES ÉLÉMENTS DE NAVIGATION (HUD)
+        const nav = document.querySelector('nav');
+        const accountBtn = document.getElementById('accountBtn');
+        const musicBtn = document.getElementById('musicBtn');
+        const luckyRow = document.getElementById('hudBottomRow');
+
+        if (nav) nav.style.display = "flex";
+        if (accountBtn) accountBtn.style.display = "block";
+        if (musicBtn) musicBtn.style.display = "flex";
+        if (luckyRow) luckyRow.style.display = "flex";
+
+        console.log("Interface réinitialisée et prête.");
+    }
+}
+
+
+
+
+
+async function verifierAmendes(userId) {
+    try {
+        const userRef = db.collection("users").doc(userId);
+        const doc = await userRef.get();
+        if (!doc.exists) return;
+
+        const data = doc.data();
+        
+        // On vérifie s'il y a une amende en attente sur le serveur
+        if (data.amendeEnAttente && data.amendeEnAttente > 0) {
+            const montant = data.amendeEnAttente;
+            
+            // SÉCURITÉ : Si la variable globale 'dust' est undefined, 
+            // on prend la valeur 'dust' qui vient du serveur
+            let dustActuel = (typeof dust !== 'undefined') ? dust : (data.dust || 0);
+            
+            // Calcul du nouveau total
+            const nouveauDust = Math.max(0, dustActuel - montant);
+            
+            // Mise à jour de la variable globale pour que le reste du script soit au courant
+            dust = nouveauDust;
+
+            // 1. On nettoie l'amende ET on met à jour les fragments sur Firebase
+            await userRef.update({
+                dust: nouveauDust,
+                amendeEnAttente: 0 
+            });
+
+            // 2. Alerte le joueur
+            alert(`❌ DÉFAITE PAR FORFAIT : Tu as abandonné ton dernier combat avant la fin.\nTu as perdu ${montant} Fragments.`);
+            
+            // 3. Mise à jour visuelle (HUD)
+            if (typeof actualiserAffichageDust === 'function') {
+                actualiserAffichageDust();
+            }
+        }
+    } catch (error) {
+        console.error("Erreur vérification amendes :", error);
+    }
+}
+
+
+
+
 
 
 
@@ -9235,7 +9663,10 @@ auth.onAuthStateChanged(async (user) => {
         if(profileDust) profileDust.textContent = typeof dust !== 'undefined' ? dust : 0;
 
         // Chargement des données de jeu
-        await loadUserData(user.uid);                  
+        await loadUserData(user.uid); 
+
+await verifierAmendes(user.uid);
+                 
         loadBoosterCounter(user.uid);             
         checkDailyShop();                         
 

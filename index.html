@@ -1470,6 +1470,38 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes cardPopOut {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+
+
+
+@keyframes confettiFall {
+    0% { transform: translateY(0) translateX(0) rotateX(0deg) rotateY(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) translateX(var(--dx)) rotateX(var(--rx)) rotateY(var(--ry)); opacity: 0; }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 1000000; /* Par-dessus tout */
+    animation: confettiFall 4s ease-out forwards;
+}
+
+
+
 
 
 
@@ -2470,7 +2502,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.5</span><br>
+        <span id="app-version">v2.3.6</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -3869,6 +3901,156 @@ setInterval(syncSubwayHUD, 300);
 
 
 
+
+
+
+
+
+
+
+
+function displayExcluPalier100(cardData) {
+
+    // 1. Fermeture du menu
+    const bpOverlay = document.getElementById('bpOverlay');
+    if (bpOverlay) {
+        bpOverlay.style.display = 'none';
+    }
+
+    // 2. Préparation données
+    currentPack = [{ ...cardData, isNew: true, level: 1 }];
+    currentCardIndex = 0;
+    window.isBPReward = true; 
+
+    // 3. Création du rideau (Attaché au BODY)
+    const cover = document.createElement("div");
+    cover.id = "exclu-100-cover";
+    cover.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: radial-gradient(circle, rgba(0,0,0,0.98) 0%, #000 100%);
+        display: flex; flex-direction: column; justify-content: center;
+        align-items: center; z-index: 999999; cursor: pointer;
+        backdrop-filter: blur(20px);
+    `;
+
+cover.innerHTML = `
+        <div style="color: gold; font-size: 1.2rem; margin-bottom: 20px; text-shadow: 0 0 10px gold; font-family: sans-serif; font-weight: bold; text-align: center; letter-spacing: 1px; opacity: 0.8;">🏆 RÉCOMPENSE ULTIME 🏆</div>
+        <div id="mystery-rect" style="width: 280px; height: 400px; background: linear-gradient(145deg, #111, #222); border: 10px solid #ffd700; border-radius: 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 70px rgba(255, 215, 0, 0.5); transition: transform 0.05s;">
+            <span style="font-size: 170px; color: #ffd700; font-weight: bold; user-select: none; text-shadow: 0 0 20px gold;">?</span>
+        </div>
+        <div style="color: white; margin-top: 30px; font-family: sans-serif; font-weight: bold; letter-spacing: 2px; font-size: 1.1rem; animation: pulse 1.5s infinite; text-transform: uppercase;">CLIQUEZ 5 FOIS POUR RÉVÉLER !</div>
+    `;
+
+    let clicks = 0;
+    const rect = cover.querySelector('#mystery-rect');
+
+    cover.onclick = (e) => {
+        e.stopPropagation(); 
+        clicks++;
+        
+        // Tremblement très intense (plus agressif)
+        const shakeIntensity = clicks * 4; // Augmente l'intensité à chaque clic
+        const shakeX = Math.random() * shakeIntensity - (shakeIntensity/2);
+        const shakeY = Math.random() * shakeIntensity - (shakeIntensity/2);
+        rect.style.transform = `translate(${shakeX}px, ${shakeY}px) scale(1.05) rotate(${shakeX/1.5}deg)`;
+        
+        setTimeout(() => {
+            rect.style.transform = "scale(1) rotate(0deg)";
+        }, 50);
+
+        if (clicks >= 5) {
+            cover.style.pointerEvents = "none";
+            
+            // Effet flash blanc intense
+            cover.style.background = "white";
+            cover.style.transition = "background 0.1s ease-in";
+            rect.style.transition = "transform 0.15s ease-in, opacity 0.15s ease-in";
+            rect.style.transform = "scale(3)";
+            rect.style.opacity = "0";
+            
+            setTimeout(() => {
+                cover.remove();
+                if (typeof showBigCard === "function") {
+                    showBigCard();
+                    
+                    // --- LANCEMENT DE L'EXPLOSION DE CONFETTIS (4 COINS) ---
+                    lancerExplosionConfettis4Coins();
+
+                }
+                window.isBPReward = false;
+            }, 200);
+        }
+    };
+
+    document.body.appendChild(cover);
+
+}
+
+
+
+
+function lancerExplosionConfettis4Coins() {
+
+    const container = document.body;
+    const particleCountPerCorner = 40; // Nombre de confettis par coin
+    const colors = ['#ffd700', '#ffa500', '#ff4500', '#ff0000', '#ffffff', '#4facfe', '#00f2fe']; 
+
+    const corners = [
+        { x: 0, y: 0, dxMin: 200, dxMax: 600, dyMin: 100, dyMax: 400 },        // Haut Gauche
+        { x: window.innerWidth, y: 0, dxMin: -600, dxMax: -200, dyMin: 100, dyMax: 400 }, // Haut Droite
+        { x: 0, y: window.innerHeight, dxMin: 200, dxMax: 600, dyMin: -400, dyMax: -100 }, // Bas Gauche
+        { x: window.innerWidth, y: window.innerHeight, dxMin: -600, dxMax: -200, dyMin: -400, dyMax: -100 } // Bas Droite
+    ];
+
+    corners.forEach(corner => {
+        for (let i = 0; i < particleCountPerCorner; i++) {
+            const confetti = document.createElement("div");
+            confetti.className = "confetti";
+            
+            // Position de départ (le coin)
+            confetti.style.left = corner.x + "px";
+            confetti.style.top = corner.y + "px";
+            
+            // Couleur aléatoire
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Trajectoire aléatoire vers le centre
+            const dx = Math.random() * (corner.dxMax - corner.dxMin) + corner.dxMin;
+            const dy = Math.random() * (corner.dyMax - corner.dyMin) + corner.dyMin;
+            
+            // Rotation aléatoire
+            const rx = Math.random() * 720 - 360;
+            const ry = Math.random() * 720 - 360;
+            
+            // Définition des variables CSS pour l'animation
+            confetti.style.setProperty('--dx', dx + "px");
+            confetti.style.setProperty('--rx', rx + "deg");
+            confetti.style.setProperty('--ry', ry + "deg");
+            
+            // Légère variation de la durée pour un effet naturel
+            confetti.style.animationDuration = (Math.random() * 2 + 3) + "s";
+            // Délai aléatoire pour que tout n'explose pas exactement en même temps
+            confetti.style.animationDelay = (Math.random() * 0.2) + "s";
+            
+            // Forme rectangulaire variable
+            confetti.style.width = (Math.random() * 8 + 6) + "px";
+            confetti.style.height = (Math.random() * 12 + 8) + "px";
+
+            container.appendChild(confetti);
+            
+            // Suppression de la particule après l'animation
+            setTimeout(() => confetti.remove(), 5000);
+        }
+    });
+}
+
+
+
+
+
+
+
+
 let speedies = 0;
 
 
@@ -4231,12 +4413,11 @@ async function claimBPReward(lvl, type) {
         alert(`💎 +${parseInt(itemLabel)} Fragments !`);
     } 
     
-    // --- 2. NOUVEAU : CAS DES SPEEDIES ⚡ ---
+    // --- 2. CAS DES SPEEDIES ⚡ ---
     else if (itemLabel.includes("⚡")) {
         const gainSpeedy = parseInt(itemLabel) || 0;
         speedies = (speedies || 0) + gainSpeedy;
         
-        // Mise à jour visuelle immédiate du profil (la grille de 6 cases)
         const profileDisplay = document.getElementById("profileSpeedies");
         if (profileDisplay) {
             profileDisplay.innerText = speedies;
@@ -4244,72 +4425,55 @@ async function claimBPReward(lvl, type) {
         alert(`⚡ +${gainSpeedy} Speedies ajoutés !`);
     }
 
-    // --- 3. CAS DE LA CARTE MYSTÈRE ---
-    else if (itemLabel === "Carte Mystère") {
-        // Redirection Accueil : On ferme le menu et on montre l'icône
-        const overlayBP = document.getElementById('bpOverlay');
-        if (overlayBP) overlayBP.style.display = 'none';
-        const iconBP = document.getElementById('bpIcon');
-        if (iconBP) iconBP.style.display = 'flex';
-
-        let rand = Math.random() * 100;
-        let cumul = 0;
-        let rareteChoisie = "Commun";
-        for (let r in probasRarete) {
-            cumul += probasRarete[r];
-            if (rand <= cumul) { rareteChoisie = r; break; }
-        }
-
-        const possibles = ALL_CARDS.filter(c => c.rarity === rareteChoisie);
-        const piochee = possibles.length > 0 
-            ? possibles[Math.floor(Math.random() * possibles.length)]
-            : ALL_CARDS[0];
-
-        const cardInCollection = collection.find(c => c.name === piochee.name);
-        
-        if (!cardInCollection) {
-            // Nouvelle carte
-            collection.push({ ...piochee, level: 1, exp: 0, isNew: true });
-            displayGainedCard(piochee, true, 1); 
-        } else {
-            // Doublon : Niveau + 1
-            cardInCollection.level = (cardInCollection.level || 1) + 1;
-            displayGainedCard(piochee, false, cardInCollection.level); 
-        }
-    }
-
-    // --- 4. CAS DES CARTES FIXES ---
+    // --- 3. CAS DES CARTES (MYSTÈRE OU FIXE) ---
     else if (itemLabel.includes("Carte")) {
-        // Redirection Accueil : On ferme le menu et on montre l'icône
-        const overlayBP = document.getElementById('bpOverlay');
-        if (overlayBP) overlayBP.style.display = 'none';
-        const iconBP = document.getElementById('bpIcon');
-        if (iconBP) iconBP.style.display = 'flex';
+        let info;
 
-        const nomCarte = itemLabel.replace("Carte ", "").trim();
-        const info = ALL_CARDS.find(c => c.name === nomCarte);
+        // A. TIRAGE MYSTÈRE
+        if (itemLabel === "Carte Mystère") {
+            let rand = Math.random() * 100;
+            let cumul = 0;
+            let rareteChoisie = "Commun";
+            for (let r in probasRarete) {
+                cumul += probasRarete[r];
+                if (rand <= cumul) { rareteChoisie = r; break; }
+            }
+            const possibles = ALL_CARDS.filter(c => c.rarity === rareteChoisie);
+            info = possibles.length > 0 ? possibles[Math.floor(Math.random() * possibles.length)] : ALL_CARDS[0];
+        } 
+        // B. CARTE FIXE
+        else {
+            const nomCarte = itemLabel.replace("Carte ", "").trim();
+            info = ALL_CARDS.find(c => c.name === nomCarte);
+        }
+
         if (info) {
             const cardInCollection = collection.find(c => c.name === info.name);
             
-            if (!cardInCollection) {
-                // Nouvelle carte
-                collection.push({ ...info, level: 1, exp: 0, isNew: true });
-                displayGainedCard(info, true, 1);
-            } else {
-                // Doublon : Niveau + 1
-                cardInCollection.level = (cardInCollection.level || 1) + 1;
-                displayGainedCard(info, false, cardInCollection.level);
+            // --- LOGIQUE SPÉCIALE PALIER 100 ---
+            if (lvl === 100 && type === 'prem') {
+                if (!cardInCollection) {
+                    collection.push({ ...info, level: 1, exp: 0, isNew: true });
+                } else {
+                    cardInCollection.level = (cardInCollection.level || 1) + 1;
+                }
+                displayExcluPalier100(info);
+            } 
+            // --- LOGIQUE STANDARD ---
+            else {
+                if (!cardInCollection) {
+                    collection.push({ ...info, level: 1, exp: 0, isNew: true });
+                    displayGainedCard(info, true, 1);
+                } else {
+                    cardInCollection.level = (cardInCollection.level || 1) + 1;
+                    displayGainedCard(info, false, cardInCollection.level);
+                }
             }
         }
     }
 
-    // --- 5. CAS DES PACKS ---
+    // --- 4. CAS DES PACKS ---
     else if (itemLabel.includes("Pack")) {
-        const overlayBP = document.getElementById('bpOverlay');
-        if (overlayBP) overlayBP.style.display = 'none'; 
-        const iconBP = document.getElementById('bpIcon');
-        if (iconBP) iconBP.style.display = 'flex';
-
         if (itemLabel.includes("Diamond")) openSpecialPack("diamond");
         else if (itemLabel.includes("Platine") || itemLabel.includes("Platinum")) openSpecialPack("platinum");
         else openSpecialPack("gold");
@@ -4323,13 +4487,24 @@ async function claimBPReward(lvl, type) {
             await db.collection("users").doc(user.uid).update({
                 claimedRewards: claimedRewards,
                 dust: dust,
-                speedies: speedies, // Ajout de la sauvegarde des Speedies
+                speedies: speedies,
                 collection: collection 
             });
         } catch (e) {
             console.error("Erreur Firebase :", e);
         }
     }
+
+    // --- FORCE L'AFFICHAGE DU BATTLE PASS ---
+    const overlayBP = document.getElementById('bpOverlay');
+    if (overlayBP) {
+        overlayBP.style.display = 'flex'; // On force le réaffichage
+    }
+    const iconBP = document.getElementById('bpIcon');
+    if (iconBP) {
+        iconBP.style.display = 'none'; // On cache l'icône car on est déjà dans le menu
+    }
+
     updateBattlePassUI();
 }
 
@@ -4505,9 +4680,13 @@ async function recupererGratuit() {
 
     // On envoie à la fonction de sauvegarde
     await finaliserLaRecuperation(nouveauxPaliersIDs, nouveauxGains, objetsSpeciaux, nbMystere, detailCartes, detailPacks);
+
+    // --- FORCE L'AFFICHAGE DU BATTLE PASS APRÈS LA RÉCUPÉRATION ---
+    const overlayBP = document.getElementById('bpOverlay');
+    if (overlayBP) {
+        overlayBP.style.display = 'flex';
+    }
 }
-
-
 
 async function recupererPremium() {
     const user = auth.currentUser;
@@ -4552,6 +4731,12 @@ async function recupererPremium() {
     }
 
     await finaliserLaRecuperation(nouveauxPaliersIDs, nouveauxGains, objetsSpeciaux, nbMystere, detailCartes, detailPacks);
+
+    // --- FORCE L'AFFICHAGE DU BATTLE PASS APRÈS LA RÉCUPÉRATION ---
+    const overlayBP = document.getElementById('bpOverlay');
+    if (overlayBP) {
+        overlayBP.style.display = 'flex';
+    }
 }
 
 
@@ -7446,23 +7631,38 @@ function ouvrirSelectionCombat() {
 let mes3CartesCombat = [];
 
 function genererTirageCombat() {
-    if (collection.length === 0) {
-        alert("Ta collection est vide, tu ne peux pas combattre !");
+    // --- FILTRE : On exclut les cartes en période de récupération ---
+    const cartesDisponibles = collection.filter(c => {
+        const maintenant = Date.now();
+        return !c.indisponibleJusquA || maintenant > c.indisponibleJusquA;
+    });
+
+    if (cartesDisponibles.length === 0) {
+        alert("Tu n'as aucune carte disponible pour combattre !");
         return;
     }
 
-    // On vide l'ancien tirage
     mes3CartesCombat = [];
 
-    let tirage = collection.map((card, index) => ({...card, originalIndex: index}));
+    // --- MODIFICATION POUR TEST ---
+    // On trie pour mettre les "Exclu Season 1" au début de la liste avant le mélange
+    let tirage = cartesDisponibles.map((card, index) => ({...card, originalIndex: index}));
     
+    // Mélange classique
     for (let i = tirage.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [tirage[i], tirage[j]] = [tirage[j], tirage[i]];
     }
 
-    mes3CartesCombat = tirage.slice(0, 3);
+    // FORCE LE TEST : On place les Exclus au tout début du tableau final
+    tirage.sort((a, b) => {
+        if (a.rarity === "Exclu Season 1") return -1;
+        if (b.rarity === "Exclu Season 1") return 1;
+        return 0;
+    });
 
+    // Prend les 3 premières (l'Exclu sera forcément dedans si elle n'est pas bannie)
+    mes3CartesCombat = tirage.slice(0, 3);
 }
 
 
@@ -7679,23 +7879,45 @@ async function executerCalculCombat() {
         // Gain de base pour la victoire
         dust += 500;
         
-        // On vérifie si on possède déjà la carte
-        const possèdeDéjà = collection.some(c => c.name === carteAdversaire.name);
-
-        if (possèdeDéjà) {
-            // BONUS DOUBLON : +1000 fragments
-            dust += 1000;
-            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Fragments ! (Total: 1500 💎)`);
+        // --- LOGIQUE SPÉCIALE EXCLU (PRIME AU LIEU DE CAPTURE) ---
+        if (carteAdversaire.rarity === "Exclu Season 1") {
+            dust += 3000;
+            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n💰 PRIME DE COMBAT : Tu as battu une EXCLU ! Tu gagnes +3000 Fragments au lieu de la capturer !`);
         } else {
-            // NOUVELLE CARTE : On l'ajoute normalement
-            collection.push({ ...carteAdversaire });
-            alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\nNouveau Brainrot capturé : ${carteAdversaire.name} !`);
+            // Logique normale pour les autres cartes
+            const possèdeDéjà = collection.some(c => c.name === carteAdversaire.name);
+
+            if (possèdeDéjà) {
+                // BONUS DOUBLON : +1000 fragments
+                dust += 1000;
+                alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Fragments ! (Total: 1500 💎)`);
+            } else {
+                // NOUVELLE CARTE : On l'ajoute normalement
+                collection.push({ ...carteAdversaire });
+                alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\nNouveau Brainrot capturé : ${carteAdversaire.name} !`);
+            }
         }
+        
     } else if (p1Power < p2Power) {
         // DÉFAITE
         dust = Math.max(0, dust - 500);
-        if (selectedPlayerCardIndex !== -1) collection.splice(selectedPlayerCardIndex, 1);
-        alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Fragments. Ta carte ${maCarte.name} est détruite.`);
+        
+        if (selectedPlayerCardIndex !== -1) {
+            const carteCombat = collection[selectedPlayerCardIndex];
+
+            // --- SYSTÈME ANTI-PERTE EXCLU ---
+            if (carteCombat.rarity === "Exclu Season 1") {
+                // On ne splice pas ! On ajoute un timer de 7 jours (en ms)
+                const uneSemaine = 7 * 24 * 60 * 60 * 1000;
+                collection[selectedPlayerCardIndex].indisponibleJusquA = Date.now() + uneSemaine;
+                
+                alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Fragments.\n⚠️ Ta carte ${maCarte.name} est épuisée ! Elle est sauvée mais sera indisponible pendant 7 jours.`);
+            } else {
+                // Logique normale : suppression de la carte
+                collection.splice(selectedPlayerCardIndex, 1);
+                alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Fragments. Ta carte ${maCarte.name} est détruite.`);
+            }
+        }
     } else {
         alert(`🤝 MATCH NUL !\n+${xpGagne} XP gagnés.`);
     }
@@ -7704,7 +7926,7 @@ async function executerCalculCombat() {
         await ajouterXP(xpGagne);
     }
 
-// 4. SAUVEGARDE
+    // 4. SAUVEGARDE
     if (auth.currentUser) {
         await saveUserData(auth.currentUser.uid);
     }
@@ -7716,13 +7938,11 @@ async function executerCalculCombat() {
     // --- NETTOYAGE DU MESSAGE DE STATUT ---
     const statusDiv = document.getElementById("status-recherche");
     if (statusDiv) {
-        statusDiv.innerHTML = ""; // Supprime le message "Calcul du vainqueur"
+        statusDiv.innerHTML = ""; 
     }
 
     resetArena();
     
-    // On remplace l'affichage de la collection par celui du combat
-    // showCollection(); <-- Supprimé pour éviter de quitter l'écran de combat
     if (typeof showCombat === "function") {
         showCombat(); 
     } else if (typeof showSection === "function") {
@@ -7803,28 +8023,37 @@ function resetArena() {
 
 // Fonction mise à jour pour utiliser l'ATK dynamique (Rareté + Niveau)
 function getPower(card) {
-    // Si la carte a déjà une valeur .atk (calculée au tirage ou au level up)
+    // 1. Priorité à l'ATK fixe si elle existe (ex: calculée lors d'un événement spécial)
     if (card.atk !== undefined && card.atk !== null) {
         return card.atk;
     }
 
-    // Sécurité (Fallback) : Si c'est une carte de l'IA ou une ancienne carte sans .atk
+    // 2. Nouvelles Bases d'ATK (Équilibrées par rapport aux probabilités d'obtention)
     const basePowers = {
-  "Commun": 30,
-    "Rare": 60,
-    "Epic": 150,
-    "Legendary": 400,
-    "Mythic": 1000,
-    "Brainrot God": 2500,
-    "Secret": 7500,
-    "OG": 15000,
-    "Exclu Season 1": 20000
+        "Commun": 100,
+        "Rare": 300,
+        "Epic": 800,
+        "Legendary": 2000,
+        "Mythic": 4500,
+        "Brainrot God": 9000,
+        "Secret": 15000,
+        "OG": 25000,
+        "Exclu Season 1": 15        // 0000
     };
-    // On ajoute un petit bonus de niveau même pour le fallback si le niveau existe
-    const niveau = card.level || 1;
-    const base = basePowers[card.rarity] || 15;
+
+    // Récupération de la base (par défaut 50 si rareté inconnue)
+    const base = basePowers[card.rarity] || 50;
     
-    return base + (niveau * 10);
+    // Récupération du niveau (par défaut 1)
+    const niveau = card.level || 1;
+
+    // 3. Nouvelle Formule : +10% de la BASE par niveau supplémentaire
+    // Niveau 1 = Base pure
+    // Niveau 2 = Base + 10%
+    // Niveau 11 = Base + 100% (Puissance doublée)
+    const bonusNiveau = base * 0.1 * (niveau - 1);
+    
+    return Math.floor(base + bonusNiveau);
 }
 
 
@@ -8410,7 +8639,7 @@ function openSpecialPack(type) {
             if (cardInCollection.exp >= expNeeded) {
                 cardInCollection.level = (cardInCollection.level || 1) + 1;
                 cardInCollection.exp = 0; // Reset l'exp pour le prochain niveau
-                console.log(`Niveau supérieur pour ${cardInCollection.name} !`);
+
             }
         }
     });
@@ -9326,10 +9555,8 @@ function updateButtons() {
 
 function refreshCollection(cardsToShow) {
     // --- GESTION DU BOUTON DE TRI ---
-    // On réaffiche le bouton par défaut (il sera caché par le bouton "Manquantes" si besoin)
     const triBtn = document.getElementById("triRareteBtn");
     
-    // CORRECTION : On ne réaffiche le bouton que si on n'est PAS en train de voir les cartes manquantes
     if (triBtn) {
         if (typeof showingMissing !== "undefined" && showingMissing) {
             triBtn.style.display = "none";
@@ -9341,19 +9568,14 @@ function refreshCollection(cardsToShow) {
     const collectionDiv = document.getElementById("collection");
     collectionDiv.innerHTML = "";
 
-    // --- LOGIQUE D'INVERSION (Dernier obtenu en haut par défaut) ---
-    // On définit quelle liste utiliser
+    // --- LOGIQUE D'INVERSION ---
     let baseCards = cardsToShow || collection;
 
-    // Si on est en mode "defaut" (triEtat défini hors de la fonction) 
-    // et qu'on n'a pas passé de paramètre spécifique (donc vue collection normale), 
-    // on force l'inversion pour avoir les plus récents en haut.
     if (typeof triEtat !== "undefined" && triEtat === "defaut" && !cardsToShow) {
         baseCards = [...collection].reverse();
     }
 
-    // --- FILTRE : On ignore les Lucky Blocks pour ne pas fausser la collection ---
-// 1. Objets qui ne sont JAMAIS affichés (les coffres)
+    // --- FILTRE : On ignore les Lucky Blocks ---
     const listLucky = [
         "Mythic Lucky Block", 
         "Brainrot God Lucky Block", 
@@ -9361,20 +9583,15 @@ function refreshCollection(cardsToShow) {
         "Admin Lucky Block"
     ];
 
-    // 2. Objets qui ne comptent pas dans le TOTAL du jeu (Exclusivités)
     const listExclu = ["Exclu Season 1"];
 
-    // On filtre la collection possédée (on garde tout sauf les blocks)
     const filteredCollection = collection.filter(c => !listLucky.includes(c.rarity));
 
-    // On filtre la base totale : on enlève les blocks ET la Season 1 pour le dénominateur
     const filteredAllCards = ALL_CARDS.filter(c => 
         !listLucky.includes(c.rarity) && !listExclu.includes(c.rarity)
     );
     
-    // On filtre les cartes à afficher : on enlève seulement les blocks (la Season 1 reste visible)
     const cards = baseCards.filter(c => !listLucky.includes(c.rarity));
-
 
     // --- TABLEAU DE RÉFÉRENCE ---
     const expTable = {
@@ -9388,21 +9605,17 @@ function refreshCollection(cardsToShow) {
         "OG": 1
     };
 
-    // --- COMPTEUR cartes obtenues / total ---
+    // --- COMPTEUR ---
     const collectionSection = document.getElementById("collectionSection");
     let compteurDiv = collectionSection.querySelector(".compteur-cards");
 
     if (!compteurDiv) {
         compteurDiv = document.createElement("div");
         compteurDiv.className = "compteur-cards";
-
-compteurDiv.style.marginTop = "20px"; 
-    compteurDiv.style.marginBottom = "20px"
-
-
+        compteurDiv.style.marginTop = "20px"; 
+        compteurDiv.style.marginBottom = "20px";
         compteurDiv.style.fontSize = "1rem";
         compteurDiv.style.color = "#a1a1aa";
-        compteurDiv.style.marginBottom = "15px";
         compteurDiv.style.textAlign = "center";
         compteurDiv.style.fontWeight = "bold";
 
@@ -9412,7 +9625,6 @@ compteurDiv.style.marginTop = "20px";
         }
     }
 
-    // Utilisation des versions filtrées pour le compteur
     compteurDiv.innerText = `Cartes obtenues : ${filteredCollection.length} / ${filteredAllCards.length}`;
 
     // --- Affichage des cartes ---
@@ -9426,77 +9638,92 @@ compteurDiv.style.marginTop = "20px";
         const expNeeded = expTable[c.rarity] || 10;
         const progressPercent = Math.min((exp / expNeeded) * 100, 100);
 
+        // --- GESTION DU TIMER (BAN) ---
+        const maintenant = Date.now();
+        const estBannie = c.indisponibleJusquA && maintenant < c.indisponibleJusquA;
+
         // --- INDICATEUR DE NIVEAU (Badge) ---
-        const levelBadge = document.createElement("div");
-        levelBadge.style.cssText = `
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            z-index: 5;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            border: 1px solid #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        `;
-        
-        // Texte du niveau
-        const levelText = document.createElement("span");
-        levelText.innerText = `Niv. ${level}`;
-        levelBadge.appendChild(levelText);
+        if (c.rarity !== "Exclu Season 1") {
+            const levelBadge = document.createElement("div");
+            levelBadge.style.cssText = `
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: linear-gradient(135deg, #ffd700, #ffa500);
+                color: #000;
+                padding: 2px 8px;
+                border-radius: 10px;
+                font-size: 0.75rem;
+                font-weight: bold;
+                z-index: 5;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                border: 1px solid #fff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            `;
+            
+            const levelText = document.createElement("span");
+            levelText.innerText = `Niv. ${level}`;
+            levelBadge.appendChild(levelText);
 
-        // --- AJOUT SPÉCIAL OG : Compteur sous le niveau ---
-        if (c.rarity === "OG") {
-            const ogCounter = document.createElement("span");
-            ogCounter.style.cssText = "font-size: 0.6rem; opacity: 0.8; margin-top: -2px;";
-            ogCounter.innerText = `${exp}/${expNeeded}`;
-            levelBadge.appendChild(ogCounter);
+            if (c.rarity === "OG") {
+                const ogCounter = document.createElement("span");
+                ogCounter.style.cssText = "font-size: 0.6rem; opacity: 0.8; margin-top: -2px;";
+                ogCounter.innerText = `${exp}/${expNeeded}`;
+                levelBadge.appendChild(ogCounter);
+            }
+            
+            wrapper.appendChild(levelBadge);
         }
-        
-        wrapper.appendChild(levelBadge);
-
-        // --- 🟢 BLOC NOUVEAU (Mis en commentaire pour ne plus l'afficher) ---
-        /*
-        if(c.isNew){
-            const label = document.createElement("div");
-            label.className = "new-label";
-            label.textContent = "NOUVEAU";
-            wrapper.appendChild(label);
-        }
-        */
 
         const cardDiv = document.createElement("div");
 
+        // --- EFFET VISUEL SI BANNIE ---
+        if (estBannie) {
+            cardDiv.style.filter = "grayscale(1) brightness(0.5)";
+            cardDiv.style.cursor = "not-allowed";
+        }
+
         if (c.rarity === "OG") {
-            // --- STYLE OG : SANS BARRE EXP ---
             cardDiv.className = "card";
             cardDiv.style.cssText = "position:relative; border:none; padding:0; background:none; overflow:hidden;";
-
-            cardDiv.innerHTML = `
-                <img src="${c.image}" style="width:100%;height:100%;object-fit:contain;display:block;border-radius:0;">
-            `;
+            cardDiv.innerHTML = `<img src="${c.image}" style="width:100%;height:100%;object-fit:contain;display:block;border-radius:0;">`;
         } else {
-            // --- STYLE CLASSIQUE : AVEC BARRE EXP ---
             cardDiv.className = "card r-" + c.rarity.replace(/ /g, "-");
             
-            const expBarHTML = `
-                <div class="exp-container" style="width:100%; height:6px; background:rgba(0,0,0,0.3); border-radius:3px; margin-top:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); position:relative;">
-                    <div class="exp-fill" style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); transition: width 0.3s;"></div>
-                </div>
-                <div style="font-size: 0.6rem; color: #aaa; text-align: right; margin-top: 2px;">${exp}/${expNeeded}</div>
-            `;
+            let expBarHTML = "";
+            if (c.rarity !== "Exclu Season 1") {
+                expBarHTML = `
+                    <div class="exp-container" style="width:100%; height:6px; background:rgba(0,0,0,0.3); border-radius:3px; margin-top:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); position:relative;">
+                        <div class="exp-fill" style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); transition: width 0.3s;"></div>
+                    </div>
+                    <div style="font-size: 0.6rem; color: #aaa; text-align: right; margin-top: 2px;">${exp}/${expNeeded}</div>
+                `;
+            }
+
+            // --- AFFICHAGE DU TIMER ---
+            let timerHTML = "";
+            if (estBannie) {
+                const restantMs = c.indisponibleJusquA - maintenant;
+                const jours = Math.floor(restantMs / (1000 * 60 * 60 * 24));
+                const heures = Math.floor((restantMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let texteTemps = jours > 0 ? `${jours}j ${heures}h` : `${heures}h`;
+                
+                timerHTML = `
+                    <div style="background: rgba(255, 0, 0, 0.2); border-radius: 4px; padding: 4px; margin-top: 8px; border: 1px solid rgba(255, 0, 0, 0.3); text-align: center;">
+                        <div style="color:#ff4444; font-weight:bold; font-size:0.7rem;">⏳ RÉCUPÉRATION</div>
+                        <div style="color:#fff; font-size:0.65rem;">Retour dans : ${texteTemps}</div>
+                    </div>
+                `;
+            }
 
             cardDiv.innerHTML = `
                 <div style="font-size:0.8rem;color:#ccc;margin-bottom:4px;">${c.rarity}</div>
                 <img src="${c.image}" alt="${c.name}" style="width:100%;border-radius:8px;margin-bottom:8px">
                 <strong>${c.name}</strong>
                 ${expBarHTML}
+                ${timerHTML}
             `;
         }
 
@@ -9504,7 +9731,6 @@ compteurDiv.style.marginTop = "20px";
         collectionDiv.appendChild(wrapper);
     });
 
-    // --- Centrage moteur de recherche ---
     const searchWrapper = document.getElementById("searchCollection")?.parentElement;
     if (searchWrapper) {
         searchWrapper.style.display = "flex";

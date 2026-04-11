@@ -3111,7 +3111,7 @@ const ALL_CARDS = [
 ];
 
 
-const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 50, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 0.5, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
 
 
 const BOOSTER_IMAGES = [
@@ -5581,24 +5581,41 @@ function updateLuckyTimer(unlockTime, type) {
     luckyBlockUnlockTime = unlockTime;
 
     // --- 🔔 AJOUT : SYSTÈME DE NOTIFICATION (OPTIMISÉ ANDROID) ---
-    if (unlockTime && unlockTime > Date.now()) {
-        // Sécurité pour éviter de renvoyer la notif inutilement si le temps n'a pas changé
-        if (window.lastScheduledTime !== unlockTime) {
-            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-                navigator.serviceWorker.ready.then((reg) => {
-                    if (reg.active) {
-                        reg.active.postMessage({
-                            type: 'SCHEDULE_NOTIF',
-                            timestamp: unlockTime, // On envoie l'heure exacte de fin
-                            title: "Lucky Block Prêt ! 🎁",
-                            body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
-                        });
-                        window.lastScheduledTime = unlockTime;
-                    }
-                });
-            }
+if (unlockTime && unlockTime > Date.now()) {
+    if (window.lastScheduledTime !== unlockTime) {
+        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+            
+            // Fonction interne pour envoyer le message
+            const sendNotif = (reg) => {
+                const worker = navigator.serviceWorker.controller || reg.active;
+                if (worker) {
+                    console.log("🚀 Envoi au SW pour le timestamp :", unlockTime);
+                    worker.postMessage({
+                        type: 'SCHEDULE_NOTIF',
+                        timestamp: unlockTime,
+                        title: "Lucky Block Prêt ! 🎁",
+                        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
+                    });
+                    window.lastScheduledTime = unlockTime;
+                }
+            };
+
+            // On attend que le SW soit prêt
+            navigator.serviceWorker.ready.then((reg) => {
+                // Si l'app n'est pas encore "contrôlée", on attend le changement de controller
+                if (!navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        sendNotif(reg);
+                    }, { once: true });
+                } else {
+                    sendNotif(reg);
+                }
+            });
         }
     }
+}
+
+
 
     const ui = document.getElementById("luckyBlockUI");
     const timerText = document.getElementById("luckyTimerDisplay");

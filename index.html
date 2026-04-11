@@ -11208,38 +11208,34 @@ function programmerNotificationLucky(unlockTime, type) {
 
 
 
-function testNotifUneHeure() {
-    const uneHeurePlusTard = Date.now() + (15 * 60 * 1000); 
-    
-    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then((reg) => {
-            const worker = navigator.serviceWorker.controller || reg.active;
-            
-            if (worker) {
-                // 1. NOTIFICATION DE CONFIRMATION (IMMÉDIATE)
-                reg.showNotification("Configuration en cours...", {
-                    body: "Le test de 15 min est bien lancé ! Tu peux fermer l'app.",
-                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-                    tag: "confirmation-test" 
-                });
+type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
-                // 2. PROGRAMMATION DE LA VRAIE NOTIF (DANS 1H)
-                worker.postMessage({
-                    type: 'SCHEDULE_NOTIF',
-                    timestamp: uneHeurePlusTard,
-                    title: "Test 1h réussi ! 🏆",
-                    body: "Si tu vois ça, tes Lucky Blocks de 67h marcheront à coup sûr."
-                });
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4H_pdAZSLrixwH-1NDRpEd537X-Gnvik",
+    authDomain: "brainrot-tcg-6d0ae.firebaseapp.com",
+    projectId: "brainrot-tcg-6d0ae",
+    messagingSenderId: "622979343428",
+    appId: "1:622979343428:web:b8499811ce8379b0f84811"
+  };
 
-                console.log("🚀 Confirmation envoyée et test 15min programmé !");
-            }
-        });
-    } else {
+  const app = initializeApp(firebaseConfig);
+  const messaging = getMessaging(app);
 
+  // Demande la permission et affiche le Token
+  async function demanderPermission() {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      const token = await getToken(messaging, { 
+        vapidKey: 'BK5ItG2CzbaOrBdrDE1HQVJ9T4sLsLqenck2yJakjG7jmLBz-G7OtXdKYej2jKixbhUZCiQPfgzQtvD3EoR7rlw ' 
+      });
+      console.log("TON TOKEN : ", token);
+      alert("Token reçu ! Regarde la console (F12) pour le copier.");
     }
-}
+  }
+  demanderPermission();
 
-testNotifUneHeure();
 
 
 

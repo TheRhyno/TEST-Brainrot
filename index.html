@@ -1546,6 +1546,53 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+/* Animation de préparation */
+.prepare-p1 { animation: prepare-p1 0.5s forwards; }
+.prepare-p2 { animation: prepare-p2 0.5s forwards; }
+
+@keyframes prepare-p1 {
+    100% { transform: translateX(20px) rotate(10deg); }
+}
+@keyframes prepare-p2 {
+    100% { transform: translateX(-20px) rotate(-10deg); }
+}
+
+/* Animation d'impact (les cartes se foncent dedans) */
+.collision-p1 { animation: collision-p1 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+.collision-p2 { animation: collision-p2 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes collision-p1 {
+    0% { transform: translateX(20px) rotate(10deg); }
+    50% { transform: translateX(100px) rotate(30deg) scale(1.1); }
+    100% { transform: translateX(20px) rotate(10deg); }
+}
+@keyframes collision-p2 {
+    0% { transform: translateX(-20px) rotate(-10deg); }
+    50% { transform: translateX(-100px) rotate(-30deg) scale(1.1); }
+    100% { transform: translateX(-20px) rotate(-10deg); }
+}
+
+/* Vainqueur et Perdant */
+.winner-anim {
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: scale(1.4) translateY(-20px) !important;
+    z-index: 100;
+    box-shadow: 0 0 30px gold !important;
+}
+
+.loser-anim {
+    transition: all 0.6s ease;
+    opacity: 0.3;
+    transform: scale(0.8) rotate(90deg) !important;
+    filter: grayscale(1);
+}
+
+
+
+
+
+
+
 
 </style>
 
@@ -2893,8 +2940,6 @@ const ALL_CARDS = [
 
 
 
-
-
   {name:"La Vacca Saturno Saturnita", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/La_Vaccca_Saturno_Saturnita.webp"},
   {name:"Bisonte Giuppitere", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Bisonte_Giuppitere_normal.webp"},
   {name:"Sammyni Spyderini", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Sammy_blud.webp"},
@@ -3088,6 +3133,13 @@ const ALL_CARDS = [
   {name:"Dragon Gingerini", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2025/12/DragonGingerini-300x284.webp"},
   {name:"Hydra Dragon Cannelloni", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/01/Hydra-Dragon-Cannelloni-261x300.webp"},
   {name:"Griffin", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Griffin-e1773654223940-768x534.webp"},
+
+  {name:"La Lucky Grande", rarity:"Secret", image:"https://static.wikia.nocookie.net/stealabr/images/5/55/La_Lucky_Grande.png/revision/latest?cb=20260323180752"},
+  {name:"La Easter Grande", rarity:"Secret", image:"https://static.wikia.nocookie.net/stealabr/images/2/2e/Easter_La_Grande.png/revision/latest?cb=20260401014142"},
+  {name:"Boppin Bunny", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Boppin-Bunny-300x300.webp"},
+  {name:"Bunny and Eggy", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-and-Eggy-300x300.webp"},
+  {name:"Buntteo", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Buntteo-300x300.webp"},
+  {name:"Bunny Bunny Bunny Sahur", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp"},
 
 
 
@@ -5855,10 +5907,9 @@ async function ajouterXP(montant) {
     
     // 3. Logique de passage de niveau (Alerte unique)
     if (passageDeNiveau) {
-        console.log("🎊 Passage de niveau détecté ! Niveau " + niveauAvant + " -> " + niveauApres);
         
         // L'alerte est ici, elle ne s'affichera qu'une fois car on a regroupé les saves
-        alert("🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant Niveau " + niveauApres + "\n🎁 +100 Dust offerts !");
+        alert("🎉 NIVEAU SUPÉRIEUR ! Tu es maintenant Niveau " + niveauApres + "\n🎁 +100 Fragments offerts !");
         
         // Sauvegarde locale du nouveau montant de dust
         save("dust", dust);
@@ -5938,17 +5989,17 @@ function actualiserProfil() {
         }
     }
 
-    // 6. --- FORCE L'AFFICHAGE 386 (AVEC SÉCURITÉ) ---
+    // 6. --- FORCE L'AFFICHAGE NBE CARTES PROFIL (AVEC SÉCURITÉ) ---
     const cardsEl = document.getElementById("profileCards");
     if (cardsEl) {
         const possession = (typeof collection !== 'undefined') ? collection.length : 0;
         
         // On l'affiche une première fois
-        cardsEl.innerText = possession + " / 386";
+        cardsEl.innerText = possession + " / 392";
 
         // Sécurité : On force une deuxième fois 50ms après pour écraser tout bug
         setTimeout(() => {
-            cardsEl.innerText = possession + " / 386";
+            cardsEl.innerText = possession + " / 392";
         }, 50);
     }
 }
@@ -8288,13 +8339,44 @@ playFightSound();
             </div>
         </div>`;
 
-    // 2. SUSPENSE
+// 2. MISE EN SCÈNE DU COMBAT (ANIMATIONS)
     btn.style.display = "block";
     btn.disabled = true;
-    btn.innerText = "Calcul du gagnant...";
-    await new Promise(r => setTimeout(r, 1500));
+    btn.innerText = "CHOC EN COURS...";
+
+    const cardP1 = document.getElementById("player-slot").firstElementChild;
+    const cardP2 = document.getElementById("opponent-slot").firstElementChild;
+
+    // Étape A : Inclinaison (Préparation)
+    cardP1.classList.add("prepare-p1");
+    cardP2.classList.add("prepare-p2");
+
+    await new Promise(r => setTimeout(r, 600));
+
+    // Étape B : Collision (Elles se foncent dedans)
+    cardP1.classList.remove("prepare-p1");
+    cardP2.classList.remove("prepare-p2");
+    cardP1.classList.add("collision-p1");
+    cardP2.classList.add("collision-p2");
+
+    // Son de choc au milieu de l'anim
+    setTimeout(() => { playFightSound(); }, 150); 
+
+    await new Promise(r => setTimeout(r, 400));
+
+    // Étape C : Zoom sur le vainqueur
+    if (p1Power > p2Power) {
+        cardP1.classList.add("winner-anim");
+        cardP2.classList.add("loser-anim");
+    } else if (p1Power < p2Power) {
+        cardP2.classList.add("winner-anim");
+        cardP1.classList.add("loser-anim");
+    }
+
+    await new Promise(r => setTimeout(r, 800)); // Laisse le joueur voir qui a gagné
 
     let xpGagne = 20;
+
 
     // --- 3. VERDICT (LOGIQUE FRAGMENTS ET QUÊTES) ---
 if (p1Power > p2Power) {
@@ -11126,38 +11208,30 @@ function programmerNotificationLucky(unlockTime, type) {
 
 
 
-function testNotifUneHeure() {
-    const uneHeurePlusTard = Date.now() + (60 * 60 * 1000); 
+function testNotif15Min() {
+    const quinzeMin = Date.now() + (15 * 60 * 1000); 
     
     if ('serviceWorker' in navigator && Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then((reg) => {
             const worker = navigator.serviceWorker.controller || reg.active;
-            
             if (worker) {
-                // 1. NOTIFICATION DE CONFIRMATION (IMMÉDIATE)
-                reg.showNotification("Configuration en cours...", {
-                    body: "Le test d'une heure est bien lancé ! Tu peux fermer l'app.",
-                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-                    tag: "confirmation-test" 
+                // Confirmation immédiate
+                reg.showNotification("Chrono lancé !", {
+                    body: "Réponse dans 15 min. Ferme l'app et verrouille ton tel.",
+                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png"
                 });
 
-                // 2. PROGRAMMATION DE LA VRAIE NOTIF (DANS 1H)
+                // Programmation
                 worker.postMessage({
                     type: 'SCHEDULE_NOTIF',
-                    timestamp: uneHeurePlusTard,
-                    title: "Test 1h réussi ! 🏆",
-                    body: "Si tu vois ça, tes Lucky Blocks de 67h marcheront à coup sûr."
+                    timestamp: quinzeMin,
+                    title: "Test 15min réussi ! 🏆",
+                    body: "Le système des 67h est maintenant opérationnel."
                 });
-
-                console.log("🚀 Confirmation envoyée et test 1h programmé !");
             }
         });
-    } else {
-        alert("Vérifie les permissions !");
     }
 }
-
-testNotifUneHeure();
 
 
 

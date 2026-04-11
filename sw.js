@@ -1,14 +1,26 @@
-const CACHE_NAME = 'brainrot-v27';
+// --- CONFIGURATION FIREBASE (Nécessaire pour le réveil à distance) ---
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyD4H_pdAZSLrixwH-1NDRpEd537X-Gnvik",
+  authDomain: "brainrot-tcg-6d0ae.firebaseapp.com",
+  projectId: "brainrot-tcg-6d0ae",
+  messagingSenderId: "622979343428",
+  appId: "1:622979343428:web:b8499811ce8379b0f84811"
+});
+
+const messaging = firebase.messaging();
+
+// --- 1. INSTALLATION ---
+const CACHE_NAME = 'brainrot-v28';
 const ASSETS = [
   'index.html',
   'manifest.json'
 ];
 
-// --- 1. INSTALLATION ---
 self.addEventListener('install', (e) => {
-  // Force le nouveau Service Worker à s'activer immédiatement
   self.skipWaiting(); 
-  
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
@@ -28,7 +40,6 @@ self.addEventListener('activate', (e) => {
       );
     })
   );
-  // Permet au SW de prendre le contrôle des pages ouvertes tout de suite
   return self.clients.claim();
 });
 
@@ -39,29 +50,39 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-// --- 4. GESTION DES NOTIFICATIONS ---
-// --- 4. GESTION DES NOTIFICATIONS (CORRIGÉ POUR ANDROID) ---
+// --- 4. GESTION DES NOTIFICATIONS (ANCIENNE MÉTHODE LOCALE) ---
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SCHEDULE_NOTIF') {
         const { timestamp, title, body } = event.data;
-
-        // Vérification si l'API Trigger est dispo (Chrome Android)
         if ('showTrigger' in Notification.prototype) {
             event.waitUntil(
                 self.registration.showNotification(title, {
                     body: body || "",
                     icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
                     badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-                    tag: "lucky-block-notif", // IMPORTANT : écrase la précédente si on boost
-                    showTrigger: new TimestampTrigger(timestamp) // L'heure exacte (Maintenant + X ms)
+                    tag: "lucky-block-notif",
+                    showTrigger: new TimestampTrigger(timestamp)
                 })
             );
-            console.log("Notification programmée via Trigger à :", new Date(timestamp));
         } else {
-            // Fallback : Si pas de trigger (vieux tel), on affiche direct ou on log
             console.warn("L'API NotificationTrigger n'est pas supportée.");
         }
     }
+});
+
+// --- 4.1 GESTION DES NOTIFICATIONS (NOUVELLE MÉTHODE FIREBASE / PUSH) ---
+// C'est ce bloc qui recevra le message envoyé par ton serveur ou la console Firebase
+messaging.onBackgroundMessage((payload) => {
+  console.log("Message reçu de Firebase en arrière-plan :", payload);
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+    badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+    tag: "lucky-block-notif"
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // --- 5. ACTION AU CLIC SUR NOTIFICATION ---
@@ -69,11 +90,9 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Si le jeu est déjà ouvert, on met le focus dessus
       for (const client of clientList) {
         if ('focus' in client) return client.focus();
       }
-      // Sinon on ouvre une nouvelle fenêtre
       if (clients.openWindow) return clients.openWindow('/');
     })
   );

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainrot-v22';
+const CACHE_NAME = 'brainrot-v23';
 const ASSETS = [
   'index.html',
   'manifest.json'
@@ -40,26 +40,28 @@ self.addEventListener('fetch', (e) => {
 });
 
 // --- 4. GESTION DES NOTIFICATIONS ---
+// --- 4. GESTION DES NOTIFICATIONS (CORRIGÉ POUR ANDROID) ---
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SCHEDULE_NOTIF') {
-    const { delay, title, body } = event.data;
+    if (event.data && event.data.type === 'SCHEDULE_NOTIF') {
+        const { timestamp, title, body } = event.data;
 
-    if (delay && title) {
-      // event.waitUntil empêche le navigateur de tuer le SW trop vite
-      event.waitUntil(
-        new Promise((resolve) => {
-          setTimeout(() => {
-            self.registration.showNotification(title, {
-              body: body || "",
-              icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-              badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
-              vibrate: [200, 100, 200]
-            }).then(resolve);
-          }, delay);
-        })
-      );
+        // Vérification si l'API Trigger est dispo (Chrome Android)
+        if ('showTrigger' in Notification.prototype) {
+            event.waitUntil(
+                self.registration.showNotification(title, {
+                    body: body || "",
+                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+                    badge: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+                    tag: "lucky-block-notif", // IMPORTANT : écrase la précédente si on boost
+                    showTrigger: new TimestampTrigger(timestamp) // L'heure exacte (Maintenant + X ms)
+                })
+            );
+            console.log("Notification programmée via Trigger à :", new Date(timestamp));
+        } else {
+            // Fallback : Si pas de trigger (vieux tel), on affiche direct ou on log
+            console.warn("L'API NotificationTrigger n'est pas supportée.");
+        }
     }
-  }
 });
 
 // --- 5. ACTION AU CLIC SUR NOTIFICATION ---

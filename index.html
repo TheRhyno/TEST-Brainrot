@@ -1640,16 +1640,6 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-<div id="streakDisplay" style="position: fixed; top: 55px; left: 10px; z-index: 1000; 
-     background: rgba(22, 32, 55, 0.85); padding: 5px 12px; border-radius: 20px; 
-     font-weight: bold; color: #ff9f43; border: 2px solid #ff9f43; 
-     font-size: 16px; display: flex; align-items: center; gap: 8px; 
-     box-shadow: 0 0 15px rgba(255, 159, 67, 0.2); backdrop-filter: blur(4px);">
-     <span id="streakValue">0</span> 🔥
-</div>
-
-
-
 <div id="questIcon" class="quest-btn" onclick="toggleQuests()" 
      style="position: fixed; bottom: 100px; right: 20px; width: 65px; height: 65px; border-radius: 50%; background: #7c3aed; display: flex; justify-content: center; align-items: center; font-size: 30px; z-index: 9999; border: 3px solid #fff; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); transition: transform 0.1s ease;">
     🎯
@@ -1712,6 +1702,12 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
                 <div style="background: rgba(0,0,0,0.7); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15);">
                     <div id="profileXpBar" style="background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%; transition: width 0.5s;"></div>
                 </div>
+
+<div id="xpTextDisplay" style="text-align: center; color: #a855f7; font-size: 0.6rem; font-weight: 900; margin-top: 4px; text-shadow: 1px 1px 2px #000;">
+        0 / 0 XP
+    </div>
+
+
             </div>
 
             <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.2);"></div>
@@ -2169,54 +2165,74 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
         <div style="text-align:left; color:#e8eef7;">
             
 
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    👤 <b>Profil :</b> Choisis ton Pseudo en le modifiant dans le Profil ! <br>
-            </div>
-
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🔥 <b>Passe de combat :</b> Débloque 100 paliers de récompenses exclusives dès maintenant !
+                    ✨ <b>NOUVEAU DESIGN, NOUVELLE EXPÉRIENCE :</b> Un tout nouveau look pour une toute nouvelle aventure !
      </p>
             </div>
 
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🚀 <b>Marre d'attendre ?</b> Utilise les nouveaux Speedies pour réduire tes chronos Lucky Block !
-                </p>
-            </div>
-
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    🎨 <b>Fond personalisé :</b> Vous pouvez désormais personnaliser votre interface avec le fond de votre choix dans le Profil !
-                </p>
-            </div>
-
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    💸 <b>Réduction des prix !</b> Les cartes dans la boutique sont désormais moins chères qu'avant !
-                </p>
-            </div>
-
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    🏪 <b>Le Marché est ouvert !</b> Vends tes cartes au prix que tu souhaites et achète celles des autres joueurs !<br>
-                                     🚀 Rendez-vous dans l'onglet Marché pour faire tes premières affaires !
+                    👤 <b>L'ARRIVÉE DES AVATARS :</b> Explorez la nouvelle galerie d'avatars !
+                          Saurez-vous tous les collectionner ?
      </p>
             </div>
 
 
 
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🔥 <b>PASSE DE COMBAT :</b> Débloque 100 paliers de récompenses exclusives dès maintenant ! <br>
+                          👑 Atteignez le palier 100 du Pass Premium et débloquez la Carte Exclusive de cette saison !
+     </p>
+           
+            </div>
+
+
 
             <div style="margin-bottom: 20px;">
                 <p style="margin: 0; line-height: 1.5;">
-                    🍀 <b>Lucky Block :</b> Gagne des Lucky Block de différentes raretés qui s'ouvrent après un décompte pour débloquer des cadeaux exclusifs !
+                    🏪 <b>LE MARCHÉ 2.0 :</b> Si vous achetez une carte déjà en votre possession, son niveau s'ajoute au vôtre. <br>
+                                     Collectionnez, cumulez, dominez !
+     </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    ⚡️ <b>PROGRESSION REVISITÉE :</b> Nouveau calcul plus juste et plus fluide. Grimpez jusqu'au Niveau 100 !
+     </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    ⚔️ <b>LES COMBATS S'INTENSIFIENT :</b> Vous n'avez plus que 30 secondes pour sélectionner votre carte. Réfléchissez vite, ou vous perdrez le duel !
+     </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🚀 <b>MARRE D'ATTENDRE ?</b> Utilise les nouveaux ⚡️ Speedies pour réduire tes chronos Lucky Block !
                 </p>
+
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    🔊 <b>IMMERSION TOTALE :</b> Nouveaux effets sonores ajoutés ! Ressentez chaque action comme jamais !
+     </p>
+            </div>
+
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0; line-height: 1.5;">
+                    ⚙️ <b>PARAMÈTRES :</b> Changez d'ambiance et gérez votre compte en un clic !
+     </p>
             </div>
 
 
@@ -2582,7 +2598,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.1</span><br>
+        <span id="app-version">v2.3.0</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -3095,7 +3111,7 @@ const ALL_CARDS = [
 ];
 
 
-const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 0.5, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
+const RARITY_PROBS = { 'Commun': 50, 'Rare': 25, 'Epic': 13, 'Legendary': 6, 'Mythic': 3, 'Brainrot God': 1, 'Secret': 0.07, 'OG': 0.03, 'Mythic Lucky Block': 50, 'Brainrot God Lucky Block': 0.3, 'Secret Lucky Block': 0.005, 'Admin Lucky Block': 0.0001 };
 
 
 const BOOSTER_IMAGES = [
@@ -3522,7 +3538,7 @@ function toggleAuthMode(mode) {
         if (forgotLink) forgotLink.style.display = 'none';
 
         authTitle.innerText = "RÉCUPÉRATION";
-        mainBtn.innerText = "Réinitialiser mon MDP";
+        mainBtn.innerText = "Envoyer le lien";
         toggleText.innerHTML = `Retour à la <span onclick="toggleAuthMode('login')" style="color: #9333ea; font-weight: 700; cursor: pointer; margin-left: 5px;">Connexion</span>`;
 
         mainBtn.onclick = () => {
@@ -5561,24 +5577,26 @@ function declencherEventSecret() {
 let luckyInterval; 
 let luckyBlockUnlockTime = null; 
 let luckyBlockReady = false; 
-
 function updateLuckyTimer(unlockTime, type) {
     luckyBlockUnlockTime = unlockTime;
 
-    // --- 🔔 AJOUT : SYSTÈME DE NOTIFICATION ---
+    // --- 🔔 AJOUT : SYSTÈME DE NOTIFICATION (OPTIMISÉ ANDROID) ---
     if (unlockTime && unlockTime > Date.now()) {
-        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-            const delai = unlockTime - Date.now();
-            navigator.serviceWorker.ready.then((reg) => {
-                if (reg.active) {
-                    reg.active.postMessage({
-                        type: 'SCHEDULE_NOTIF',
-                        delay: delai,
-                        title: "Lucky Block Prêt ! 🎁",
-                        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
-                    });
-                }
-            });
+        // Sécurité pour éviter de renvoyer la notif inutilement si le temps n'a pas changé
+        if (window.lastScheduledTime !== unlockTime) {
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then((reg) => {
+                    if (reg.active) {
+                        reg.active.postMessage({
+                            type: 'SCHEDULE_NOTIF',
+                            timestamp: unlockTime, // On envoie l'heure exacte de fin
+                            title: "Lucky Block Prêt ! 🎁",
+                            body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
+                        });
+                        window.lastScheduledTime = unlockTime;
+                    }
+                });
+            }
         }
     }
 
@@ -5662,6 +5680,8 @@ function updateLuckyTimer(unlockTime, type) {
         }
     }, 1000);
 }
+
+
 
 async function ouvrirCadeauLuckyBlock() {
     const user = firebase.auth().currentUser;
@@ -5761,8 +5781,13 @@ let xp = parseInt(localStorage.getItem("xp")) || 0;
 
 // Calcule le niveau (Niveau 1 = 0 XP, Niveau 2 = 100 XP, Niveau 3 = 400 XP...)
 function calculerNiveau(points) {
-    return Math.floor(Math.sqrt(points / 500)) + 1;
+    if (points < 150) return 1;
+    return Math.floor(Math.sqrt(points / 150)) + 1;
 }
+
+
+
+
 
 // Fonction pour afficher/cacher la barre d'XP
 function toggleXPBar() {
@@ -5792,7 +5817,6 @@ async function ajouterXP(montant) {
             // DONNÉES À SAUVEGARDER
             let dataToSave = {
                 xp: xp,
-                level: niveauApres,
                 dust: dust 
             };
 
@@ -5838,64 +5862,79 @@ async function ajouterXP(montant) {
 
 
 function actualiserProfil() {
-    // 1. Valeurs globales
-    const vXP = (typeof xp !== 'undefined') ? xp : 0;
-    const vDust = (typeof dust !== 'undefined') ? dust : 0;
+    // 1. Valeurs globales
+    const vXP = (typeof xp !== 'undefined') ? xp : 0;
+    const vDust = (typeof dust !== 'undefined') ? dust : 0;
 
-    // 2. NIVEAU ET RANG
-    const niveau = (typeof calculerNiveau === "function") ? calculerNiveau(vXP) : 1;
-    
-    // Mise à jour du niveau sur les deux éléments (Battle Pass et Profil)
-    if (document.getElementById("profileLevelStat")) {
-        document.getElementById("profileLevelStat").innerText = niveau;
-    }
-    if (document.getElementById("profileLevelStat2")) {
-        document.getElementById("profileLevelStat2").innerText = niveau;
-    }
+    // 2. NIVEAU ET RANG
+    const niveau = (typeof calculerNiveau === "function") ? calculerNiveau(vXP) : 1;
+    
+    // Mise à jour du niveau sur les deux éléments (Battle Pass et Profil)
+    if (document.getElementById("profileLevelStat")) {
+        document.getElementById("profileLevelStat").innerText = niveau;
+    }
+    if (document.getElementById("profileLevelStat2")) {
+        document.getElementById("profileLevelStat2").innerText = niveau;
+    }
 
-    // 3. BARRE D'XP
-    try {
-        const xpPalierActuel = Math.pow(niveau - 1, 2) * 500;
-        const xpPalierSuivant = Math.pow(niveau, 2) * 500;
-        const xpDansLeNiveau = vXP - xpPalierActuel;
-        const xpRequisPourNiveau = xpPalierSuivant - xpPalierActuel;
-        const pourcentage = Math.min(Math.floor((xpDansLeNiveau / xpRequisPourNiveau) * 100), 100);
+    // 3. BARRE D'XP (Mise à jour avec diviseur 30)
+    try {
 
-        if (document.getElementById("profileXpBar")) document.getElementById("profileXpBar").style.width = pourcentage + "%";
-        if (document.getElementById("xpPercent")) document.getElementById("xpPercent").innerText = pourcentage + "%";
-        if (document.getElementById("profileXpText")) {
-            document.getElementById("profileXpText").innerText = Math.floor(xpDansLeNiveau) + " / " + xpRequisPourNiveau + " XP";
-        }
-    } catch(e) {}
+        const xpPalierActuel = Math.pow(niveau - 1, 2) * 150;
+        const xpPalierSuivant = Math.pow(niveau, 2) * 150;
+        
+        const xpDansLeNiveau = vXP - xpPalierActuel;
+        const xpRequisPourNiveau = xpPalierSuivant - xpPalierActuel;
+        
+        // Calcul du pourcentage réel
+        const pourcentage = Math.min(Math.max(Math.floor((xpDansLeNiveau / xpRequisPourNiveau) * 100), 0), 100);
 
-    // 4. DUST
-    if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = vDust;
+        // Mise à jour des barres (on gère les deux IDs possibles : profil et battle pass)
+        const barres = ["profileXpBar", "bpProgressBar"];
+        barres.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.width = pourcentage + "%";
+        });
 
-    // 5. BOOSTERS (Synchro avec l'accueil)
-    const boostersEl = document.getElementById("profileBoosters");
-    if (boostersEl) {
-        const accueilEl = document.getElementById("boosterCounter") || document.getElementById("statsBoosters");
-        if (accueilEl) {
-            const extraction = accueilEl.innerText.match(/\d+/);
-            if (extraction) boostersEl.innerText = extraction[0];
-        }
-    }
+        if (document.getElementById("xpPercent")) document.getElementById("xpPercent").innerText = pourcentage + "%";
+        
+        // Mise à jour du texte d'XP (on gère les deux IDs possibles)
+        const textXP = Math.floor(xpDansLeNiveau) + " / " + Math.floor(xpRequisPourNiveau) + " XP";
+        if (document.getElementById("profileXpText")) document.getElementById("profileXpText").innerText = textXP;
+        if (document.getElementById("bpXpText")) document.getElementById("bpXpText").innerText = textXP;
+        if (document.getElementById("xpTextDisplay")) document.getElementById("xpTextDisplay").innerText = textXP;
 
-    // 6. --- FORCE L'AFFICHAGE 386 (AVEC SÉCURITÉ) ---
-    const cardsEl = document.getElementById("profileCards");
-    if (cardsEl) {
-        const possession = (typeof collection !== 'undefined') ? collection.length : 0;
-        
-        // On l'affiche une première fois
-        cardsEl.innerText = possession + " / 386";
+    } catch(e) {
+        console.error("Erreur calcul XP Profil:", e);
+    }
 
-        // Sécurité : On force une deuxième fois 50ms après pour écraser tout bug
-        setTimeout(() => {
-            cardsEl.innerText = possession + " / 386";
-        }, 50);
-    }
+    // 4. DUST
+    if (document.getElementById("profileDust")) document.getElementById("profileDust").innerText = vDust;
+
+    // 5. BOOSTERS (Synchro avec l'accueil)
+    const boostersEl = document.getElementById("profileBoosters");
+    if (boostersEl) {
+        const accueilEl = document.getElementById("boosterCounter") || document.getElementById("statsBoosters");
+        if (accueilEl) {
+            const extraction = accueilEl.innerText.match(/\d+/);
+            if (extraction) boostersEl.innerText = extraction[0];
+        }
+    }
+
+    // 6. --- FORCE L'AFFICHAGE 386 (AVEC SÉCURITÉ) ---
+    const cardsEl = document.getElementById("profileCards");
+    if (cardsEl) {
+        const possession = (typeof collection !== 'undefined') ? collection.length : 0;
+        
+        // On l'affiche une première fois
+        cardsEl.innerText = possession + " / 386";
+
+        // Sécurité : On force une deuxième fois 50ms après pour écraser tout bug
+        setTimeout(() => {
+            cardsEl.innerText = possession + " / 386";
+        }, 50);
+    }
 }
-
 
 
 
@@ -7310,7 +7349,7 @@ firebase.auth().onAuthStateChanged((user) => {
         setTimeout(() => avancerQuete("login"), 3000);
         
     } else {
-        console.log("Utilisateur non connecté.");
+
     }
 });
 
@@ -8895,7 +8934,7 @@ function handleCardClick(cardElement, cardData) {
 
 
 
-const CURRENT_VERSION = "2.3.0"; // Change ce numéro pour faire réapparaître le message
+const CURRENT_VERSION = "2.3.0";
 
 function checkUpdateNews() {
     const lastSeenVersion = localStorage.getItem("lastSeenVersion");
@@ -9817,7 +9856,7 @@ function openPackSequence() {
                             collection: collection,
                             dust: dust,
                             xp: xp,
-                            level: level,
+
                             streakCount: streakCount || 0,
                             boostersOpened: firebase.firestore.FieldValue.increment(1),
                             lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
@@ -9873,7 +9912,6 @@ function saveToFirebase(uid) {
     streakCount: streakCount,
     lastOpenDate: lastOpenDate,
     xp: typeof xp !== 'undefined' ? xp : 0,
-    level: typeof level !== 'undefined' ? level : 1,
     
     // On ajoute ça pour être sûr que Firebase est TOUJOURS d'accord avec le JS local
     luckyBlockUnlockTime: typeof luckyBlockUnlockTime !== 'undefined' ? luckyBlockUnlockTime : null,
@@ -10580,7 +10618,7 @@ if (mainAuthBtn) {
                         collection: [],
                         dust: 0,
                         xp: 0,
-                        level: 1,
+
                         streakCount: 0,
                         isPremium: false,
                         claimedRewards: [],
@@ -11065,10 +11103,6 @@ function programmerNotificationLucky(unlockTime, type) {
     }
   }
 }
-
-
-
-
 
 
 

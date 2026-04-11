@@ -2598,7 +2598,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.12</span><br>
+        <span id="app-version">v2.3.0</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -11120,6 +11120,47 @@ function programmerNotificationLucky(unlockTime, type) {
     }
   }
 }
+
+
+
+
+
+
+function testNotifUneHeure() {
+    const uneHeurePlusTard = Date.now() + (60 * 60 * 1000); 
+    
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then((reg) => {
+            const worker = navigator.serviceWorker.controller || reg.active;
+            
+            if (worker) {
+                // 1. NOTIFICATION DE CONFIRMATION (IMMÉDIATE)
+                reg.showNotification("Configuration en cours...", {
+                    body: "Le test d'une heure est bien lancé ! Tu peux fermer l'app.",
+                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+                    tag: "confirmation-test" 
+                });
+
+                // 2. PROGRAMMATION DE LA VRAIE NOTIF (DANS 1H)
+                worker.postMessage({
+                    type: 'SCHEDULE_NOTIF',
+                    timestamp: uneHeurePlusTard,
+                    title: "Test 1h réussi ! 🏆",
+                    body: "Si tu vois ça, tes Lucky Blocks de 67h marcheront à coup sûr."
+                });
+
+                console.log("🚀 Confirmation envoyée et test 1h programmé !");
+            }
+        });
+    } else {
+        alert("Vérifie les permissions !");
+    }
+}
+
+testNotifUneHeure();
+
+
+
 
 
 

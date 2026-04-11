@@ -11208,30 +11208,38 @@ function programmerNotificationLucky(unlockTime, type) {
 
 
 
-function testNotif15Min() {
-    const quinzeMin = Date.now() + (15 * 60 * 1000); 
+function testNotifUneHeure() {
+    const uneHeurePlusTard = Date.now() + (15 * 60 * 1000); 
     
     if ('serviceWorker' in navigator && Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then((reg) => {
             const worker = navigator.serviceWorker.controller || reg.active;
+            
             if (worker) {
-                // Confirmation immédiate
-                reg.showNotification("Chrono lancé !", {
-                    body: "Réponse dans 15 min. Ferme l'app et verrouille ton tel.",
-                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png"
+                // 1. NOTIFICATION DE CONFIRMATION (IMMÉDIATE)
+                reg.showNotification("Configuration en cours...", {
+                    body: "Le test de 15 min est bien lancé ! Tu peux fermer l'app.",
+                    icon: "https://i.postimg.cc/fbKwpCBG/LOGO.png",
+                    tag: "confirmation-test" 
                 });
 
-                // Programmation
+                // 2. PROGRAMMATION DE LA VRAIE NOTIF (DANS 1H)
                 worker.postMessage({
                     type: 'SCHEDULE_NOTIF',
-                    timestamp: quinzeMin,
-                    title: "Test 15min réussi ! 🏆",
-                    body: "Le système des 67h est maintenant opérationnel."
+                    timestamp: uneHeurePlusTard,
+                    title: "Test 1h réussi ! 🏆",
+                    body: "Si tu vois ça, tes Lucky Blocks de 67h marcheront à coup sûr."
                 });
+
+                console.log("🚀 Confirmation envoyée et test 15min programmé !");
             }
         });
+    } else {
+
     }
 }
+
+testNotifUneHeure();
 
 
 

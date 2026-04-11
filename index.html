@@ -11208,7 +11208,19 @@ function programmerNotificationLucky(unlockTime, type) {
 
 
 
-type="module">
+
+
+
+
+
+
+
+
+</script>
+
+
+
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
@@ -11223,25 +11235,32 @@ type="module">
   const app = initializeApp(firebaseConfig);
   const messaging = getMessaging(app);
 
-  // Demande la permission et affiche le Token
   async function demanderPermission() {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      const token = await getToken(messaging, { 
-        vapidKey: 'BK5ItG2CzbaOrBdrDE1HQVJ9T4sLsLqenck2yJakjG7jmLBz-G7OtXdKYej2jKixbhUZCiQPfgzQtvD3EoR7rlw ' 
-      });
-      console.log("TON TOKEN : ", token);
-      alert("Token reçu ! Regarde la console (F12) pour le copier.");
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        // J'ai supprimé l'espace à la fin de la clé ci-dessous
+        const token = await getToken(messaging, { 
+          vapidKey: 'BK5ItG2CzbaOrBdrDE1HQVJ9T4sLsLqenck2yJakjG7jmLBz-G7OtXdKYej2jKixbhUZCiQPfgzQtvD3EoR7rlw' 
+        });
+        
+        if (token) {
+          console.log("TON TOKEN : ", token);
+          alert("Token reçu ! Copie-le depuis la console F12.");
+        } else {
+          console.warn("Pas de token généré. Vérifie la console.");
+        }
+      } else {
+        console.warn("Permission de notification refusée.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du token :", error);
     }
   }
+
   demanderPermission();
-
-
-
-
-
-
-
 </script>
+
+
 </body>
 </html>

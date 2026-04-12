@@ -2416,9 +2416,18 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 </div>
 
 
-<div id="disableOverlay" style="display:none;">
-    🚫 Le site est actuellement en maintenance.<br>
-    Veuillez revenir plus tard ou contacter le développeur.
+<div id="disableOverlay" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000000; z-index: 99999; font-family: sans-serif; color: white; padding: 20px;">
+    
+    <h1 style="margin-top: 0; margin-bottom: 30px; font-size: 28px; font-weight: bold; color: white;">🚧 Maintenance en cours</h1>
+    
+    <p style="margin-top: 0; margin-bottom: 18px; font-size: 18px; line-height: 1.6; color: white;">
+        Le site est momentanément indisponible
+        pour des mises à jour techniques.
+    </p>
+    
+    <p style="margin-top: 0; font-size: 16px; color: #ddd; margin-bottom: 0;">
+        Merci de votre patience.
+    </p>
 </div>
 
 

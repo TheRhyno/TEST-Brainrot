@@ -3275,8 +3275,7 @@ const ALL_CARDS = [
 
   {name:"Noo my Eggs", rarity:"Exclu Season 1", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Noo-my-Eggs-300x300.webp"},
 
-  {name:"Bunny Bunny Bunny Sahur", rarity:"Exclu Pâques 2026", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp"},
-  
+
 ];
 
 
@@ -3689,37 +3688,49 @@ if (aGagneCarte || gainsDust > 0) {
         document.getElementById("rewardCardRarity").style.color = "#ffeb3b"; // Jaune Pâques
         document.getElementById("rewardPopup").style.display = "flex";
 
-        // --- ACTION À LA FERMETURE (Mise à jour visuelle) ---
-const closeBtn = document.querySelector("#rewardPopup button");
-if (closeBtn) {
-    closeBtn.onclick = () => {
-        document.getElementById("rewardPopup").style.display = "none";
+// --- ACTION À LA FERMETURE (Mise à jour visuelle) ---
+        const closeBtn = document.querySelector("#rewardPopup button");
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                document.getElementById("rewardPopup").style.display = "none";
 
-        // 1. MISE À JOUR MANUELLE DES CHIFFRES DANS LE PROFIL
-        // On va chercher les éléments du profil pour y injecter les nouvelles valeurs
+                // 1. MISE À JOUR MANUELLE DES CHIFFRES DANS LE PROFIL
+                const profileDust = document.getElementById("profileDust");
+                if (profileDust && typeof gainsDust !== 'undefined') {
+                    let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
+                    profileDust.innerText = (actuel + gainsDust).toLocaleString();
+                }
+
+                // 2. FORCE LA SYNCHRONISATION VERS LE HUD
+                if (typeof syncSubwayHUD === "function") {
+                    syncSubwayHUD(); 
+                }
+
+                // 3. REFRESH DE LA COLLECTION
+                if (typeof refreshCollection === "function") {
+                    refreshCollection();
+                }
+            };
+        }
+        
+    } else if (gainsDust > 0) {
+        // Cas Top 3 uniquement (SANS LA CARTE)
+        alert(`Bravo ! Tu es classé ${position}e et tu gagnes ${gainsDust.toLocaleString()} fragments !`);
+        
+        // --- AJOUT : SYNCHRONISATION MÊME SANS CARTE ---
         const profileDust = document.getElementById("profileDust");
         if (profileDust && typeof gainsDust !== 'undefined') {
-            // On récupère la valeur actuelle et on ajoute le gain
             let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
             profileDust.innerText = (actuel + gainsDust).toLocaleString();
         }
 
-        // 2. FORCE LA SYNCHRONISATION VERS LE HUD
         if (typeof syncSubwayHUD === "function") {
             syncSubwayHUD(); 
         }
 
-        // 3. REFRESH DE LA COLLECTION
         if (typeof refreshCollection === "function") {
             refreshCollection();
         }
-    };
-}
-        
-    } else if (gainsDust > 0) {
-        // Cas Top 3 uniquement
-        alert(`Bravo ! Tu es classé ${position}e et tu gagnes ${gainsDust.toLocaleString()} fragments !`);
-        if (typeof refreshCollection === "function") refreshCollection();
     }
 }
             }
@@ -3864,38 +3875,39 @@ document.addEventListener("DOMContentLoaded", () => {
                     .limit(3)
                     .get();
 
-                let message = "🏆 CLASSEMENT ACTUEL 🏆\n\n";
-                let entries = [];
-                let i = 1;
+let message = "🏆 CLASSEMENT ACTUEL 🏆\n\n";
+let entries = [];
+let i = 1;
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const pseudo = data.username || "Anonyme";
-                    const degats = data.bossDamageDealt || 0;
-                    
-                    message += `Top ${i} : ${pseudo} : ${degats.toLocaleString()} dégâts\n`;
-                    entries.push(`${pseudo}: ${degats}`);
-                    i++;
-                });
+snapshot.forEach(doc => {
+    const data = doc.data();
+    const pseudo = data.username || "Anonyme";
+    const degats = data.bossDamageDealt || 0;
+    
+    message += `Top ${i} : ${pseudo} : ${degats.toLocaleString()} dégâts\n`;
+    entries.push(`${pseudo}: ${degats}`);
+    i++;
+});
 
-
+// Si personne n'a joué, on ajoute une petite ligne avant les règles
+if (i === 1) {
+    message += "L'évènement vient de commencer, aucun dégât enregistré !\n";
+}
 
 message += "\n--------------------------\n";
-                message += "📜 RÈGLES ET RÉCOMPENSES :\n\n";
-               message += "🐇 Ouvre des boosters pour vaincre le boss et grimper dans le classement !\n\n";
-                message += "🥇 Top 1 : 15 000 Fragments + Carte Exclusive\n";
-                message += "🥈 Top 2 : 10 000 Fragments + Carte Exclusive\n";
-                message += "🥉 Top 3 : 5 000 Fragments + Carte Exclusive\n";
-                message += "\n⚠️ Condition : Avoir infligé au moins 500 dégâts au Boss pour obtenir la Carte Exclusive !";
+message += "📜 RÈGLES ET RÉCOMPENSES :\n\n";
+message += "🐇 Ouvre des boosters pour vaincre le boss et grimper dans le classement !\n\n";
+message += "🥇 Top 1 : 15 000 Fragments + Carte Exclusive\n";
+message += "🥈 Top 2 : 10 000 Fragments + Carte Exclusive\n";
+message += "🥉 Top 3 : 5 000 Fragments + Carte Exclusive\n";
+message += "\n⚠️ Condition : Avoir infligé au moins 500 dégâts au Boss pour obtenir la Carte Exclusive !";
+
+// 3. Affichage via Alert (Pop-up système)
+// On affiche toujours "message" car il contient maintenant soit le classement, 
+// soit le message "aucun dégât", suivi des règles dans les deux cas.
+alert(message);
 
 
-
-                // 3. Affichage via Alert (Pop-up système)
-                if (i === 1) {
-                    alert("Le combat vient de commencer, aucun dégât enregistré !");
-                } else {
-                    alert(message);
-                }
 
                 // 4. Mise à jour visuelle (si tu as l'élément liveLeaderboard dans ton HTML)
                 const leaderBoardDiv = document.getElementById("liveLeaderboard");
@@ -11001,6 +11013,38 @@ auth.onAuthStateChanged(async (user) => {
 
         // Chargement des données de jeu
         await loadUserData(user.uid); 
+
+await verifierRecompenseBossRecue();
+
+// --- SURVEILLANCE DES PV DU BOSS EN TEMPS RÉEL ---
+db.collection("global_event").doc("boss_battle")
+  .onSnapshot((doc) => {
+      if (doc.exists) {
+          const bossData = doc.data();
+          
+          // Mise à jour de la barre de vie sur l'interface
+          const hpElement = document.getElementById("bossHP"); // L'ID de ton texte HP
+          const barElement = document.getElementById("bossBarInner"); // L'ID de ta barre visuelle
+
+          if (hpElement) {
+              hpElement.innerText = `${bossData.hp_current.toLocaleString()} / ${bossData.hp_max.toLocaleString()} HP`;
+          }
+          
+          if (barElement) {
+              const pourcentage = (bossData.hp_current / bossData.hp_max) * 100;
+              barElement.style.width = pourcentage + "%";
+          }
+
+          // Si le boss vient de mourir pendant que le joueur est connecté
+          if (bossData.hp_current <= 0) {
+              verifierRecompenseBossRecue(); // On relance la vérification pour donner la carte
+          }
+      }
+  });
+
+
+
+
 
 await verifierAmendes(user.uid);
                  

@@ -13,7 +13,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // --- 1. INSTALLATION ---
-const CACHE_NAME = 'brainrot-v32';
+const CACHE_NAME = 'brainrot-v33';
 const ASSETS = [
   'index.html',
   'manifest.json'

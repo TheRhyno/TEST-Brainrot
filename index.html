@@ -5626,48 +5626,72 @@ function declencherEventSecret() {
 
 
 
+
 let luckyInterval; 
 let luckyBlockUnlockTime = null; 
 let luckyBlockReady = false; 
-function updateLuckyTimer(unlockTime, type) {
-    luckyBlockUnlockTime = unlockTime;
 
-    // --- 🔔 AJOUT : SYSTÈME DE NOTIFICATION (OPTIMISÉ ANDROID) ---
-if (unlockTime && unlockTime > Date.now()) {
-    if (window.lastScheduledTime !== unlockTime) {
-        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-            
-            // Fonction interne pour envoyer le message
-            const sendNotif = (reg) => {
-                const worker = navigator.serviceWorker.controller || reg.active;
-                if (worker) {
-                    console.log("🚀 Envoi au SW pour le timestamp :", unlockTime);
-                    worker.postMessage({
-                        type: 'SCHEDULE_NOTIF',
-                        timestamp: unlockTime,
-                        title: "Lucky Block Prêt ! 🎁",
-                        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
-                    });
-                    window.lastScheduledTime = unlockTime;
-                }
-            };
+// --- 🔔 FONCTION DE SYNCHRONISATION FIRESTORE (INDISPENSABLE) ---
+async function synchroniserNotificationFirestore(unlockTime, type) {
+    const user = firebase.auth().currentUser;
+    // On utilise le token stocké globalement (récupéré lors de l'init Firebase)
+    const token = window.userToken; 
 
-            // On attend que le SW soit prêt
-            navigator.serviceWorker.ready.then((reg) => {
-                // Si l'app n'est pas encore "contrôlée", on attend le changement de controller
-                if (!navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.addEventListener('controllerchange', () => {
-                        sendNotif(reg);
-                    }, { once: true });
-                } else {
-                    sendNotif(reg);
-                }
+    if (user && token && unlockTime) {
+        try {
+            await db.collection("notifications").doc(user.uid).set({
+                token: token,
+                datePret: unlockTime,
+                titre: "Lucky Block Prêt ! 🎁",
+                body: `Ton ${type || 'Lucky Block'} est enfin disponible !`,
+                envoye: false,
+                nom: user.displayName || "Joueur",
+                lastUpdate: Date.now()
             });
+            console.log("✅ Synchro Firestore effectuée pour :", type);
+        } catch (e) {
+            console.error("❌ Erreur synchro Firestore:", e);
         }
     }
 }
 
+function updateLuckyTimer(unlockTime, type) {
+    luckyBlockUnlockTime = unlockTime;
 
+    // --- 🔔 SYSTÈME DE NOTIFICATION (OPTIMISÉ ANDROID) ---
+    if (unlockTime && unlockTime > Date.now()) {
+        // 1. Synchro avec la base de données pour le hors-ligne
+        synchroniserNotificationFirestore(unlockTime, type);
+
+        // 2. Logique existante du Service Worker pour le direct
+        if (window.lastScheduledTime !== unlockTime) {
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                const sendNotif = (reg) => {
+                    const worker = navigator.serviceWorker.controller || reg.active;
+                    if (worker) {
+                        console.log("🚀 Envoi au SW pour le timestamp :", unlockTime);
+                        worker.postMessage({
+                            type: 'SCHEDULE_NOTIF',
+                            timestamp: unlockTime,
+                            title: "Lucky Block Prêt ! 🎁",
+                            body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
+                        });
+                        window.lastScheduledTime = unlockTime;
+                    }
+                };
+
+                navigator.serviceWorker.ready.then((reg) => {
+                    if (!navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.addEventListener('controllerchange', () => {
+                            sendNotif(reg);
+                        }, { once: true });
+                    } else {
+                        sendNotif(reg);
+                    }
+                });
+            }
+        }
+    }
 
     const ui = document.getElementById("luckyBlockUI");
     const timerText = document.getElementById("luckyTimerDisplay");
@@ -5682,7 +5706,6 @@ if (unlockTime && unlockTime > Date.now()) {
         return;
     }
 
-    // --- MISE À JOUR DU TYPE ---
     if (typeText) {
         typeText.innerHTML = type ? type : "Lucky Block";
     }
@@ -5693,7 +5716,6 @@ if (unlockTime && unlockTime > Date.now()) {
         const maintenant = Date.now();
         const reste = unlockTime - maintenant;
 
-        // --- CONDITION : AFFICHAGE UNIQUEMENT SUR L'ACCUEIL ---
         const menuOuvert = document.getElementById('shopSection')?.style.display === 'flex' || 
                            document.getElementById('inventorySection')?.style.display === 'flex' ||
                            document.getElementById('accountSection')?.style.display === 'flex' ||
@@ -5713,19 +5735,13 @@ if (unlockTime && unlockTime > Date.now()) {
         if (reste <= 0) {
             luckyBlockReady = true; 
             clearInterval(luckyInterval);
-            
-            // --- LOGIQUE DE REMPLACEMENT ---
             if (timerText) timerText.style.display = "none"; 
             if (typeText) typeText.style.display = "block";  
-            
             btn.style.display = "block"; 
             ui.style.borderColor = "#10b981"; 
-            
             if (btnSpeedy) btnSpeedy.style.display = "none";
         } else {
             luckyBlockReady = false;
-            
-            // --- AFFICHAGE PENDANT LE TIMER ---
             if (timerText) {
                 timerText.style.display = "block"; 
                 const h = Math.floor(reste / 3600000);
@@ -5734,7 +5750,6 @@ if (unlockTime && unlockTime > Date.now()) {
                 timerText.innerHTML = `${h}h ${m}m ${s}s`;
                 timerText.style.color = "#fbbf24";
             }
-            
             btn.style.display = "none";
             ui.style.borderColor = "#fbbf24";
 
@@ -5749,8 +5764,6 @@ if (unlockTime && unlockTime > Date.now()) {
         }
     }, 1000);
 }
-
-
 
 async function ouvrirCadeauLuckyBlock() {
     const user = firebase.auth().currentUser;
@@ -5775,7 +5788,6 @@ async function ouvrirCadeauLuckyBlock() {
         }
 
         luckyBlockUnlockTime = null;
-        luckyBlockType = null;
         luckyBlockReady = false;
         dust += gainDust;
 
@@ -5783,6 +5795,9 @@ async function ouvrirCadeauLuckyBlock() {
 
         const uiContainer = document.getElementById("luckyBlockUI");
         if (uiContainer) uiContainer.style.display = "none";
+
+        // On nettoie aussi la notification en attente puisqu'on a ouvert le block
+        await db.collection("notifications").doc(user.uid).delete();
 
         await db.collection("users").doc(user.uid).update({
             luckyBlockUnlockTime: null,
@@ -5829,15 +5844,16 @@ async function appliquerBoost(cout, minutesAReduire) {
         const typeActuel = document.getElementById("luckyBlockType").innerText;
         updateLuckyTimer(nouveauTemps, typeActuel);
         
-        if (typeof refreshStats === "function") refreshStats();
+        // --- 🔔 RE-SYNCHRONISATION APRÈS BOOST ---
+        synchroniserNotificationFirestore(nouveauTemps, typeActuel);
         
-        console.log(`Boost de -${minutesAReduire}min appliqué avec succès !`);
+        if (typeof refreshStats === "function") refreshStats();
+        console.log(`Boost de -${minutesAReduire}min appliqué !`);
     } catch (e) {
-        console.error("Erreur lors de l'application du boost:", e);
+        console.error("Erreur boost:", e);
         alert("Erreur de connexion au serveur.");
     }
 }
-
 
 
 
@@ -11188,20 +11204,6 @@ window.addEventListener('appinstalled', (evt) => {
 
 
 
-// 6. Fonction utilitaire pour les notifications de Lucky Block (à appeler dans ton code de jeu)
-function programmerNotificationLucky(unlockTime, type) {
-  if (navigator.serviceWorker && navigator.serviceWorker.controller && Notification.permission === 'granted') {
-    const delai = unlockTime - Date.now();
-    if (delai > 0) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_NOTIF',
-        delay: delai,
-        title: "Lucky Block Prêt ! 🎁",
-        body: `Ton ${type || 'Lucky Block'} est enfin disponible !`
-      });
-    }
-  }
-}
 
 
 
@@ -11209,10 +11211,8 @@ function programmerNotificationLucky(unlockTime, type) {
 
 
 
-
-
-
-
+// Variable globale pour le token
+window.userToken = null;
 
 
 
@@ -11223,6 +11223,7 @@ function programmerNotificationLucky(unlockTime, type) {
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD4H_pdAZSLrixwH-1NDRpEd537X-Gnvik",
@@ -11234,52 +11235,47 @@ function programmerNotificationLucky(unlockTime, type) {
 
   const app = initializeApp(firebaseConfig);
   const messaging = getMessaging(app);
+  const db = getFirestore(app);
 
-  async function demanderPermission() {
+  // Variable globale pour que le script de jeu accède au token
+  window.userToken = null;
+
+  // FONCTION POUR LANCER LE CHRONO DE 67H
+  async function activerLuckyBlock(nomJoueur) {
     try {
       const permission = await Notification.requestPermission();
-      
       if (permission === 'granted') {
-        // Enregistre ton fichier sw.js
         const registration = await navigator.serviceWorker.register('sw.js');
-        
-        // Récupère le Token
         const token = await getToken(messaging, { 
           vapidKey: 'BK5ItG2CzbaOrBdrDE1HQVJ9T4sLsLqenck2yJakjG7jmLBz-G7OtXdKYej2jKixbhUZCiQPfgzQtvD3EoR7rlw',
           serviceWorkerRegistration: registration 
         });
-        
+
         if (token) {
-          console.log("TON TOKEN :", token);
+          window.userToken = token; // Stockage global pour la synchro
           
-          // --- AFFICHAGE POUR COPIER SUR MOBILE ---
-          const copyBox = document.createElement('div');
-          copyBox.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:white; color:black; padding:20px; border:3px solid #ff0000; border-radius:10px; width:90%; box-shadow: 0 0 20px rgba(0,0,0,0.5); font-family:sans-serif;";
-          copyBox.innerHTML = `
-            <h3 style="margin-top:0">✅ Token Généré !</h3>
-            <p style="font-size:12px">Copie tout le texte ci-dessous :</p>
-            <textarea id="tokenText" style="width:100%; height:120px; word-break:break-all; padding:5px;">${token}</textarea>
-            <button id="closeBtn" style="margin-top:10px; width:100%; padding:10px; background:#333; color:white; border:none; border-radius:5px;">Fermer la fenêtre</button>
-          `;
-          document.body.appendChild(copyBox);
+          // CALCUL : Maintenant + 67 heures
+          const soixanteSeptHeures = 67 * 60 * 60 * 1000; 
+          const dateCible = Date.now() + soixanteSeptHeures;
 
-          document.getElementById('closeBtn').onclick = () => copyBox.remove();
-          // ----------------------------------------
+          // ENREGISTREMENT DANS FIRESTORE
+          await setDoc(doc(db, "notifications", nomJoueur), {
+            token: token,
+            datePret: dateCible,
+            envoye: false,
+            nom: nomJoueur
+          });
 
-        } else {
-          alert("Erreur : Aucun token reçu. Vérifie la console.");
+          alert("Chrono lancé ! Tu recevras une notification.");
         }
-      } else {
-        alert("Tu as refusé les notifications. Réinitialise les paramètres du site.");
       }
     } catch (error) {
       console.error("Erreur :", error);
-      alert("Erreur technique. Regarde la console F12.");
     }
   }
 
-  // Lance la demande
-  demanderPermission();
+  // On expose la fonction à l'objet window pour qu'elle soit appelable depuis l'UI
+  window.activerLuckyBlock = activerLuckyBlock;
 </script>
 
 

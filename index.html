@@ -3560,23 +3560,32 @@ disableSite(false);
 
 
 
+// --- VARIABLE DE CONTRÔLE GLOBALE (À mettre en haut du fichier) ---
+let bossRewardProcessing = false;
+
 // --- 1. VÉRIFICATION ET ATTRIBUTION DE LA RÉCOMPENSE ---
-// Cette fonction effectue le tirage final (Classement Top 3 et Carte Exclusive)
 async function verifierRecompenseBossRecue() {
     const user = auth.currentUser;
     if (!user) return;
+
+    // --- SÉCURITÉ ANTI-DOUBLON (VERROU LOCAL) ---
+    if (bossRewardProcessing) return;
+    bossRewardProcessing = true;
 
     const userRef = db.collection("users").doc(user.uid);
     const bossRef = db.collection("global_event").doc("boss_battle");
 
     try {
-        const [userDoc, bossDoc] = await Promise.all([userRef.get(), bossRef.get()]);
+        // ON FORCE LA LECTURE SUR LE SERVEUR POUR ÉVITER LE CACHE (Source du bug de refresh)
+        const [userDoc, bossDoc] = await Promise.all([
+            userRef.get({ source: 'server' }), 
+            bossRef.get({ source: 'server' })
+        ]);
         
         if (userDoc.exists && bossDoc.exists) {
             const userData = userDoc.data();
             const bossData = bossDoc.data();
             
-            // L'ID doit être unique pour chaque boss sur Firebase (ex: "boss_paques_2026")
             const bossId = bossData.event_id || "event_paques_2026"; 
             const recompensesObtenues = userData.bossRewardsClaimed || [];
 
@@ -3608,7 +3617,6 @@ async function verifierRecompenseBossRecue() {
                 let inventory = userData.inventory || {};
                 let aGagneCarte = false;
 
-                // Seuil mis à 500 dégâts comme demandé
                 if (degatsJoueur >= 500) { 
                     aGagneCarte = true;
                     const nomCarte = "Bunny Bunny Bunny Sahur";
@@ -3624,121 +3632,101 @@ async function verifierRecompenseBossRecue() {
                         inventory[nomCarte] = { ...maRecompense, count: 1 };
                     }
                 }
-// --- 3. SAUVEGARDE ET AFFICHAGE ---
-if (aGagneCarte || gainsDust > 0) {
-    
-    // On prépare l'objet de mise à jour pour Firebase
-    let updateData = {
-        bossRewardsClaimed: firebase.firestore.FieldValue.arrayUnion(bossId),
-        dust: firebase.firestore.FieldValue.increment(gainsDust)
-    };
 
-    if (aGagneCarte) {
-        const nomCarte = "Bunny Bunny Bunny Sahur";
-        const maRecompense = {
-            name: nomCarte,
-            rarity: "Exclu Pâques 2026",
-            image: "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp",
-            level: 1,
-            exp: 0,
-            isNew: true
-        };
+                // --- 3. SAUVEGARDE ET AFFICHAGE ---
+                if (aGagneCarte || gainsDust > 0) {
+                    
+                    // On prépare l'objet de mise à jour pour Firebase
+                    let updateData = {
+                        bossRewardsClaimed: firebase.firestore.FieldValue.arrayUnion(bossId),
+                        dust: firebase.firestore.FieldValue.increment(gainsDust),
+                        bossDamageDealt: 0 // ON RESET LES DÉGÂTS POUR ÉVITER LE DOUBLE GAIN AU REFRESH
+                    };
 
-        // --- LOGIQUE COMME DANS LES BOOSTERS ---
-        // On vérifie si la carte est déjà dans la variable globale 'collection'
-        const existingCard = collection.find(card => card.name === nomCarte);
-        
-        if (!existingCard) {
-            // On l'ajoute au tableau local (push)
-            collection.push({ ...maRecompense });
-            // On ajoute un bonus d'XP comme pour une nouvelle carte dans un booster
-            if (typeof ajouterXP === "function") ajouterXP(20);
-        } else {
-            // Si elle existe déjà, on augmente son EXP (ou count selon ton système)
-            existingCard.exp = (existingCard.exp || 0) + 1;
-        }
+                    if (aGagneCarte) {
+                        const nomCarte = "Bunny Bunny Bunny Sahur";
+                        const maRecompense = {
+                            name: nomCarte,
+                            rarity: "Exclu Pâques 2026",
+                            image: "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp",
+                            level: 1,
+                            exp: 0,
+                            isNew: true
+                        };
 
-        // --- MISE À JOUR DE L'OBJET INVENTORY (Pour compatibilité Rules Firestore) ---
-        let inventory = userData.inventory || {};
-        if (inventory[nomCarte]) {
-            inventory[nomCarte].count += 1;
-        } else {
-            inventory[nomCarte] = { ...maRecompense, count: 1 };
-        }
+                        const existingCard = collection.find(card => card.name === nomCarte);
+                        
+                        if (!existingCard) {
+                            collection.push({ ...maRecompense });
+                            if (typeof ajouterXP === "function") ajouterXP(20);
+                        } else {
+                            existingCard.exp = (existingCard.exp || 0) + 1;
+                        }
 
-        // On ajoute la collection ET l'inventory mis à jour à l'envoi Firebase
-        updateData.collection = collection;
-        updateData.inventory = inventory;
-    }
+                        let inventoryUpdate = userData.inventory || {};
+                        if (inventoryUpdate[nomCarte]) {
+                            inventoryUpdate[nomCarte].count += 1;
+                        } else {
+                            inventoryUpdate[nomCarte] = { ...maRecompense, count: 1 };
+                        }
 
-    // Envoi unique à Firebase (plus propre et sécurisé)
-    await userRef.update(updateData);
+                        updateData.collection = collection;
+                        updateData.inventory = inventoryUpdate;
+                    }
 
-    // --- CONFIGURATION DE LA POP-UP ---
-    if (aGagneCarte) {
-        document.getElementById("rewardCardImg").src = "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp";
-        document.getElementById("rewardCardName").innerText = "Bunny Bunny Bunny Sahur";
-        
-        let detailGains = "Événement de Pâques 2026";
-        if (gainsDust > 0) {
-            detailGains = `Top ${position} ! +${gainsDust.toLocaleString()} Fragments`;
-        }
-        
-        document.getElementById("rewardCardRarity").innerText = detailGains;
-        document.getElementById("rewardCardRarity").style.color = "#ffeb3b"; // Jaune Pâques
-        document.getElementById("rewardPopup").style.display = "flex";
+                    // Envoi unique à Firebase
+                    await userRef.update(updateData);
 
-// --- ACTION À LA FERMETURE (Mise à jour visuelle) ---
-        const closeBtn = document.querySelector("#rewardPopup button");
-        if (closeBtn) {
-            closeBtn.onclick = () => {
-                document.getElementById("rewardPopup").style.display = "none";
+                    // --- CONFIGURATION DE LA POP-UP ---
+                    if (aGagneCarte) {
+                        document.getElementById("rewardCardImg").src = "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp";
+                        document.getElementById("rewardCardName").innerText = "Bunny Bunny Bunny Sahur";
+                        
+                        let detailGains = "Événement de Pâques 2026";
+                        if (gainsDust > 0) {
+                            detailGains = `Top ${position} ! +${gainsDust.toLocaleString()} Fragments`;
+                        }
+                        
+                        document.getElementById("rewardCardRarity").innerText = detailGains;
+                        document.getElementById("rewardCardRarity").style.color = "#ffeb3b";
+                        document.getElementById("rewardPopup").style.display = "flex";
 
-                // 1. MISE À JOUR MANUELLE DES CHIFFRES DANS LE PROFIL
-                const profileDust = document.getElementById("profileDust");
-                if (profileDust && typeof gainsDust !== 'undefined') {
-                    let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
-                    profileDust.innerText = (actuel + gainsDust).toLocaleString();
+                        const closeBtn = document.querySelector("#rewardPopup button");
+                        if (closeBtn) {
+                            closeBtn.onclick = () => {
+                                document.getElementById("rewardPopup").style.display = "none";
+                                const profileDust = document.getElementById("profileDust");
+                                if (profileDust && typeof gainsDust !== 'undefined') {
+                                    let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
+                                    profileDust.innerText = (actuel + gainsDust).toLocaleString();
+                                }
+                                if (typeof syncSubwayHUD === "function") syncSubwayHUD(); 
+                                if (typeof refreshCollection === "function") refreshCollection();
+                            };
+                        }
+                        
+                    } else if (gainsDust > 0) {
+                        alert(`Bravo ! Tu es classé ${position}e et tu gagnes ${gainsDust.toLocaleString()} fragments !`);
+                        const profileDust = document.getElementById("profileDust");
+                        if (profileDust && typeof gainsDust !== 'undefined') {
+                            let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
+                            profileDust.innerText = (actuel + gainsDust).toLocaleString();
+                        }
+                        if (typeof syncSubwayHUD === "function") syncSubwayHUD(); 
+                        if (typeof refreshCollection === "function") refreshCollection();
+                    }
                 }
-
-                // 2. FORCE LA SYNCHRONISATION VERS LE HUD
-                if (typeof syncSubwayHUD === "function") {
-                    syncSubwayHUD(); 
-                }
-
-                // 3. REFRESH DE LA COLLECTION
-                if (typeof refreshCollection === "function") {
-                    refreshCollection();
-                }
-            };
-        }
-        
-    } else if (gainsDust > 0) {
-        // Cas Top 3 uniquement (SANS LA CARTE)
-        alert(`Bravo ! Tu es classé ${position}e et tu gagnes ${gainsDust.toLocaleString()} fragments !`);
-        
-        // --- AJOUT : SYNCHRONISATION MÊME SANS CARTE ---
-        const profileDust = document.getElementById("profileDust");
-        if (profileDust && typeof gainsDust !== 'undefined') {
-            let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
-            profileDust.innerText = (actuel + gainsDust).toLocaleString();
-        }
-
-        if (typeof syncSubwayHUD === "function") {
-            syncSubwayHUD(); 
-        }
-
-        if (typeof refreshCollection === "function") {
-            refreshCollection();
-        }
-    }
-}
             }
         }
     } catch (e) {
         console.error("Erreur lors de la distribution :", e);
+    } finally {
+        // ON LIBÈRE LE VERROU À LA TOUTE FIN
+        bossRewardProcessing = false;
     }
 }
+
+
 
 
 
@@ -3755,7 +3743,7 @@ function gestionBarreBoss() {
             
             // --- DÉCLENCHEMENT DU TIRAGE QUAND LE BOSS MEURT ---
             if (data.hp_current <= 0) {
-                area.style.display = "none";
+                area.style.display = "none";f
                 // On appelle la fonction de récompense immédiatement à la mort du boss
                 verifierRecompenseBossRecue();
                 return;

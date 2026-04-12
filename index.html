@@ -456,6 +456,54 @@ html, body {
 
 
 
+/* --- RARETÉ EXCLU PÂQUES 2026 --- */
+
+/* Couleur de la bordure et lueur de la carte */
+.card.r-Exclu-Pâques-2026 {
+    border: 3px solid #ffeb3b; /* Jaune Poussin */
+    box-shadow: 0 0 15px #ffeb3b, inset 0 0 10px rgba(255, 235, 59, 0.3);
+    background: linear-gradient(145deg, #2d1b0d, #4e342e); /* Fond marron chocolat doux */
+}
+
+/* Couleur du texte de rareté */
+.r-Exclu-Pâques-2026 .rarity-indicator, 
+.card.r-Exclu-Pâques-2026 div[style*="color:#ccc"] {
+    color: #ffeb3b !important; /* Jaune vif */
+    text-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+    font-weight: 900;
+}
+
+/* Effet de brillance spécial (Arc-en-ciel Pastel) */
+.card.r-Exclu-Pâques-2026::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    /* Dégradé de Pâques : Rose, Bleu ciel, Jaune, Vert menthe */
+    background: linear-gradient(
+        45deg, 
+        transparent, 
+        rgba(255, 182, 193, 0.3), /* Rose */
+        rgba(135, 206, 250, 0.3), /* Bleu */
+        rgba(255, 255, 224, 0.3), /* Jaune */
+        rgba(152, 251, 152, 0.3), /* Vert */
+        transparent
+    );
+    transform: rotate(45deg);
+    animation: shinePaques 4s infinite ease-in-out;
+    pointer-events: none;
+}
+
+/* Animation de brillance plus douce pour Pâques */
+@keyframes shinePaques {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+
+
 
 
 
@@ -1592,6 +1640,17 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+
+
+
 
 
 </style>
@@ -1668,6 +1727,13 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+
+
+
+
+
+
+
 <div style="text-align:center; margin-bottom:20px; margin-top: 150px;">
   <button id="openPack" style="padding:14px 22px; font-size:1.1rem; border-radius:12px; border:0; background:#ffcb05; color:#3b4cca; font-weight:700; cursor:pointer; box-shadow: 0 4px 0 #c7a008; transition: transform 0.1s;" onmousedown="this.style.transform='translateY(2px)'" onmouseup="this.style.transform='translateY(0)'">
     Ouvrir un booster
@@ -1681,6 +1747,69 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
   <div id="homeSection">
+
+
+
+
+
+<div id="bossArea" style="
+    display:none; 
+    position: fixed; 
+    bottom: 179px; /* <--- AUGMENTE cette valeur pour mettre le rectangle plus HAUT */
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: rgba(20, 20, 35, 0.95); 
+    border: 2px solid #ff4444; 
+    border-radius: 12px; 
+    padding: 10px; 
+    width: 90%; 
+    max-width: 300px; 
+    height: 60px; /* <--- RÈGLE la hauteur du rectangle ici (ou supprime pour auto) */
+    z-index: 1; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6); 
+    text-align: center;
+    display: flex; /* Utilisation de flex pour centrer le contenu verticalement si hauteur fixe */
+    flex-direction: column;
+    justify-content: center;
+">
+    
+    <div style="color: #ff4444; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">
+         <span id="bossNameDisplay">...</span>
+    </div>
+    
+    <div style="background: #000; height: 12px; border-radius: 6px; border: 1px solid #444; overflow: hidden;">
+        <div id="bossBarProgress" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #880000); transition: width 0.3s;"></div>
+    </div>
+    
+    <div id="bossHpTextDisplay" style="color: white; font-family: monospace; font-size: 11px; margin-top: 4px; font-weight: bold;">
+        0 / 0 PV
+    </div>
+
+<div style="color: #aaa; font-size: 9px; margin-top: 5px; font-style: italic;">
+        Clique ici pour afficher les règles et les récompenses !
+    </div>
+
+</div>
+
+<div id="rewardPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:260px; z-index:2000001; flex-direction:column; justify-content:center; align-items:center;">
+    
+    <div style="background:rgba(0,0,0,0.85); position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:100vw; height:100vh; z-index:-1; pointer-events:none;"></div>
+
+    <div style="background:#162037; padding:15px; border-radius:15px; border:3px solid #ffd700; text-align:center; width:100%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); animation: ogText 0.4s ease-out;">
+        
+        <h2 style="color:#ffd700; margin:0 0 8px 0; font-size:1.1rem; text-transform:uppercase;">🏆 Butin !</h2>
+        
+        <img id="rewardCardImg" src="" style="width:110px; height:auto; border-radius:10px; border:2px solid #fff; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+        
+        <div id="rewardCardName" style="font-size:1rem; font-weight:bold; color:#fff; margin-bottom:2px; line-height:1.2;"></div>
+        
+        <div id="rewardCardRarity" style="font-size:0.75rem; margin-bottom:15px; font-weight:bold; color:#ffeb3b;"></div>
+        
+        <button onclick="document.getElementById('rewardPopup').style.display='none'" style="background:#7c3aed; color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:0.9rem; width:100%; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);">
+            GÉNIAL !
+        </button>
+    </div>
+</div>
 
 
 
@@ -1795,19 +1924,6 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-
-
-
-<div id="bpCardDisplayOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
-    
-    <div class="card-reward-container" style="perspective: 1000px; margin-bottom: 20px;">
-        <div id="bpCardRenderPlace"></div>
-    </div>
-
-    <div id="bpCardInfoText" style="color: white; font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
-
-    <button onclick="closeBpCardDisplay()" style="padding: 10px 30px; font-size: 18px; cursor: pointer; background: #ffc107; border: none; border-radius: 5px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,193,7,0.4);">GÉNIAL !</button>
-</div>
 
 
 
@@ -3139,7 +3255,6 @@ const ALL_CARDS = [
   {name:"Boppin Bunny", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Boppin-Bunny-300x300.webp"},
   {name:"Bunny and Eggy", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-and-Eggy-300x300.webp"},
   {name:"Buntteo", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Buntteo-300x300.webp"},
-  {name:"Bunny Bunny Bunny Sahur", rarity:"Secret", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp"},
 
 
 
@@ -3159,6 +3274,7 @@ const ALL_CARDS = [
 
 
   {name:"Noo my Eggs", rarity:"Exclu Season 1", image:"https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Noo-my-Eggs-300x300.webp"},
+
 
 ];
 
@@ -3440,6 +3556,375 @@ disableSite(false);
 
 
 
+
+
+
+
+// --- 1. VÉRIFICATION ET ATTRIBUTION DE LA RÉCOMPENSE ---
+// Cette fonction effectue le tirage final (Classement Top 3 et Carte Exclusive)
+async function verifierRecompenseBossRecue() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = db.collection("users").doc(user.uid);
+    const bossRef = db.collection("global_event").doc("boss_battle");
+
+    try {
+        const [userDoc, bossDoc] = await Promise.all([userRef.get(), bossRef.get()]);
+        
+        if (userDoc.exists && bossDoc.exists) {
+            const userData = userDoc.data();
+            const bossData = bossDoc.data();
+            
+            // L'ID doit être unique pour chaque boss sur Firebase (ex: "boss_paques_2026")
+            const bossId = bossData.event_id || "event_paques_2026"; 
+            const recompensesObtenues = userData.bossRewardsClaimed || [];
+
+            // --- VÉRIFICATION : BOSS MORT ET PAS ENCORE RÉCLAMÉ ---
+            if (bossData.hp_current <= 0 && !recompensesObtenues.includes(bossId)) {
+                
+                const degatsJoueur = userData.bossDamageDealt || 0;
+
+                // --- 1. CALCUL DU CLASSEMENT (TOP 3) ---
+                const snapshot = await db.collection("users")
+                    .orderBy("bossDamageDealt", "desc")
+                    .limit(3)
+                    .get();
+
+                let position = 0;
+                let compteur = 1;
+                snapshot.forEach(doc => {
+                    if (doc.id === user.uid) position = compteur;
+                    compteur++;
+                });
+
+                // Calcul des fragments (Dust) pour le Top 3
+                let gainsDust = 0;
+                if (position === 1) gainsDust = 15000;
+                else if (position === 2) gainsDust = 10000;
+                else if (position === 3) gainsDust = 5000;
+
+                // --- 2. CARTE EXCLUSIVE (PALIER 500 DÉGÂTS) ---
+                let inventory = userData.inventory || {};
+                let aGagneCarte = false;
+
+                // Seuil mis à 500 dégâts comme demandé
+                if (degatsJoueur >= 500) { 
+                    aGagneCarte = true;
+                    const nomCarte = "Bunny Bunny Bunny Sahur";
+                    const maRecompense = {
+                        name: nomCarte,
+                        rarity: "Exclu Pâques 2026",
+                        image: "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp"
+                    };
+
+                    if (inventory[nomCarte]) {
+                        inventory[nomCarte].count += 1;
+                    } else {
+                        inventory[nomCarte] = { ...maRecompense, count: 1 };
+                    }
+                }
+// --- 3. SAUVEGARDE ET AFFICHAGE ---
+if (aGagneCarte || gainsDust > 0) {
+    
+    // On prépare l'objet de mise à jour pour Firebase
+    let updateData = {
+        bossRewardsClaimed: firebase.firestore.FieldValue.arrayUnion(bossId),
+        dust: firebase.firestore.FieldValue.increment(gainsDust)
+    };
+
+    if (aGagneCarte) {
+        const nomCarte = "Bunny Bunny Bunny Sahur";
+        const maRecompense = {
+            name: nomCarte,
+            rarity: "Exclu Pâques 2026",
+            image: "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp",
+            level: 1,
+            exp: 0,
+            isNew: true
+        };
+
+        // --- LOGIQUE COMME DANS LES BOOSTERS ---
+        // On vérifie si la carte est déjà dans la variable globale 'collection'
+        const existingCard = collection.find(card => card.name === nomCarte);
+        
+        if (!existingCard) {
+            // On l'ajoute au tableau local (push)
+            collection.push({ ...maRecompense });
+            // On ajoute un bonus d'XP comme pour une nouvelle carte dans un booster
+            if (typeof ajouterXP === "function") ajouterXP(20);
+        } else {
+            // Si elle existe déjà, on augmente son EXP (ou count selon ton système)
+            existingCard.exp = (existingCard.exp || 0) + 1;
+        }
+
+        // --- MISE À JOUR DE L'OBJET INVENTORY (Pour compatibilité Rules Firestore) ---
+        let inventory = userData.inventory || {};
+        if (inventory[nomCarte]) {
+            inventory[nomCarte].count += 1;
+        } else {
+            inventory[nomCarte] = { ...maRecompense, count: 1 };
+        }
+
+        // On ajoute la collection ET l'inventory mis à jour à l'envoi Firebase
+        updateData.collection = collection;
+        updateData.inventory = inventory;
+    }
+
+    // Envoi unique à Firebase (plus propre et sécurisé)
+    await userRef.update(updateData);
+
+    // --- CONFIGURATION DE LA POP-UP ---
+    if (aGagneCarte) {
+        document.getElementById("rewardCardImg").src = "https://www.eldorado.gg/blog/wp-content/uploads/2026/03/Bunny-Bunny-Bunny-Sahur-150x300.webp";
+        document.getElementById("rewardCardName").innerText = "Bunny Bunny Bunny Sahur";
+        
+        let detailGains = "Événement de Pâques 2026";
+        if (gainsDust > 0) {
+            detailGains = `Top ${position} ! +${gainsDust.toLocaleString()} Fragments`;
+        }
+        
+        document.getElementById("rewardCardRarity").innerText = detailGains;
+        document.getElementById("rewardCardRarity").style.color = "#ffeb3b"; // Jaune Pâques
+        document.getElementById("rewardPopup").style.display = "flex";
+
+        // --- ACTION À LA FERMETURE (Mise à jour visuelle) ---
+const closeBtn = document.querySelector("#rewardPopup button");
+if (closeBtn) {
+    closeBtn.onclick = () => {
+        document.getElementById("rewardPopup").style.display = "none";
+
+        // 1. MISE À JOUR MANUELLE DES CHIFFRES DANS LE PROFIL
+        // On va chercher les éléments du profil pour y injecter les nouvelles valeurs
+        const profileDust = document.getElementById("profileDust");
+        if (profileDust && typeof gainsDust !== 'undefined') {
+            // On récupère la valeur actuelle et on ajoute le gain
+            let actuel = parseInt(profileDust.innerText.replace(/\s/g, '')) || 0;
+            profileDust.innerText = (actuel + gainsDust).toLocaleString();
+        }
+
+        // 2. FORCE LA SYNCHRONISATION VERS LE HUD
+        if (typeof syncSubwayHUD === "function") {
+            syncSubwayHUD(); 
+        }
+
+        // 3. REFRESH DE LA COLLECTION
+        if (typeof refreshCollection === "function") {
+            refreshCollection();
+        }
+    };
+}
+        
+    } else if (gainsDust > 0) {
+        // Cas Top 3 uniquement
+        alert(`Bravo ! Tu es classé ${position}e et tu gagnes ${gainsDust.toLocaleString()} fragments !`);
+        if (typeof refreshCollection === "function") refreshCollection();
+    }
+}
+            }
+        }
+    } catch (e) {
+        console.error("Erreur lors de la distribution :", e);
+    }
+}
+
+
+
+
+
+// --- 2. GESTION DE LA BARRE DE VIE (SYNCHRONISATION EN TEMPS RÉEL) ---
+function gestionBarreBoss() {
+    db.collection("global_event").doc("boss_battle").onSnapshot((doc) => {
+        const area = document.getElementById("bossArea");
+        const homeSection = document.getElementById("homeSection");
+        
+        if (doc.exists && area) {
+            const data = doc.data();
+            
+            // --- DÉCLENCHEMENT DU TIRAGE QUAND LE BOSS MEURT ---
+            if (data.hp_current <= 0) {
+                area.style.display = "none";
+                // On appelle la fonction de récompense immédiatement à la mort du boss
+                verifierRecompenseBossRecue();
+                return;
+            }
+
+            // Condition d'affichage : Actif + Sur l'accueil
+            const isHomeVisible = homeSection && homeSection.style.display !== "none";
+            
+            if (data.active === true && isHomeVisible) {
+                area.style.display = "block"; 
+                
+                if(document.getElementById("bossNameDisplay")) {
+                    document.getElementById("bossNameDisplay").innerText = data.name || "BOSS";
+                }
+                
+                // Calcul du pourcentage
+                const pourcentage = Math.max(0, (data.hp_current / data.hp_max) * 100);
+                const bar = document.getElementById("bossBarProgress");
+                if (bar) bar.style.width = pourcentage + "%";
+                
+                // Texte des PV
+                const hpText = document.getElementById("bossHpTextDisplay");
+                if (hpText) {
+                    hpText.innerText = Math.ceil(data.hp_current).toLocaleString() + " / " + data.hp_max.toLocaleString() + " PV";
+                }
+            } else {
+                area.style.display = "none";
+            }
+        }
+    });
+}
+
+// Lancement de l'écouteur unique
+gestionBarreBoss();
+
+// --- 3. LOGIQUE D'ATTAQUE ---
+function hitBoss() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const bossRef = db.collection("global_event").doc("boss_battle");
+    const userRef = db.collection("users").doc(user.uid);
+    
+    // 1. Dégâts collectifs (réduit les PV globaux)
+    bossRef.update({
+        hp_current: firebase.firestore.FieldValue.increment(-100)
+    });
+
+    // 2. Dégâts personnels (stocké sur le profil utilisateur pour le classement final)
+    userRef.update({
+        bossDamageDealt: firebase.firestore.FieldValue.increment(100)
+    });
+
+    hitBossEffect();
+}
+
+// --- 4. EFFETS VISUELS ---
+function hitBossEffect() {
+    const bossArea = document.getElementById("bossArea");
+    if (bossArea) {
+        bossArea.style.animation = "shake 0.2s ease-in-out";
+        setTimeout(() => bossArea.style.animation = "", 200);
+    }
+}
+
+// Fonction pour afficher le TOP 3 en direct sous la barre du boss
+function afficherClassementDirect() {
+    // Écoute en temps réel des 3 meilleurs joueurs
+    db.collection("users")
+        .orderBy("bossDamageDealt", "desc")
+        .limit(3)
+        .onSnapshot(snapshot => {
+            let entries = [];
+            
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const pseudo = data.username || "Anonyme";
+                const degats = data.bossDamageDealt || 0;
+                // On prépare le texte pour chaque joueur
+                entries.push(`<span style="color:#ffd700">#${index + 1}</span> ${pseudo}: ${degats.toLocaleString()}`);
+            });
+
+            // On injecte le tout dans l'élément HTML
+            const leaderBoardDiv = document.getElementById("liveLeaderboard");
+            if (leaderBoardDiv) {
+                leaderBoardDiv.innerHTML = entries.join(" | ");
+            }
+        });
+}
+
+// Lancement automatique du suivi
+afficherClassementDirect();
+
+
+
+
+// On attend que le DOM soit chargé pour éviter les erreurs "null"
+document.addEventListener("DOMContentLoaded", () => {
+    
+    const bossRectangle = document.getElementById("bossArea");
+
+    if (bossRectangle) {
+        // 1. On change le curseur pour indiquer que c'est cliquable
+        bossRectangle.style.cursor = "pointer";
+        bossRectangle.title = "Clique pour voir le classement";
+
+        // 2. Gestionnaire de clic unique
+        bossRectangle.addEventListener("click", async (e) => {
+            // Optionnel : si tu veux que le clic ne déclenche QUE le classement 
+            // et pas l'attaque du boss, décommente la ligne suivante :
+            // e.stopPropagation(); 
+
+            try {
+                // Récupération du Top 3 dans Firestore
+                const snapshot = await db.collection("users")
+                    .orderBy("bossDamageDealt", "desc")
+                    .limit(3)
+                    .get();
+
+                let message = "🏆 CLASSEMENT ACTUEL 🏆\n\n";
+                let entries = [];
+                let i = 1;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const pseudo = data.username || "Anonyme";
+                    const degats = data.bossDamageDealt || 0;
+                    
+                    message += `Top ${i} : ${pseudo} : ${degats.toLocaleString()} dégâts\n`;
+                    entries.push(`${pseudo}: ${degats}`);
+                    i++;
+                });
+
+
+
+message += "\n--------------------------\n";
+                message += "📜 RÈGLES ET RÉCOMPENSES :\n\n";
+               message += "🐇 Ouvre des boosters pour vaincre le boss et grimper dans le classement !\n\n";
+                message += "🥇 Top 1 : 15 000 Fragments + Carte Exclusive\n";
+                message += "🥈 Top 2 : 10 000 Fragments + Carte Exclusive\n";
+                message += "🥉 Top 3 : 5 000 Fragments + Carte Exclusive\n";
+                message += "\n⚠️ Condition : Avoir infligé au moins 500 dégâts au Boss pour obtenir la Carte Exclusive !";
+
+
+
+                // 3. Affichage via Alert (Pop-up système)
+                if (i === 1) {
+                    alert("Le combat vient de commencer, aucun dégât enregistré !");
+                } else {
+                    alert(message);
+                }
+
+                // 4. Mise à jour visuelle (si tu as l'élément liveLeaderboard dans ton HTML)
+                const leaderBoardDiv = document.getElementById("liveLeaderboard");
+                if (leaderBoardDiv) {
+                    leaderBoardDiv.innerHTML = "<strong>Top 3 :</strong> " + entries.join(" | ");
+                }
+
+            } catch (error) {
+                console.error("Erreur lors de la récupération du classement :", error);
+            }
+        });
+    } else {
+        console.error("L'élément #bossArea n'a pas été trouvé dans le HTML.");
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function resetPassword() {
     const email = document.getElementById('emailInput').value.trim();
     const authError = document.getElementById("authError");
@@ -3461,7 +3946,6 @@ function resetPassword() {
             authError.style.color = "#fecdd3";
         });
 }
-
 
 
 
@@ -5958,11 +6442,11 @@ function actualiserProfil() {
         const possession = (typeof collection !== 'undefined') ? collection.length : 0;
         
         // On l'affiche une première fois
-        cardsEl.innerText = possession + " / 392";
+        cardsEl.innerText = possession + " / 391";
 
         // Sécurité : On force une deuxième fois 50ms après pour écraser tout bug
         setTimeout(() => {
-            cardsEl.innerText = possession + " / 392";
+            cardsEl.innerText = possession + " / 391";
         }, 50);
     }
 }
@@ -8089,8 +8573,6 @@ function genererTirageCombat() {
 
     mes3CartesCombat = [];
 
-    // --- MODIFICATION POUR TEST ---
-    // On trie pour mettre les "Exclu Season 1" au début de la liste avant le mélange
     let tirage = cartesDisponibles.map((card, index) => ({...card, originalIndex: index}));
     
     // Mélange classique
@@ -8355,7 +8837,7 @@ if (p1Power > p2Power) {
         dust += 500;
         
         // --- LOGIQUE SPÉCIALE EXCLU (PRIME AU LIEU DE CAPTURE) ---
-        if (carteAdversaire.rarity === "Exclu Season 1") {
+        if (carteAdversaire.rarity === "Exclu Season 1"   || carteAdversaire.rarity === "Exclu Pâques 2026") {
             dust += 3000;
             setTimeout(() => {
                 alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n💰 PRIME DE COMBAT : Tu as battu une EXCLU ! Tu gagnes +3000 Fragments au lieu de la capturer !`);
@@ -8388,10 +8870,12 @@ if (p1Power > p2Power) {
             const carteCombat = collection[selectedPlayerCardIndex];
 
             // --- SYSTÈME ANTI-PERTE EXCLU ---
-            if (carteCombat.rarity === "Exclu Season 1") {
+            if (carteCombat.rarity === "Exclu Season 1"     || carteCombat.rarity === "Exclu Pâques 2026") {
                 // On ne splice pas ! On ajoute un timer de 7 jours (en ms)
                 const uneSemaine = 7 * 24 * 60 * 60 * 1000;
                 collection[selectedPlayerCardIndex].indisponibleJusquA = Date.now() + uneSemaine;
+
+if (typeof refreshCollection === "function") refreshCollection();
                 
                 setTimeout(() => {
                     alert(`💀 DÉFAITE !\n+${xpGagne} XP | -500 Fragments.\n⚠️ Ta carte ${maCarte.name} est épuisée ! Elle est sauvée mais sera indisponible pendant 7 jours.`);
@@ -8414,6 +8898,8 @@ if (p1Power > p2Power) {
     if (typeof ajouterXP === "function") {
         await ajouterXP(xpGagne);
     }
+
+
 
     // 4. SAUVEGARDE
     if (auth.currentUser) {
@@ -8537,7 +9023,8 @@ function getPower(card) {
         "Brainrot God": 9000,
         "Secret": 15000,
         "OG": 25000,
-        "Exclu Season 1": 15        // 0000
+        "Exclu Season 1": 150000,
+        "Exclu Pâques 2026" : 120000
     };
 
     // Récupération de la base (par défaut 50 si rareté inconnue)
@@ -9908,6 +10395,14 @@ function openPackSequence() {
                     // --- SAUVEGARDE FINALE ---
                     avancerQuete("open", 1);
                     ajouterXP(50);
+
+
+if (typeof hitBoss === "function") {
+                        hitBoss(); // Retire les 100 PV sur Firebase
+                        hitBossEffect(); // Fait trembler l'écran
+                    }
+
+
                     if (typeof window.boostersOpened !== "undefined") window.boostersOpened++;
                     save("collection", collection);
                     save("dust", dust);
@@ -10192,7 +10687,7 @@ function refreshCollection(cardsToShow) {
         "Admin Lucky Block"
     ];
 
-    const listExclu = ["Exclu Season 1"];
+    const listExclu = ["Exclu Season 1", "Exclu Pâques 2026"];
 
     const filteredCollection = collection.filter(c => !listLucky.includes(c.rarity));
 
@@ -10252,7 +10747,7 @@ function refreshCollection(cardsToShow) {
         const estBannie = c.indisponibleJusquA && maintenant < c.indisponibleJusquA;
 
         // --- INDICATEUR DE NIVEAU (Badge) ---
-        if (c.rarity !== "Exclu Season 1") {
+        if (c.rarity !== "Exclu Season 1"   &&    c.rarity !== "Exclu Pâques 2026") {
             const levelBadge = document.createElement("div");
             levelBadge.style.cssText = `
                 position: absolute;
@@ -10301,8 +10796,8 @@ function refreshCollection(cardsToShow) {
         } else {
             cardDiv.className = "card r-" + c.rarity.replace(/ /g, "-");
             
-            let expBarHTML = "";
-            if (c.rarity !== "Exclu Season 1") {
+let expBarHTML = "";
+            if (c.rarity !== "Exclu Season 1" && c.rarity !== "Exclu Pâques 2026") {
                 expBarHTML = `
                     <div class="exp-container" style="width:100%; height:6px; background:rgba(0,0,0,0.3); border-radius:3px; margin-top:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); position:relative;">
                         <div class="exp-fill" style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); transition: width 0.3s;"></div>
@@ -10380,8 +10875,14 @@ function displayCards(cards) {
     document.getElementById("allCardsList").innerHTML = sortedCards.map(c => {
         // --- LOGIQUE D'AFFICHAGE DE LA PROBABILITÉ ---
         let displayProba;
-        if (c.rarity.includes("Exclu")) {
-            displayProba = "BATTLE PASS 1"; // Texte pour la carte exclusive
+        if (c.rarity.includes("Exclu Season 1")) {
+            displayProba = "BATTLE PASS 1";
+
+        } else if (c.rarity.includes("Exclu Pâques 2026")) {
+               displayProba = "Event Pâques 2026";
+
+
+
         } else {
             displayProba = (RARITY_PROBS[c.rarity] || 0) + "%"; // Pourcentage normal
         }
@@ -10932,7 +11433,7 @@ async function checkDailyShop() {
 
         const RARITY_PROBABILITIES = {
             "Commun": 1, "Rare": 1, "Epic": 3, "Legendary": 15,
-            "Mythic": 25, "Brainrot God": 20, "Secret": 20, "OG": 15
+            "Mythic": 25, "Brainrot God": 20, "Secret": 17, "OG": 9
         };
 
         const totalWeight = Object.values(RARITY_PROBABILITIES).reduce((a, b) => a + b, 0);

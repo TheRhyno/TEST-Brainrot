@@ -11240,33 +11240,48 @@ function programmerNotificationLucky(unlockTime, type) {
       const permission = await Notification.requestPermission();
       
       if (permission === 'granted') {
-        // --- ETAPE CRUCIALE POUR GARDER LE NOM sw.js ---
-        // On enregistre d'abord le Service Worker manuellement
+        // Enregistre ton fichier sw.js
         const registration = await navigator.serviceWorker.register('sw.js');
-        console.log("Service Worker enregistré avec succès !");
-
-        // On demande le token en précisant quel Service Worker utiliser
+        
+        // Récupère le Token
         const token = await getToken(messaging, { 
           vapidKey: 'BK5ItG2CzbaOrBdrDE1HQVJ9T4sLsLqenck2yJakjG7jmLBz-G7OtXdKYej2jKixbhUZCiQPfgzQtvD3EoR7rlw',
-          serviceWorkerRegistration: registration // <--- C'est ça qui règle ton erreur !
+          serviceWorkerRegistration: registration 
         });
         
         if (token) {
           console.log("TON TOKEN :", token);
-          alert("Token reçu ! Copie-le depuis la console F12.");
+          
+          // --- AFFICHAGE POUR COPIER SUR MOBILE ---
+          const copyBox = document.createElement('div');
+          copyBox.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:white; color:black; padding:20px; border:3px solid #ff0000; border-radius:10px; width:90%; box-shadow: 0 0 20px rgba(0,0,0,0.5); font-family:sans-serif;";
+          copyBox.innerHTML = `
+            <h3 style="margin-top:0">✅ Token Généré !</h3>
+            <p style="font-size:12px">Copie tout le texte ci-dessous :</p>
+            <textarea id="tokenText" style="width:100%; height:120px; word-break:break-all; padding:5px;">${token}</textarea>
+            <button id="closeBtn" style="margin-top:10px; width:100%; padding:10px; background:#333; color:white; border:none; border-radius:5px;">Fermer la fenêtre</button>
+          `;
+          document.body.appendChild(copyBox);
+
+          document.getElementById('closeBtn').onclick = () => copyBox.remove();
+          // ----------------------------------------
+
         } else {
-          console.warn("Pas de token généré.");
+          alert("Erreur : Aucun token reçu. Vérifie la console.");
         }
       } else {
-        console.warn("Permission de notification refusée.");
+        alert("Tu as refusé les notifications. Réinitialise les paramètres du site.");
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération du token :", error);
+      console.error("Erreur :", error);
+      alert("Erreur technique. Regarde la console F12.");
     }
   }
 
+  // Lance la demande
   demanderPermission();
 </script>
+
 
 
 </body>

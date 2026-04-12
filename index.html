@@ -5389,6 +5389,18 @@ async function acheterPremium() {
     if (confirm(`Acheter le Pass Premium pour ${prix} 💎 ?`)) {
         dust -= prix;
         isPremium = true;
+
+
+const profileDust = document.getElementById("profileDust");
+        if (profileDust) {
+            profileDust.innerText = dust.toLocaleString(); // Affiche le nouveau solde direct
+        }
+        
+        if (typeof syncSubwayHUD === "function") {
+            syncSubwayHUD(); // Met à jour la barre en haut de l'écran
+        }
+
+
         const user = auth.currentUser;
         if (user) {
             await db.collection("users").doc(user.uid).update({ isPremium: true, dust: dust });
@@ -5398,6 +5410,7 @@ async function acheterPremium() {
         }
     }
 }
+
 
 function updatePremiumButtonUI() {
     const btn = document.getElementById("btnBuyPremium");
@@ -7379,18 +7392,32 @@ async function validerNouveauPseudo() {
         await nameRef.set({ uid: user.uid });
 
         // 3. On met à jour le profil du joueur
+        // Note : Si cette étape réussit, le pseudo est changé sur le serveur
         await db.collection("users").doc(user.uid).update({
             username: nouveauNom
         });
 
         // 4. ON SUPPRIME L'ANCIEN PSEUDO de la liste (pour qu'il redevienne libre)
+        // Ajout d'un sous-try/catch : si la suppression échoue (permission), 
+        // on passe quand même à la suite pour ne pas bloquer l'interface.
         if (ancienNom && ancienNom !== "Anonyme") {
-            await db.collection("usernames").doc(ancienNom).delete();
+            try {
+                await db.collection("usernames").doc(ancienNom).delete();
+            } catch (delError) {
+                console.warn("Ancien pseudo non supprimé (Problème de permission), mais le nouveau est actif.");
+            }
         }
 
         // 5. Mise à jour locale et interface
         window.userPseudo = nouveauNom;
-        document.getElementById("profileName").innerText = nouveauNom;
+        
+        // Mise à jour visuelle immédiate
+        const profileName = document.getElementById("profileName");
+        if (profileName) {
+            profileName.innerText = nouveauNom;
+        }
+
+        // Fermeture de la box
         document.getElementById("editPseudoBox").style.display = "none";
         document.getElementById("btnEditPseudo").style.display = "block";
         
@@ -7398,7 +7425,12 @@ async function validerNouveauPseudo() {
 
     } catch (e) {
         console.error(e);
-        alert("Erreur : " + e.message);
+        // Si l'erreur est une erreur de permission Firebase, on conseille quand même le refresh
+        if (e.code === 'permission-denied') {
+            alert("Erreur de permission Firebase. Si le pseudo ne change pas, rafraîchis la page.");
+        } else {
+            alert("Erreur : " + e.message);
+        }
     }
 }
 
@@ -10242,6 +10274,39 @@ function playPurchaseSound() {
 
 
 
+
+// --- FONCTION DE LIAISON AVEC LE BOUTON PARAMÈTRES ---
+function toggleSFXFromMenu() {
+    // 1. On récupère la checkbox par son ID
+    const checkbox = document.getElementById('sfxCheckbox');
+    
+    if (checkbox) {
+        // 2. On met à jour la variable isSoundEnabled selon si c'est coché ou non
+        isSoundEnabled = checkbox.checked;
+
+        // 3. (Sécurité) Si on vient de décocher, on coupe tous les sons en cours immédiatement
+        if (!isSoundEnabled) {
+            const allSounds = [
+                soundBooster, soundJoin, soundFight, soundWin, 
+                soundLose, soundMoney, soundQuest, soundPurchase
+            ];
+            
+            allSounds.forEach(s => {
+                if (s) {
+                    s.pause();
+                    s.currentTime = 0;
+                }
+            });
+        }
+        
+    }
+}
+
+
+
+
+
+
 let clickHistory = []; // Stocke les délais entre les clics
 let lastClickTimestamp = 0;
 const MAX_HISTORY = 10; // Nombre de clics analysés
@@ -10397,11 +10462,15 @@ function openPackSequence() {
                     avancerQuete("open", 1);
                     ajouterXP(50);
 
-
 if (typeof hitBoss === "function") {
-                        hitBoss(); // Retire les 100 PV sur Firebase
-                        hitBossEffect(); // Fait trembler l'écran
-                    }
+    // On vérifie si l'event est actif dans les données reçues de Firebase
+    if (typeof bossData !== "undefined" && bossData.active === true) {
+        hitBoss(); // Retire les 100 PV sur Firebase
+        hitBossEffect(); // Fait trembler l'écran
+    } else {
+
+    }
+}
 
 
                     if (typeof window.boostersOpened !== "undefined") window.boostersOpened++;
@@ -10412,15 +10481,16 @@ if (typeof hitBoss === "function") {
                     if (user) {
                         db.collection("users").doc(user.uid).set({
                             collection: collection,
-                            dust: dust,
-                            xp: xp,
+                           dust: dust,
+                           xp: xp,
 
-                            streakCount: streakCount || 0,
-                            boostersOpened: firebase.firestore.FieldValue.increment(1),
-                            lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
-                            luckyBlockUnlockTime: serverLuckyTime,
-                            luckyBlockType: String(serverLuckyType),
-                            luckyBlockReady: false
+                           streakCount: streakCount || 0,
+                          boostersOpened: firebase.firestore.FieldValue.increment(1),
+                          lastOpenDate: firebase.firestore.FieldValue.serverTimestamp(),
+                          luckyBlockUnlockTime: serverLuckyTime,
+                          luckyBlockType: String(serverLuckyType),
+                          luckyBlockReady: false
+
                         }, { merge: true }).then(() => {
                             if (document.getElementById("boosterCounter")) {
                                 let cur = parseInt(document.getElementById("boosterCounter").innerText.replace(/\D/g, "")) || 0;
@@ -11002,70 +11072,65 @@ auth.onAuthStateChanged(async (user) => {
         // Chargement des données de jeu
         await loadUserData(user.uid); 
 
-await verifierRecompenseBossRecue();
+        await verifierRecompenseBossRecue();
 
-// --- SURVEILLANCE DES PV DU BOSS EN TEMPS RÉEL ---
-db.collection("global_event").doc("boss_battle")
-  .onSnapshot((doc) => {
-      if (doc.exists) {
-          const bossData = doc.data();
-          
-          // Mise à jour de la barre de vie sur l'interface
-          const hpElement = document.getElementById("bossHP"); // L'ID de ton texte HP
-          const barElement = document.getElementById("bossBarInner"); // L'ID de ta barre visuelle
+        // --- SURVEILLANCE DES PV DU BOSS EN TEMPS RÉEL ---
+        // On initialise bossData globalement pour qu'il soit accessible par hitBoss()
+        window.bossData = {}; 
 
-          if (hpElement) {
-              hpElement.innerText = `${bossData.hp_current.toLocaleString()} / ${bossData.hp_max.toLocaleString()} HP`;
-          }
-          
-          if (barElement) {
-              const pourcentage = (bossData.hp_current / bossData.hp_max) * 100;
-              barElement.style.width = pourcentage + "%";
-          }
+        db.collection("global_event").doc("boss_battle")
+          .onSnapshot(async (doc) => {
+              if (doc.exists) {
+                  // Mise à jour de la variable globale sans 'const'
+                  bossData = doc.data(); 
 
-          // Si le boss vient de mourir pendant que le joueur est connecté
-          if (bossData.hp_current <= 0) {
-              verifierRecompenseBossRecue(); // On relance la vérification pour donner la carte
-          }
-      }
-  });
+                  // Mise à jour de la barre de vie sur l'interface (INSIDE le snapshot)
+                  const hpElement = document.getElementById("bossHP"); 
+                  const barElement = document.getElementById("bossBarInner");
 
+                  if (hpElement && bossData.hp_current !== undefined) {
+                      hpElement.innerText = `${bossData.hp_current.toLocaleString()} / ${bossData.hp_max.toLocaleString()} HP`;
+                  }
+                  
+                  if (barElement && bossData.hp_current !== undefined) {
+                      const pourcentage = (bossData.hp_current / bossData.hp_max) * 100;
+                      barElement.style.width = pourcentage + "%";
+                  }
 
+                  // Si le boss vient de mourir pendant que le joueur est connecté
+                  if (bossData.hp_current <= 0) {
+                      await verifierRecompenseBossRecue();
+                  }
+              }
+          });
 
+        // Autres vérifications initiales
+        await verifierAmendes(user.uid);
+        loadBoosterCounter(user.uid);              
+        checkDailyShop();                          
 
-
-await verifierAmendes(user.uid);
-                 
-        loadBoosterCounter(user.uid);             
-        checkDailyShop();                         
-
-        // --- NOUVEAU : SYNC AUTO VENTE (Action côté Vendeur) ---
-        // On surveille si une de nos cartes en vente disparaît du marché
+        // --- SYNC AUTO VENTE (Action côté Vendeur) ---
         db.collection("market").where("sellerId", "==", user.uid)
           .onSnapshot((snapshot) => {
               const cartesEncoreEnVente = [];
               snapshot.forEach(doc => {
-                  // On stocke les noms des cartes encore présentes sur le marché
                   cartesEncoreEnVente.push(doc.data().card.name);
               });
 
               let aEteVendue = false;
 
-              // On parcourt notre collection locale pour voir si une carte "enVente" n'est plus au marché
+              // On parcourt la collection locale (supposée globale)
               collection.forEach((card, index) => {
                   if (card.enVente && !cartesEncoreEnVente.includes(card.name)) {
-                      collection.splice(index, 1); // Suppression réelle chez le vendeur
+                      collection.splice(index, 1); 
                       aEteVendue = true;
                   }
               });
 
-              // Si une carte a disparu du marché, le vendeur met à jour son propre document
               if (aEteVendue) {
                   db.collection("users").doc(user.uid).update({
                       collection: collection
                   }).then(() => {
-                      // --- ⚡ MODIFICATION ICI POUR ÉVITER LA REDIRECTION FORCÉE ---
-                      // On vérifie si la section "Collection" est actuellement affichée à l'écran
                       const collectionSection = document.getElementById("collectionSection"); 
                       const estSurLaCollection = collectionSection && collectionSection.style.display !== "none";
 
@@ -11073,30 +11138,24 @@ await verifierAmendes(user.uid);
                           if (typeof displayCollection === "function") displayCollection();
                           if (typeof showCollection === "function") showCollection();
                       } else {
-                          // Si on est ailleurs (ex: Marché), on rafraîchit juste les données du marché
                           if (typeof chargerMarche === "function") chargerMarche();
                       }
-                      
                   });
               }
           });
         
     } else {
         // --- Utilisateur déconnecté ---
-        authOverlay.style.display = "flex";      // Montre le formulaire de login
-        accountBtn.style.display = "none";       // Cache le bouton "Mon Compte"
+        authOverlay.style.display = "flex";      
+        accountBtn.style.display = "none";       
         
-        // On s'assure que la page profil est fermée si on se déconnecte
         const accountSection = document.getElementById("accountSection");
         if(accountSection) accountSection.style.display = "none";
     }
 
     // --- FERMETURE DE L'ÉCRAN DE CHARGEMENT ---
     if (loadingOverlay) {
-        // On ajoute une classe CSS pour l'effet de fondu (optionnel)
         loadingOverlay.classList.add("fade-out"); 
-        
-        // On retire l'élément après un petit délai pour laisser l'animation se faire
         setTimeout(() => {
             loadingOverlay.style.display = "none";
         }, 500); 

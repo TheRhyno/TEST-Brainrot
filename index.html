@@ -1653,6 +1653,14 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+@keyframes pulseEvent {
+    0% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.7; transform: scale(1); }
+}
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -1747,6 +1755,52 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
   <div id="homeSection">
+
+
+
+
+
+
+
+
+
+
+<div id="eventAnnouncementArea" style="
+    display: none; /* Caché par défaut, activé par le script si showEvent est true */
+    position: fixed; 
+    bottom: 179px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: rgba(20, 20, 35, 0.95); 
+    border: 2px solid #7c3aed; 
+    border-radius: 12px; 
+    padding: 10px; 
+    width: 90%; 
+    max-width: 300px; 
+    height: 60px; 
+    z-index: 1000; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6); 
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+">
+    <div style="color: #a78bfa; font-weight: bold; margin-bottom: 2px; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 1px; animation: pulseEvent 2s infinite;">
+        ✨ Événement Prochainement
+    </div>
+    
+    <div style="color: #fbbf24; font-weight: 900; font-size: 0.85rem; text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);">
+        BUNNY RAID 🐰
+    </div>
+    
+    <div id="eventCountdown" style="color: #fff; font-family: monospace; font-size: 11px; margin-top: 4px; font-weight: bold; background: rgba(124, 58, 237, 0.3); border-radius: 4px; display: inline-block; align-self: center; padding: 2px 8px; min-width: 100px;">
+        00H : 00M : 00S
+    </div>
+</div>
+
+
+
+
 
 
 
@@ -2626,32 +2680,33 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center; margin-bottom: 25px; max-height: 220px; overflow-y: auto; overflow-x: hidden; padding: 5px;">
             
 
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/10/Strawberryelephant-1-288x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/JohnPork.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Headlesshorseman-253x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Steal-a-Brainrot-67.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/DoiDoi.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.webstickersmuraux.com/fr/img/brarot001-png/folder/products-detalle-png/autocollants-tung-tung-tung-sahur.png" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Ballerina_cappucinaaaa212121-261x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Lerulerulerule-256x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/10/Strawberryelephant-1-288x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/JohnPork.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Headlesshorseman-253x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Steal-a-Brainrot-67.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/DoiDoi.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.webstickersmuraux.com/fr/img/brarot001-png/folder/products-detalle-png/autocollants-tung-tung-tung-sahur.png" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Ballerina_cappucinaaaa212121-261x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://www.eldorado.gg/blog/wp-content/uploads/2025/12/Lerulerulerule-256x300.webp" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
 
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
+            <img class="avatar-option" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" onclick="updateProfileAvatar(this.src); closeAvatarPicker();" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;">
 
 
 <img id="avatar-18-free" 
+     class="avatar-option"
      src="https://cdn.phototourl.com/free/2026-04-10-cf9b788c-b14e-4a20-be90-118e4f82aa73.jpg" 
      onclick="updateProfileAvatar(this.src); closeAvatarPicker();" 
-     style="display: none; width: 55px; height: 55px; border-radius: 50%; border: 2px solid #fbbf24; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;"
+     style="display: none; width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;"
      title="Récompense Palier 18">
 
-
 <img id="avatar-53-prem" 
+     class="avatar-option"
      src="https://cdn.phototourl.com/free/2026-04-10-f0ba66d1-f04b-4b9f-98e5-e883909aa1f6.jpg" 
      onclick="updateProfileAvatar(this.src); closeAvatarPicker();" 
-     style="display: none; width: 55px; height: 55px; border-radius: 50%; border: 2px solid #a78bfa; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;"
+     style="display: none; width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #1e293b; object-fit: cover;"
      title="Récompense Palier 53 (Premium)">
 
 
@@ -3559,6 +3614,55 @@ disableSite(false);
 
 
 
+const showEvent = false; // METTRE À "false" POUR CACHER LE RECTANGLE
+const eventDate = new Date("2026-04-24T20:00:00").getTime();
+
+function updateEventTimer() {
+    const banner = document.getElementById("eventAnnouncementArea");
+    if (!banner) return;
+
+    // 1. Gestion de l'affichage (ON/OFF)
+    if (typeof showEvent !== 'undefined' && !showEvent) {
+        banner.style.display = "none";
+        return;
+    }
+
+    const now = new Date().getTime();
+    const distance = eventDate - now;
+
+    // 2. Si le temps est écoulé
+    if (distance <= 0) {
+        banner.style.display = "flex";
+        const display = document.getElementById("eventCountdown");
+        display.innerHTML = "🚀 C'EST PARTI !";
+        display.style.background = "#10b981";
+        display.style.color = "white";
+        return;
+    }
+
+    // 3. Calcul du temps (Jours + Heures restantes)
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    // 4. Formatage
+    const d = days.toString().padStart(2, '0');
+    const h = hours.toString().padStart(2, '0');
+    const m = minutes.toString().padStart(2, '0');
+    const s = seconds.toString().padStart(2, '0');
+
+    // 5. Mise à jour de l'interface
+    banner.style.display = "flex";
+    
+    // On affiche les jours seulement s'il en reste, ou on les laisse pour le style
+    document.getElementById("eventCountdown").innerHTML = `${d}J : ${h}H : ${m}M : ${s}S`;
+}
+
+// Lancement
+const eventInterval = setInterval(updateEventTimer, 1000);
+updateEventTimer();
+
 
 
 
@@ -4233,6 +4337,25 @@ function closePrivacy() {
 // Ouvre la fenêtre de sélection d'avatar
 function openAvatarPicker() {
     document.getElementById('avatarPickerModal').style.display = 'flex';
+
+    // --- AJOUT : MISE EN SURBRILLANCE DE L'AVATAR ACTUEL ---
+    const hud = document.getElementById('hudAvatar');
+    const currentAvatarSrc = hud ? hud.getAttribute('src') : "";
+    const allOptions = document.querySelectorAll('.avatar-option');
+
+    allOptions.forEach(img => {
+        // Applique le contour jaune uniquement à l'avatar actif
+        if (currentAvatarSrc && img.getAttribute('src') === currentAvatarSrc) {
+            img.style.border = "3px solid #fbbf24"; // Jaune pile autour
+            img.style.borderRadius = "50%"; // Force le rond
+            img.style.padding = "2px"; // Petit espace optionnel pour le style
+        } else {
+            // Remet à l'état normal pour les autres
+            img.style.border = "2px solid transparent";
+            img.style.borderRadius = "50%";
+            img.style.padding = "0px";
+        }
+    });
 }
 
 // Ferme la fenêtre de sélection d'avatar
@@ -4250,14 +4373,28 @@ async function updateProfileAvatar(newSrc) {
     const profImg = document.getElementById('profileBigAvatar');
     if (profImg) profImg.src = newSrc;
     
-    // 3. Sauvegarde Locale (pour affichage instantané au refresh)
+    // 3. Sauvegarde Locale
     localStorage.setItem('userAvatar', newSrc);
 
-    // --- AJOUT SAUVEGARDE FIREBASE (Syntaxe Compat v9) ---
+    // --- AJOUT : MISE À JOUR VISUELLE IMMÉDIATE (Bordure jaune dynamique) ---
+    const allOptions = document.querySelectorAll('.avatar-option');
+    allOptions.forEach(img => {
+        if (img.getAttribute('src') === newSrc) {
+            img.style.border = "3px solid #fbbf24";
+            img.style.borderRadius = "50%";
+            img.style.padding = "2px";
+        } else {
+            // Nettoyage : tout revient à la normale pour les autres
+            img.style.border = "2px solid transparent";
+            img.style.borderRadius = "50%";
+            img.style.padding = "0px";
+        }
+    });
+
+    // --- SAUVEGARDE FIREBASE (Syntaxe Compat v9) ---
     const user = firebase.auth().currentUser;
     if (user) {
         try {
-            // Utilisation de la syntaxe compatible avec tes scripts
             const db = firebase.firestore();
             await db.collection("users").doc(user.uid).update({
                 avatar: newSrc
@@ -4267,6 +4404,7 @@ async function updateProfileAvatar(newSrc) {
         }
     }
 }
+
 
 // Gère l'importation d'une photo personnalisée (Conserve ton code intact)
 function handleCustomAvatar(input) {
@@ -7005,11 +7143,9 @@ async function chargerMarche() {
             const isMine = item.sellerId === auth.currentUser.uid;
 
             // --- LOGIQUE DE FILTRAGE MISE À JOUR ---
-            // 1. Sur l'onglet "Acheter" : on cache mes cartes ET les cartes déjà vendues
             if (currentMarketTab === 'buy') {
                 if (isMine || item.vendu) return;
             }
-            // 2. Sur l'onglet "Mes Ventes" : on ne montre que les miennes (disponibles OU vendues)
             if (currentMarketTab === 'mySales') {
                 if (!isMine) return;
             }
@@ -7018,13 +7154,17 @@ async function chargerMarche() {
 
             const cardEl = document.createElement('div');
             cardEl.className = `card r-${item.card.rarity.toLowerCase().replace(/\s+/g, '-')} market-card-animate`;
+            
+            // Style de la carte container
             cardEl.style.display = "flex";
             cardEl.style.flexDirection = "column";
             cardEl.style.height = "auto";
-            cardEl.style.padding = "10px";
+            cardEl.style.padding = "12px";
+            cardEl.style.borderRadius = "15px";
+            cardEl.style.background = "#1a1a1a";
+            cardEl.style.border = "1px solid rgba(255,255,255,0.1)";
             cardEl.style.animationDelay = `${index * 0.05}s`;
             
-            // Effet visuel si la carte est vendue
             if (item.vendu) {
                 cardEl.style.opacity = "0.85";
             }
@@ -7032,46 +7172,55 @@ async function chargerMarche() {
             index++;
 
             cardEl.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <div style="color: ${getRarityColor(item.card.rarity)}; text-transform: uppercase; font-weight: bold; font-size: 0.65rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="color: ${getRarityColor(item.card.rarity)}; text-transform: uppercase; font-weight: 900; font-size: 0.6rem; letter-spacing: 0.5px;">
                         ${item.card.rarity}
                     </div>
-                    <div style="background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">
+                    <div style="background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">
                         Lvl ${item.card.level || 1}
                     </div>
                 </div>
 
-                <div style="width: 100%; height: 100px; overflow: hidden; border-radius: 4px; margin-bottom: 5px; position: relative;">
-                    <img src="${item.card.image}" style="width: 100%; height: 100%; object-fit: contain; ${item.vendu ? 'filter: brightness(0.5);' : ''}">
+<div style="width: 100%; height: 140px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; position: relative;">
+<img src="${item.card.image}" style="width: 100%; height: 100%; object-fit: contain; ${item.vendu ? 'filter: brightness(0.4) grayscale(1);' : ''}">
                     
                     ${item.vendu ? `
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 2; border: 1px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); background: #ef4444; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 2; border: 1px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
                             VENDU
                         </div>
                     ` : ''}
                 </div>
                 
-                <div style="flex-grow: 1; text-align: center;">
-                    <strong style="display:block; font-size: 0.9rem; line-height: 1.1;">${item.card.name}</strong>
-                    
-                    ${item.vendu && isMine ? `
-                        <div style="font-size: 0.65rem; color: #10b981; margin: 3px 0; font-weight: bold;">
-                            🤝 Par: ${item.acheteurPseudo || "Un joueur"}
-                        </div>
-                    ` : ''}
+                <div style="text-align: center; margin-bottom: 4px;">
+                    <strong style="display:block; font-size: 0.9rem; color: #fff; line-height: 1.2;">${item.card.name}</strong>
+                </div>
 
-                    ${!isMine ? `<div style="font-size: 0.65rem; color: #a855f7; margin: 3px 0;">👤 ${item.sellerName || "Joueur"}</div>` : ''}
-                    <div style="font-weight: bold; color: #fbbf24; margin: 5px 0;">${item.price} 💎</div>
+                <div style="text-align: center; font-weight: 900; color: #fbbf24; font-size: 1.1rem; margin-bottom: 8px;">
+                    ${item.price} <span style="font-size: 0.8rem;">💎</span>
+                </div>
+
+<div style="text-align: center; margin-bottom: 10px;">
+    ${item.vendu && isMine ? `
+        <div style="font-size: 0.65rem; color: #10b981; font-weight: bold;">
+            🤝 Acheté par : ${item.acheteurPseudo || "Un joueur"}
+        </div>
+    ` : `
+        <div style="font-size: 0.65rem; color: #94a3b8;">
+            ${isMine ? "" : `👤 ${item.sellerName || "Joueur"}`}
+        </div>
+    `}
+</div>
+
                 </div>
                 
                 <div style="margin-top: auto;">
                     ${item.vendu 
                         ? (isMine 
-                            ? `<button onclick="recupererArgent('${doc.id}', ${item.price})" style="background: #fbbf24; color: #000; width: 100%; border: none; border-radius: 5px; padding: 8px; cursor: pointer; font-weight: bold; font-size: 0.75rem;">💰 RÉCUPÉRER ${item.price}</button>`
-                            : `<button disabled style="background:#4b5563; width:100%; border:none; border-radius:5px; padding:8px; color:white; font-weight:bold; font-size:0.75rem; cursor:not-allowed;">Déjà vendue</button>`)
+                            ? `<button onclick="recupererArgent('${doc.id}', ${item.price})" style="background: #fbbf24; color: #000; width: 100%; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: 900; font-size: 0.75rem; text-transform: uppercase;">💰 RÉCUPÉRER</button>`
+                            : `<button disabled style="background:#374151; width:100%; border:none; border-radius:8px; padding:10px; color:#9ca3af; font-weight:bold; font-size:0.75rem;">VENDU</button>`)
                         : (isMine 
-                            ? `<button onclick="annulerVente('${doc.id}')" style="background:#ef4444; width:100%; border:none; border-radius:5px; padding:8px; cursor:pointer; color:white; font-weight:bold; font-size:0.8rem;">Annuler</button>`
-                            : `<button onclick="acheterCarte('${doc.id}', ${item.price}, '${item.sellerId}')" style="background:#10b981; width:100%; border:none; border-radius:5px; padding:8px; cursor:pointer; color:white; font-weight:bold; font-size:0.8rem;">Acheter</button>`)
+                            ? `<button onclick="annulerVente('${doc.id}')" style="background: transparent; border: 1px solid #ef4444; width:100%; border-radius:8px; padding:9px; cursor:pointer; color:#ef4444; font-weight:bold; font-size:0.75rem;">Annuler la vente</button>`
+                            : `<button onclick="acheterCarte('${doc.id}', ${item.price}, '${item.sellerId}')" style="background: #10b981; width:100%; border:none; border-radius:8px; padding:10px; cursor:pointer; color:white; font-weight:900; font-size:0.8rem; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">ACHETER</button>`)
                     }
                 </div>
             `;
@@ -7537,7 +7686,7 @@ async function chargerQuetesFirebase() {
 
         // Cas 1 : Pas de quêtes OU Date différente (Nouveau jour) -> RESET
         if (!data.dailyQuests || data.dailyQuests.date !== today) {
-            console.log("🌞 Nouveau jour détecté ou première connexion. Reset des quêtes...");
+
             const shuffled = [...TOUTES_LES_QUETES].sort(() => 0.5 - Math.random());
             quetesActives = {
                 date: today,
@@ -11534,7 +11683,7 @@ async function checkDailyShop() {
 
         const RARITY_PROBABILITIES = {
             "Commun": 1, "Rare": 1, "Epic": 3, "Legendary": 15,
-            "Mythic": 25, "Brainrot God": 20, "Secret": 17, "OG": 9
+            "Mythic": 20, "Brainrot God": 18, "Secret": 15, "OG": 4
         };
 
         const totalWeight = Object.values(RARITY_PROBABILITIES).reduce((a, b) => a + b, 0);

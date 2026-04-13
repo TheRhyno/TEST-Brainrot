@@ -4104,7 +4104,8 @@ function resetPassword() {
 function toggleAuthMode(mode) {
     // mode peut être : 'login' (true), 'signup' (false), ou 'forgot'
     const usernameContainer = document.getElementById('usernameContainer');
-    const passwordInputParent = passwordInput.parentElement; // Pour cacher le champ MDP
+    // Sécurité : on vérifie si passwordInput existe avant de chercher son parent
+    const passwordInputParent = typeof passwordInput !== 'undefined' ? passwordInput.parentElement : null; 
     const mainBtn = document.getElementById('mainAuthBtn');
     const toggleText = document.getElementById('toggleText');
     const authTitle = document.getElementById('authTitle');
@@ -4119,7 +4120,7 @@ function toggleAuthMode(mode) {
     if (mode === 'login' || mode === true) {
         // --- MODE CONNEXION ---
         usernameContainer.style.display = 'none';
-        passwordInputParent.style.display = 'block';
+        if (passwordInputParent) passwordInputParent.style.display = 'block';
         if (forgotLink) forgotLink.style.display = 'block';
         
         authTitle.innerText = "CONNEXION";
@@ -4127,20 +4128,27 @@ function toggleAuthMode(mode) {
         toggleText.innerHTML = `Pas encore de compte ? <span onclick="toggleAuthMode('signup')" style="color: #ef4444; font-weight: 700; cursor: pointer; margin-left: 5px;">S'inscrire</span>`;
         
         mainBtn.onclick = () => {
+            console.log("Tentative de connexion...");
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
             if (!email || !password) { authError.textContent = "Email et mot de passe requis."; return; }
 
             auth.signInWithEmailAndPassword(email, password)
                 .then(userCredential => {
+                    console.log("Connecté ! Redémarrage du jeu...");
+                    // On garde tes lignes au cas où, mais le reload va tout rafraîchir proprement
                     const uid = userCredential.user.uid;
                     loadUserData(uid);
                     loadBoosterCounter(uid);
                     authOverlay.style.display = "none";
-                    logoutBtn.style.display = "block";
+                    if(typeof logoutBtn !== 'undefined') logoutBtn.style.display = "block";
                     authError.textContent = "";
+
+                    // --- ACTION CRUCIALE : REDÉMARRER LE JEU ---
+                    window.location.reload();
                 })
                 .catch(err => {
+                    console.error("Erreur login:", err);
                     if ((!err.code || err.code === "") && err.message && err.message.toLowerCase().includes("password")) {
                         authError.textContent = "Email ou mot de passe incorrect.";
                     } else {
@@ -4152,7 +4160,7 @@ function toggleAuthMode(mode) {
     } else if (mode === 'signup' || mode === false) {
         // --- MODE INSCRIPTION ---
         usernameContainer.style.display = 'block';
-        passwordInputParent.style.display = 'block';
+        if (passwordInputParent) passwordInputParent.style.display = 'block';
         if (forgotLink) forgotLink.style.display = 'none';
         
         authTitle.innerText = "BIENVENUE !";
@@ -4160,6 +4168,7 @@ function toggleAuthMode(mode) {
         toggleText.innerHTML = `Tu as déjà un compte ? <span onclick="toggleAuthMode('login')" style="color: #9333ea; font-weight: 700; cursor: pointer; margin-left: 5px;">Connexion</span>`;
         
         mainBtn.onclick = () => {
+            console.log("Tentative d'inscription...");
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
             const username = document.getElementById("reg-username").value.trim();
@@ -4170,21 +4179,25 @@ function toggleAuthMode(mode) {
             auth.createUserWithEmailAndPassword(email, password)
                 .then(userCredential => {
                     const uid = userCredential.user.uid;
-                    db.collection("users").doc(uid).set({
+                    return db.collection("users").doc(uid).set({
                         username: username, boostersOpened: 0, collection: [], dust: 0, xp: 0, level: 1, streakCount: 0, isPremium: false, claimedRewards: [], lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                    }).then(() => {
-                        loadUserData(uid); loadBoosterCounter(uid);
-                        authOverlay.style.display = "none"; logoutBtn.style.display = "block";
-                        authError.textContent = "";
                     });
                 })
-                .catch(err => authError.textContent = getAuthErrorMessage(err.code));
+                .then(() => {
+                    console.log("Compte créé ! Redémarrage du jeu...");
+                    // --- ACTION CRUCIALE : REDÉMARRER LE JEU ---
+                    window.location.reload();
+                })
+                .catch(err => {
+                    console.error("Erreur signup:", err);
+                    authError.textContent = getAuthErrorMessage(err.code);
+                });
         };
 
     } else if (mode === 'forgot') {
         // --- MODE RÉCUPÉRATION (MDP OUBLIÉ) ---
         usernameContainer.style.display = 'none';
-        passwordInputParent.style.display = 'none';
+        if (passwordInputParent) passwordInputParent.style.display = 'none';
         if (forgotLink) forgotLink.style.display = 'none';
 
         authTitle.innerText = "RÉCUPÉRATION";
@@ -4197,10 +4210,14 @@ function toggleAuthMode(mode) {
     }
 }
 
-
 // Initialisation au chargement
 window.addEventListener('DOMContentLoaded', () => {
-    toggleAuthMode('signup');
+    // On vérifie si l'utilisateur est déjà là pour éviter de forcer le signup overlay au reload
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            toggleAuthMode('signup');
+        }
+    });
 });
 
 
@@ -6772,51 +6789,65 @@ function ouvrirSelecteurVente() {
     document.getElementById('selectCardOverlay').style.display = "block";
 
     if (collection.length === 0) {
-        grid.innerHTML = "<p>Aucune carte disponible.</p>";
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94a3b8; border: 2px dashed #4b5563; border-radius: 15px;">
+                <p>Aucune carte disponible.</p>
+            </div>`;
         return;
     }
 
     collection.forEach((card, index) => {
         const cardEl = document.createElement('div');
         
-        // --- MODIFICATION : GESTION DES CARTES DÉJÀ EN VENTE ---
+        // --- STYLE DE LA CARTE : COPIE EXACTE DU MARCHÉ ---
+        cardEl.className = `card r-${card.rarity.toLowerCase().replace(/\s+/g, '-')} market-card-animate`;
+        
+        cardEl.style.display = "flex";
+        cardEl.style.flexDirection = "column";
+        cardEl.style.padding = "12px";
+        cardEl.style.borderRadius = "15px";
+        cardEl.style.background = "#1a1a1a"; // Couleur de fond du marché
+        cardEl.style.border = "1px solid rgba(255,255,255,0.1)";
+        cardEl.style.position = "relative";
+        cardEl.style.height = "auto";
+        cardEl.style.cursor = "pointer";
+        
+        // --- LOGIQUE DE GESTION DES CARTES DÉJÀ EN VENTE ---
         if (card.enVente) {
-            // La carte est en vente : on la grise et on désactive le clic
-            cardEl.className = `card r-${card.rarity.toLowerCase().replace(/\s+/g, '-')}`;
-            cardEl.style.opacity = "0.5";
+            cardEl.style.opacity = "0.85"; 
             cardEl.style.filter = "grayscale(1)";
             cardEl.style.cursor = "not-allowed";
-            cardEl.style.position = "relative";
             cardEl.onclick = null; 
         } else {
-            // La carte est disponible : comportement normal
-            cardEl.className = `card r-${card.rarity.toLowerCase().replace(/\s+/g, '-')}`;
-            cardEl.style.cursor = "pointer";
-            cardEl.style.position = "relative"; // Pour le positionnement du badge niveau
             cardEl.onclick = () => choisirPrixVente(index);
         }
         
-        // Construction du HTML interne en gardant tes styles et en affichant le niveau
+        // --- HTML INTERNE : SANS LE BOUTON DU BAS ---
         cardEl.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <div style="background:#fbbf24; color:#000; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold;">
-                    Lvl. ${card.level || 1}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="color: ${getRarityColor(card.rarity)}; text-transform: uppercase; font-weight: 900; font-size: 0.6rem; letter-spacing: 0.5px;">
+                    ${card.rarity}
+                </div>
+                <div style="background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">
+                    Lvl ${card.level || 1}
                 </div>
             </div>
 
-            ${card.enVente ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(239, 68, 68, 0.9); color:white; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; z-index:2; border:1px solid white;">EN VENTE</div>` : ''}
-            
-            <div style="width: 100%; height: 80px; overflow: hidden; border-radius: 5px; margin-bottom: 5px;">
-                <img src="${card.image}" style="width:100%; height:100%; object-fit: contain;">
+            <div style="width: 100%; height: 140px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; position: relative;">
+                <img src="${card.image}" style="width: 100%; height: 100%; object-fit: contain; ${card.enVente ? 'filter: brightness(0.4) grayscale(1);' : ''}">
+                
+                ${card.enVente ? `
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); background: #ef4444; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 2; border: 1px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5); white-space:nowrap;">
+                        DÉJÀ EN VENTE
+                    </div>
+                ` : ''}
             </div>
-
-            <strong style="font-size: 0.85rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${card.name}
-            </strong>
-            <small style="color: ${getRarityColor ? getRarityColor(card.rarity) : '#ccc'}; font-size: 0.7rem;">
-                ${card.rarity.toUpperCase()}
-            </small>
+            
+<div style="text-align: center; margin-bottom: 5px;">
+                <strong style="display:block; font-size: 0.9rem; color: #fff; line-height: 1.2;">${card.name}</strong>
+            </div>
         `;
+        
         grid.appendChild(cardEl);
     });
 }
@@ -11368,13 +11399,30 @@ function getAuthErrorMessage(errorCode) {
 const mainAuthBtn = document.getElementById('mainAuthBtn');
 
 if (mainAuthBtn) {
-    mainAuthBtn.onclick = () => {
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
+    mainAuthBtn.onclick = (e) => {
+        // Empêche le rechargement par défaut du formulaire HTML
+        if (e) e.preventDefault(); 
+        
+        console.log("Clic détecté sur le bouton d'authentification");
+
+        // Utilisation de document.getElementById pour être sûr de récupérer les valeurs
+        // même si les variables globales sont perdues dans les 11 000 lignes
+        const emailInputEl = document.getElementById('emailInput');
+        const passwordInputEl = document.getElementById('passwordInput');
         const authError = document.getElementById("authError");
+
+        if (!emailInputEl || !passwordInputEl) {
+            console.error("ERREUR : Les champs emailInput ou passwordInput sont introuvables dans le HTML.");
+            return;
+        }
+
+        const email = emailInputEl.value.trim();
+        const password = passwordInputEl.value.trim();
 
         // --- MODE CONNEXION (isLoginMode = true) ---
         if (isLoginMode) {
+            console.log("Tentative de connexion pour :", email);
+
             // --- Vérification si les champs sont remplis ---
             if (!email && !password) {
                 authError.textContent = "Email et mot de passe requis.";
@@ -11390,21 +11438,31 @@ if (mainAuthBtn) {
             // --- Connexion Firebase ---
             auth.signInWithEmailAndPassword(email, password)
                 .then(userCredential => {
+                    console.log("Connexion réussie ! Redémarrage du jeu...");
+                    
+                    // ON GARDE TES LIGNES MAIS LE RELOAD VA TOUT RÉINITIALISER PROPREMENT
                     const uid = userCredential.user.uid;
                     loadUserData(uid);
                     loadBoosterCounter(uid);
                     authOverlay.style.display = "none";
-                    logoutBtn.style.display = "block";
+                    if (typeof logoutBtn !== 'undefined') logoutBtn.style.display = "block";
                     authError.textContent = "";
+
+                    // LE REDÉMARRAGE FORCÉ
+                    window.location.reload();
                 })
                 .catch(err => {
+                    console.error("Erreur Firebase :", err.code, err.message);
                     if ((!err.code || err.code === "") && err.message && err.message.toLowerCase().includes("password")) {
                         authError.textContent = "Email ou mot de passe incorrect.";
                     } else {
-                        authError.textContent = getAuthErrorMessage(err.code);
+                        authError.textContent = typeof getAuthErrorMessage === 'function' ? getAuthErrorMessage(err.code) : err.message;
                     }
                 });
         } 
+        // Note : Si tu as un bloc 'else' pour l'inscription, il vient ici
+
+        
         
         // --- MODE INSCRIPTION (isLoginMode = false) ---
         else {
@@ -11756,9 +11814,6 @@ async function checkDailyShop() {
 
 // --- GESTION DU COMPTE ---
 
-// --- GESTION DU COMPTE ---
-
-// On récupère les éléments (Assure-toi que ces IDs existent dans ton HTML)
 const accountBtn = document.getElementById("accountBtn");
 const accountSection = document.getElementById("accountSection");
 const backFromAccount = document.getElementById("backFromAccount");

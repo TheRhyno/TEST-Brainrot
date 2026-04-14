@@ -1765,6 +1765,12 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+
+
+
+
+
+
 <div id="eventAnnouncementArea" style="
     display: none; /* Caché par défaut, activé par le script si showEvent est true */
     position: fixed; 
@@ -2043,15 +2049,15 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+
+
+
+
+
+
   <div id="boosterCounter" style="color:#fff;font-weight:bold;font-size:1rem;margin-bottom:10px;">
     Boosters ouverts : 0
   </div>
-
-
-
-
-
-
 
 
 
@@ -2251,6 +2257,8 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     </div>
 
 
+
+<div id="status-recherche" style="min-height: 20px; text-align: center; margin: 10px 0;"></div>
 
 <div id="combat-timer-display" style="display:none; margin-bottom: 15px;">
     <div id="battle-info" style="font-size: 0.9rem; color: #8da0b8; font-weight: bold; font-family: sans-serif; min-height: 20px;">
@@ -2527,10 +2535,10 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
             </div>
         </div>
 
-        <div style="pointer-events: auto; display: flex; gap: 5px; align-items: center;">
-            <div style="background: rgba(22, 32, 55, 0.85); padding: 4px 8px; border-radius: 8px; border: 1.5px solid #ff9f43; color: #ff9f43; font-weight: 900; display: flex; align-items: center; gap: 3px; font-size: 11px; backdrop-filter: blur(8px);">
-                <span id="hudStreak">0</span> 🔥
-            </div>
+<div style="pointer-events: auto; display: flex; gap: 5px; align-items: center;">
+    <div onclick="ouvrirMenuStreak()" style="background: rgba(22, 32, 55, 0.85); padding: 4px 8px; border-radius: 8px; border: 1.5px solid #ff9f43; color: #ff9f43; font-weight: 900; display: flex; align-items: center; gap: 3px; font-size: 11px; backdrop-filter: blur(8px); cursor: pointer;">
+        <span id="hudStreak">0</span> 🔥
+    </div>
             <div style="background: rgba(15, 23, 42, 0.9); padding: 4px 8px; border-radius: 8px; border: 1.5px solid #334155; color: white; font-weight: bold; display: flex; align-items: center; gap: 3px; font-size: 11px;">
                 <span>💎</span> <span id="hudDust">0</span>
             </div>
@@ -2578,6 +2586,32 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
         </div>
     </div>
 </div>
+
+
+
+
+
+
+<div id="streak-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1e293b; border:2px solid #facc15; padding:20px; z-index:10000; border-radius:15px; width:280px; text-align:center; color:white; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+    <h3 style="margin: 0 0 10px 0; color:#facc15;">SÉRIE DE FLAMMES</h3>
+    <div style="font-size: 2.5rem; margin-bottom: 5px;">🔥 <span id="modal-streak-val">0</span></div>
+    
+    <div style="background:#0f172a; border-radius:10px; height:12px; width:100%; margin:15px 0; overflow:hidden; border:1px solid #334155;">
+        <div id="streak-bar" style="background:linear-gradient(90deg, #facc15, #fb923c); height:100%; width:0%; transition: width 0.8s ease;"></div>
+    </div>
+    
+    <p id="streak-next-reward" style="font-size:0.75rem; color:#94a3b8; margin-bottom: 15px;"></p>
+
+    <button id="btn-recup-streak" onclick="recupererCadeauStreak()" style="display:none; background:#4ade80; border:none; color:#064e3b; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold; width: 100%; margin-bottom: 10px; font-size: 1rem;">
+        🎁 RÉCUPÉRER LE CADEAU
+    </button>
+    
+    <button onclick="document.getElementById('streak-modal').style.display='none'" style="background:#334155; border:none; color:white; padding:10px; border-radius:8px; cursor:pointer; width: 100%;">FERMER</button>
+</div>
+
+
+
+
 
 <div id="speedyMenu" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:3px solid #fbbf24; border-radius:15px; padding:20px; z-index:100000; color:white; text-align:center; min-width:320px; box-shadow: 0 0 40px rgba(0,0,0,1); pointer-events: auto;">
     <h3 style="color:#fbbf24; margin-bottom:5px; margin-top:0;">⚡ Boosters de Temps</h3>
@@ -6683,64 +6717,221 @@ function ouvrirSelecteurVente() {
 
 let streakCount = parseInt(localStorage.getItem("streakCount")) || 0;
 let lastOpenDate = localStorage.getItem("lastOpenDate") || "";
+// On récupère l'état du bonus (true/false)
+let streakBonusAvailable = localStorage.getItem("streakBonusAvailable") === "true";
 
 
-function updateStreak() {
+async function updateStreak() {
     const now = new Date();
-    // On récupère la date au format YYYY-MM-DD pour ignorer l'heure
     const today = now.toISOString().split('T')[0];
     
+    // 1. Empêcher le double appel le même jour
     if (lastOpenDate === today) {
-        // Le joueur a déjà ouvert un booster aujourd'hui, on ne fait rien
         return;
     }
+
+    // --- CONNEXION SERVEUR ---
+    const user = auth.currentUser;
+    if (!user) return;
+    const userRef = db.collection("users").doc(user.uid);
 
     const lastDate = new Date(lastOpenDate);
     const diffTime = now - lastDate;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+    // 2. Logique de progression (ta logique originale)
     if (lastOpenDate === "") {
-        // Première fois que le joueur ouvre un booster
         streakCount = 1;
+        streakBonusAvailable = false; 
     } else if (diffDays === 1) {
-        // C'tétait hier ! La streak continue
         streakCount++;
+        // SI PALIER DE 5 : On active le cadeau
+        if (streakCount % 5 === 0) {
+            streakBonusAvailable = true;
+        } else {
+            streakBonusAvailable = false; 
+        }
     } else if (diffDays > 1) {
-        // Trop tard, on a sauté un jour ou plus
+        // Trop tard, on reset tout
         streakCount = 1;
+        streakBonusAvailable = false;
     }
 
     lastOpenDate = today;
     
-    // Sauvegarde
+    // 3. SAUVEGARDE LOCALE
     localStorage.setItem("streakCount", streakCount);
     localStorage.setItem("lastOpenDate", lastOpenDate);
+    localStorage.setItem("streakBonusAvailable", streakBonusAvailable);
+    
+    // 4. SAUVEGARDE SERVEUR (Pour éviter la triche et garder la synchro)
+    try {
+        await userRef.update({
+            streakCount: streakCount,
+            lastOpenDate: lastOpenDate,
+            streakBonusAvailable: streakBonusAvailable
+        });
+        console.log("Série synchronisée avec le serveur.");
+    } catch (e) {
+        console.error("Erreur synchro serveur:", e);
+    }
     
     alert(`🔥 Streak: ${streakCount} jour(s) !`);
-    renderStreak(); // Pour mettre à jour l'affichage
+    renderStreak();
 }
 
+// --- FONCTION DE RÉCUPÉRATION (Cliquée par l'utilisateur) ---
+window.recupererCadeauStreak = async function() {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    // Vérification de sécurité locale
+    if (localStorage.getItem("streakBonusAvailable") !== "true") return;
 
+    const userRef = db.collection("users").doc(user.uid);
+    const gain = 50; // Ton cadeau
+
+    try {
+        // Transaction serveur : on donne les fragments et on désactive le bonus
+        await userRef.update({
+            fragments: firebase.firestore.FieldValue.increment(gain),
+            streakBonusAvailable: false,
+            // On enregistre quel palier a été fait pour l'historique
+            lastRewardClaimed: streakCount 
+        });
+
+        // Mise à jour locale après succès serveur
+        streakBonusAvailable = false;
+        localStorage.setItem("streakBonusAvailable", "false");
+
+        alert(`🎁 Cadeau récupéré sur le serveur : +${gain} fragments !`);
+        
+        if(document.getElementById("streak-modal")) {
+            document.getElementById("streak-modal").style.display = 'none';
+        }
+        renderStreak();
+    } catch (error) {
+        alert("Erreur lors de la récupération. Vérifie ta connexion.");
+        console.error(error);
+    }
+};
 
 function renderStreak() {
-    // 1. On met à jour le chiffre dans le nouveau HUD (le bandeau du haut)
     const hudStreak = document.getElementById("hudStreak");
     if (hudStreak) {
         hudStreak.innerText = streakCount;
     }
 
-    // 2. On met à jour le chiffre dans ton menu Profil (la grille de stats)
     const profileStreak = document.getElementById("profileStreak");
     if (profileStreak) {
         profileStreak.innerText = streakCount;
     }
 
-    // 3. On fait disparaître l'ancienne bulle flottante pour éviter les doublons
     const oldDisplay = document.getElementById("streakDisplay");
     if (oldDisplay) {
         oldDisplay.style.display = "none";
     }
 }
+
+// --- FONCTION POUR OUVRIR LE MENU ---
+window.ouvrirMenuStreak = async function() {
+    const modal = document.getElementById("streak-modal");
+    if (!modal) return;
+
+    const bar = document.getElementById("streak-bar");
+    const nextText = document.getElementById("streak-next-reward");
+    const valText = document.getElementById("modal-streak-val");
+    const btnRecup = document.getElementById("btn-recup-streak");
+
+    // 1. On récupère les infos en temps réel sur le serveur
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    const userRef = db.collection("users").doc(user.uid);
+    const doc = await userRef.get();
+    const data = doc.data() || {};
+
+    const sCount = data.streakCount || 0;
+    // On vérifie si c'est un multiple de 5 ET s'il n'a pas encore été récupéré sur le serveur
+    const estMultipleDe5 = sCount > 0 && sCount % 5 === 0;
+    const dejaRecupere = data.lastRewardClaimed === sCount; 
+    const bonusPret = estMultipleDe5 && !dejaRecupere;
+
+    // 2. Mise à jour de la barre et du chiffre
+    const progression = sCount % 5;
+    const pourcentage = (progression === 0 && sCount > 0) ? 100 : (progression / 5) * 100;
+
+    if (valText) valText.innerText = sCount;
+    if (bar) bar.style.width = pourcentage + "%";
+
+    // 3. Affichage selon l'état réel du serveur
+    if (bonusPret) {
+        // C'est un multiple de 5 et le serveur dit "pas encore récupéré"
+        if (btnRecup) btnRecup.style.display = "block";
+        if (nextText) nextText.innerHTML = "<span style='color:#4ade80; font-weight:bold;'>🎁 CADEAU PRÊT !</span>";
+    } 
+    else if (estMultipleDe5 && dejaRecupere) {
+        // C'est un multiple de 5 mais le serveur dit "déjà récupéré"
+        if (btnRecup) btnRecup.style.display = "none";
+        if (nextText) nextText.innerText = "Récompense récupérée ! Reviens demain.";
+    } 
+    else {
+        // Pas un jour de cadeau
+        if (btnRecup) btnRecup.style.display = "none";
+        const reste = 5 - progression;
+        if (nextText) nextText.innerText = `Plus que ${reste} jour(s) avant ton cadeau !`;
+    }
+
+    modal.style.display = "block";
+};
+
+
+
+window.recupererCadeauStreak = async function() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = db.collection("users").doc(user.uid);
+    const doc = await userRef.get();
+    const data = doc.data();
+
+    // Double vérification serveur avant de donner
+    const sCount = data.streakCount || 0;
+    if (sCount % 5 !== 0 || data.lastRewardClaimed === sCount) {
+        alert("Action impossible ou déjà récupérée.");
+        return;
+    }
+
+    const gain = 2;
+
+    try {
+        // ÉCRITURE SUR LE SERVEUR
+        await userRef.update({
+            speedies: firebase.firestore.FieldValue.increment(gain),
+            lastRewardClaimed: sCount // On marque ce palier comme "terminé"
+        });
+
+
+const sourceSpeed = document.getElementById("profileSpeedies");
+        if (sourceSpeed) {
+            let currentSpeed = parseInt(sourceSpeed.innerText) || 0;
+            sourceSpeed.innerText = currentSpeed + gain;
+        }
+
+
+
+           alert(`🎁 Tu as gagné ${gain} Speedies !\n🔥 Ne perd pas ta streak !`);
+        
+        // Fermer et rafraîchir le menu
+        document.getElementById("streak-modal").style.display = 'none';
+        if (typeof renderStreak === "function") renderStreak();
+
+    } catch (error) {
+        console.error("Erreur lors de la récupération :", error);
+        alert("Erreur de connexion au serveur.");
+    }
+};
+
 
 
 
@@ -9200,7 +9391,7 @@ function resetArena() {
     // --- AJOUT : RESET DU MESSAGE DE STATUT (Pour enlever "COMBAT EN COURS") ---
     const statusDiv = document.getElementById("status-recherche");
     if (statusDiv) {
-        statusDiv.innerHTML = "Consulte les salons ou crée le tien pour combattre !";
+        statusDiv.innerHTML = "PRÊT À COMBATTRE ?";
     }
 
     // --- 🛡️ BLOCAGE DU CHOIX DE CARTES (DECK) ---

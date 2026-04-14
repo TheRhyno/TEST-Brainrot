@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainrot-v43';
+const CACHE_NAME = 'brainrot-v44';
 const ASSETS = [
   'index.html',
   'manifest.json'

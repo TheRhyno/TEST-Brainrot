@@ -1678,6 +1678,13 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 </head>
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
 <body>
 
 
@@ -2671,20 +2678,14 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
             <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Email :</p>
             <p id="userEmail" style="font-weight: bold; margin: 5px 0 20px 0; word-break: break-all;">...</p>
 
-
-
-<div style="text-align: center; margin-top: 15px; margin-bottom: 10px; opacity: 0.6;">
-    <p style="margin: 0; color: #888; font-size: 0.55rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold;">
-        ID Session
-    </p>
-    <p id="userIdDisplay" style="margin: 2px 0 0 0; color: #bbb; font-family: 'Courier New', monospace; font-size: 0.65rem;">
-        ...
-    </p>
-</div>
-
-
-
-
+            <div style="text-align: center; margin-top: 15px; margin-bottom: 10px; opacity: 0.6;">
+                <p style="margin: 0; color: #888; font-size: 0.55rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold;">
+                    ID Session
+                </p>
+                <p id="userIdDisplay" style="margin: 2px 0 0 0; color: #bbb; font-family: 'Courier New', monospace; font-size: 0.65rem;">
+                    ...
+                </p>
+            </div>
 
             <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
 
@@ -2697,7 +2698,79 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
                 <div><p style="color: #60a5fa; font-weight: bold;" id="profileLevelStat2">1</p><p style="color: #aaa; font-size: 0.65rem;">NIVEAU</p></div>
             </div>
 
+
+<div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 15px; margin-bottom: 30px;">
+    
+    <button onclick="genererCarteProfil()" style="width: 95%; max-width: 400px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">
+        <span>📸 Enregistrer ma carte de stats</span>
+    </button>
+
+
 </div>
+
+</div>
+</div>
+
+
+    <div style="display: flex; gap: 12px; width: 95%; max-width: 400px; margin-top: 10px; margin-bottom: 30px;">
+        <button onclick="document.getElementById('accountSection').style.display='none';" style="flex: 1; background:#444; color:white; padding:15px; border-radius:10px; border:0; font-weight:bold; cursor:pointer;">← Retour</button>
+
+    </div>
+ </div>
+
+<div id="profile-card-template" style="position: absolute; left: -9999px; top: -9999px;">
+    <div id="final-profile-card" style="width: 500px; height: 350px; padding: 25px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 4px solid #7c3aed; border-radius: 25px; color: white; font-family: sans-serif; position: relative; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+            <div id="card-avatar-container" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; background: #333; overflow: hidden;"></div>
+            <div>
+                <div style="font-size: 0.8rem; color: #7c3aed; font-weight: bold; letter-spacing: 2px;">PROFIL JOUEUR</div>
+                <div id="card-username" style="font-size: 1.8rem; font-weight: bold;">Pseudo</div>
+            </div>
+        </div>
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.5rem;">📦</div>
+                <div style="font-size: 0.6rem; color: #aaa;">BOOSTERS</div>
+                <div id="card-boosters" style="font-size: 1.2rem; font-weight: bold;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.5rem;">🎴</div>
+                <div style="font-size: 0.6rem; color: #aaa;">COLLECTION</div>
+                <div id="card-cards" style="font-size: 1.2rem; font-weight: bold;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.5rem;">🏆</div>
+                <div style="font-size: 0.6rem; color: #aaa;">NIVEAU</div>
+                <div id="card-level" style="font-size: 1.2rem; font-weight: bold;">1</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.5rem;">🔥</div>
+                <div style="font-size: 0.6rem; color: #aaa;">STREAK</div>
+                <div id="card-streak" style="font-size: 1.2rem; font-weight: bold;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.5rem;">💎</div>
+                <div style="font-size: 0.6rem; color: #aaa;">FRAGMENTS</div>
+                <div id="card-dust" style="font-size: 1.2rem; font-weight: bold; color: #a78bfa;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.5rem;">⚡</div>
+                <div style="font-size: 0.6rem; color: #aaa;">SPEEDIES</div>
+                <div id="card-speed" style="font-size: 1.2rem; font-weight: bold; color: #fbbf24;">0</div>
+            </div>
+
+
+        </div>
+        <div style="position: absolute; bottom: 15px; left: 25px; right: 25px; display: flex; justify-content: space-between; border-top: 1px solid #333; padding-top: 10px; font-size: 0.7rem; color: #666;">
+            <div>Généré le : <span id="card-date"></span></div>
+            <div style="color: #7c3aed; font-weight: bold;">Brainrot TCG</div>
+        </div>
+    </div>
+</div>
+
+
+
 </div>
 
     <div style="display: flex; gap: 12px; width: 95%; max-width: 400px; margin-top: 10px; margin-bottom: 30px;">
@@ -3648,6 +3721,93 @@ disableSite(false);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+window.genererCarteProfil = function() {
+    // 1. Injections de texte
+    document.getElementById("card-username").innerText = document.getElementById("profileName").innerText;
+    document.getElementById("card-boosters").innerText = document.getElementById("profileBoosters").innerText;
+    document.getElementById("card-cards").innerText = document.getElementById("profileCards").innerText;
+    document.getElementById("card-level").innerText = document.getElementById("profileLevelStat2").innerText;
+    document.getElementById("card-streak").innerText = document.getElementById("profileStreak").innerText;
+    document.getElementById("card-dust").innerText = document.getElementById("profileDust").innerText;
+    document.getElementById("card-speed").innerText = document.getElementById("profileSpeedies").innerText;
+    document.getElementById("card-date").innerText = new Date().toLocaleDateString();
+
+    const elAvatar = document.getElementById("card-avatar-container");
+    const sourceImg = document.getElementById("profileBigAvatar");
+    let currentUrl = sourceImg.src;
+
+    // --- MAGIE DU PROXY ---
+    // On passe par un service qui autorise la capture d'image
+    const proxyUrl = "https://images.weserv.nl/?url=";
+    
+    // On nettoie l'URL pour enlever le https:// avant de l'ajouter au proxy
+    let cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+    
+    // On crée l'image de capture
+    const imgClone = new Image();
+    imgClone.crossOrigin = "anonymous"; 
+    
+    // Si c'est un Dicebear SVG, on demande au proxy de le transformer en PNG
+    let finalSource = proxyUrl + cleanUrl;
+    if (currentUrl.includes("dicebear") || currentUrl.includes(".webp") || currentUrl.includes(".svg")) {
+        finalSource += "&output=png";
+    }
+
+    imgClone.src = finalSource;
+
+    imgClone.onload = function() {
+        if(elAvatar) {
+            elAvatar.innerHTML = "";
+            imgClone.style.width = "100%";
+            imgClone.style.height = "100%";
+            imgClone.style.objectFit = "cover";
+            elAvatar.appendChild(imgClone);
+        }
+
+        // On laisse 400ms pour être SÛR que l'image est affichée
+        setTimeout(() => {
+            const finalCard = document.getElementById("final-profile-card");
+            
+            html2canvas(finalCard, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement("a");
+                link.download = `Brainrot_TCG_Stats.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            }).catch(err => {
+                console.error("Erreur capture:", err);
+            });
+        }, 400);
+    };
+
+    imgClone.onerror = function() {
+        alert("Impossible de charger l'avatar pour la capture. Réessaie ou change d'avatar.");
+    };
+};
+
+
+
+
+
+
+
 const showEvent = false; // METTRE À "false" POUR CACHER LE RECTANGLE
 const eventDate = new Date("2026-04-24T20:00:00").getTime();
 
@@ -4419,11 +4579,13 @@ async function updateProfileAvatar(newSrc) {
     // 1. Image du HUD
     const hudImg = document.getElementById('hudAvatar');
     if (hudImg) hudImg.src = newSrc;
-    
+    hudImg.crossOrigin = "anonymous";
+
     // 2. Image du Profil
     const profImg = document.getElementById('profileBigAvatar');
     if (profImg) profImg.src = newSrc;
-    
+    hudImg.crossOrigin = "anonymous";
+
     // 3. Sauvegarde Locale
     localStorage.setItem('userAvatar', newSrc);
 
@@ -10286,6 +10448,17 @@ playPurchaseSound();
 
                     dust -= price;
                     save("dust", dust);
+
+
+const sourceDust = document.getElementById("profileDust");
+    if (sourceDust) {
+        sourceDust.innerText = dust;
+    }
+    // On force la synchro immédiate pour le HUD
+    if (typeof syncSubwayHUD === "function") {
+        syncSubwayHUD();
+    }
+
 
                     if (item.isPack) {
                         // --- AJOUT QUÊTE BOOSTER ---

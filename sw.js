@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainrot-v49';
+const CACHE_NAME = 'brainrot-v50';
 const ASSETS = [
   'index.html',
   'manifest.json'
@@ -30,13 +30,9 @@ self.addEventListener('activate', (e) => {
   return self.clients.claim();
 });
 
-// --- 3. GESTION DES REQUÊTES (Stratégie Network First pour l'installabilité) ---
+// --- 3. GESTION DES REQUÊTES ---
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    // On essaie d'abord de récupérer le fichier sur Internet (Réseau)
-    fetch(e.request).catch(() => {
-      // Si on est hors ligne, on utilise le cache
-      return caches.match(e.request);
-    })
+    caches.match(e.request).then((res) => res || fetch(e.request))
   );
 });

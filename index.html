@@ -2906,7 +2906,7 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
-<div id="install-btn-container" style="display: block; background: linear-gradient(135deg, #3b82f6, #7c3aed); padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
+<div id="install-btn-container" style="display: none; background: linear-gradient(135deg, #3b82f6, #7c3aed); padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
     <p style="margin: 0 0 10px 0; font-size: 0.85rem; font-weight: bold; text-align: center;">L'app est disponible !</p>
     <button onclick="installerLeJeu()" style="width: 100%; padding: 10px; background: white; color: #1e293b; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.3s;">
         📲 Installer l'application
@@ -12264,40 +12264,31 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt;
 const installBox = document.getElementById('install-btn-container');
 
-// --- MODIFICATION : On affiche le bloc par défaut dès le chargement du script ---
-if (installBox && !window.matchMedia('(display-mode: standalone)').matches) {
-    installBox.style.display = 'block';
-}
-
 // 2. Écoute de l'événement d'installation
 window.addEventListener('beforeinstallprompt', (e) => {
-    // On empêche la barre native de Chrome de s'afficher (on garde le contrôle)
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    // Au cas où le bloc était caché, on s'assure qu'il apparaît ici aussi
-    if (installBox && !window.matchMedia('(display-mode: standalone)').matches) {
-        installBox.style.display = 'block';
-    }
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  if (installBox && !window.matchMedia('(display-mode: standalone)').matches) {
+    installBox.style.display = 'block';
+  }
 });
 
 // 3. Fonction pour déclencher l'installation
 async function installerLeJeu() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`Choix utilisateur : ${outcome}`);
-        
-        if (outcome === 'accepted') {
-            if (installBox) installBox.style.display = 'none';
-        }
-        deferredPrompt = null;
-    } else {
-        // Fallback intelligent : si l'événement n'est pas là, on guide l'utilisateur
-        alert("Installation : Clique sur les 3 points (menu) de ton navigateur ou sur l'icône de partage (iOS) et choisis 'Installer' ou 'Sur l'écran d'accueil'.");
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Choix utilisateur : ${outcome}`);
+    
+    if (outcome === 'accepted') {
+      if (installBox) installBox.style.display = 'none';
     }
+    deferredPrompt = null;
+  } else {
+    alert("Pour installer : Clique sur les 3 points (menu) de ton navigateur et choisis 'Installer l'application'.");
+  }
 }
-
 
 // 4. Vérification au chargement et Notifications
 window.addEventListener('load', () => {

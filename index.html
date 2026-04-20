@@ -206,15 +206,44 @@ html, body {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: white;
+  /* On utilise un blanc transparent qui s'efface vers l'extérieur */
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%);
   opacity: 0;
   pointer-events: none;
   z-index: 9999;
-  animation: boosterFlash 0.45s ease-out forwards;
+  animation: cleanFlash 0.4s ease-out forwards;
 }
+
+@keyframes cleanFlash {
+  0% { 
+    opacity: 0;
+    transform: scale(0.8); /* L'éclat part du centre */
+  }
+  15% { 
+    opacity: 1; 
+    transform: scale(1.2); /* Il s'étend vite */
+  }
+  100% { 
+    opacity: 0; 
+    transform: scale(1.5); /* Il s'évapore en s'agrandissant */
+  }
+}
+
 .booster.booster-opening {
-  animation: boosterFlash 0.45s ease-out forwards;
+  /* On fait juste vibrer le booster sans flash blanc dessus */
+  animation: shake 0.15s infinite;
 }
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  25% { transform: translate(-1px, -2px) rotate(-1deg); }
+  50% { transform: translate(-3px, 0px) rotate(1deg); }
+  100% { transform: translate(1px, 1px) rotate(0deg); }
+}
+
+
+
+
 
 .card {
   position: relative;
@@ -959,6 +988,42 @@ body:has(#marketSection[style*="display: block"]) #subway-hud {
 
 
 
+/* --- STYLE DU BOUTON POUR LE MENU DE VENTE --- */
+
+.btn-scroll-style {
+    position: fixed !important;
+    bottom: 20px !important; 
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    
+    background-color: rgba(255, 255, 255, 0.05) !important; 
+    color: rgba(255, 255, 255, 0.3) !important;
+    
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    
+    z-index: 9999999 !important; 
+    font-size: 1.5rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(4px); 
+    transition: all 0.2s ease;
+}
+
+/* Effet au survol identique */
+.btn-scroll-style:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+
+
+
+
 
 
 
@@ -1661,6 +1726,13 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
 
 
 
+
+
+
+
+
+
+
 </style>
 
 <!-- Empêche le cache dans WebView -->
@@ -2029,11 +2101,19 @@ body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
     <div id="selectCardGrid" class="cards">
         </div>
 
+
+
 <div style="height: 120px; width: 100%;"></div>
 
 <p id="noCardMessage" style="display:none; color:#ef4444; margin-top:20px; font-weight:bold;">
         Aucune carte ne correspond à votre recherche. 🧐
     </p>
+
+
+
+<div id="scrollToBottomVente" onclick="descendreVente()" class="btn-scroll-style">
+    ↓
+</div>
 
 
 </div>
@@ -4600,13 +4680,26 @@ function closeAvatarPicker() {
 async function updateProfileAvatar(newSrc) {
     // 1. Image du HUD
     const hudImg = document.getElementById('hudAvatar');
-    if (hudImg) hudImg.src = newSrc;
-    hudImg.crossOrigin = "anonymous";
+    if (hudImg) {
+        // On ne met le crossOrigin QUE pour Dicebear ou les images custom
+        if (newSrc.includes('dicebear') || newSrc.startsWith('data:')) {
+            hudImg.crossOrigin = "anonymous";
+        } else {
+            hudImg.removeAttribute('crossOrigin'); // On l'enlève pour les liens normaux
+        }
+        hudImg.src = newSrc;
+    }
 
     // 2. Image du Profil
     const profImg = document.getElementById('profileBigAvatar');
-    if (profImg) profImg.src = newSrc;
-    hudImg.crossOrigin = "anonymous";
+    if (profImg) {
+        if (newSrc.includes('dicebear') || newSrc.startsWith('data:')) {
+            profImg.crossOrigin = "anonymous";
+        } else {
+            profImg.removeAttribute('crossOrigin');
+        }
+        profImg.src = newSrc;
+    }
 
     // 3. Sauvegarde Locale
     localStorage.setItem('userAvatar', newSrc);
@@ -4639,6 +4732,7 @@ async function updateProfileAvatar(newSrc) {
         }
     }
 }
+
 
 
 // Gère l'importation d'une photo personnalisée (Conserve ton code intact)
@@ -6888,13 +6982,6 @@ function filtrerCartesVente(filtre) {
 
 
 
-function ouvrirSelecteurVente() {
-    document.getElementById('searchSellCard').value = ""; 
-    document.getElementById('noCardMessage').style.display = "none"; // On cache le message
-    
-    document.getElementById('selectCardOverlay').style.display = 'block';
-    chargerMesCartesPourVente(); 
-}
 
 
 
@@ -7090,6 +7177,15 @@ window.recupererCadeauStreak = async function() {
 
 
 
+
+
+
+
+
+
+
+
+
 // Gérer l'affichage des onglets et du bouton de vente
 function afficherOngletMarket(tab) {
     currentMarketTab = tab;
@@ -7125,74 +7221,123 @@ function afficherOngletMarket(tab) {
 
 // 1. Ouvrir le sélecteur de cartes
 function ouvrirSelecteurVente() {
+    // --- PARTIE 1 : INITIALISATION ET NETTOYAGE ---
+    document.getElementById('searchSellCard').value = ""; 
+    document.getElementById('noCardMessage').style.display = "none"; 
+    
+    // On cible l'overlay (c'est lui qui scrolle dans ton HTML)
+    const overlay = document.getElementById('selectCardOverlay');
+    overlay.style.display = 'block';
+
     const grid = document.getElementById('selectCardGrid');
     if (!grid) return;
-    
-    grid.innerHTML = ""; // On vide
-    document.getElementById('selectCardOverlay').style.display = "block";
+    grid.innerHTML = ""; // On vide la grille pour la recharger
 
-    if (collection.length === 0) {
-        grid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94a3b8; border: 2px dashed #4b5563; border-radius: 15px;">
-                <p>Aucune carte disponible.</p>
-            </div>`;
-        return;
+    // --- PARTIE 2 : LOGIQUE DE TRI ET FILTRAGE ---
+    const ordreRarete = {
+        "OG": 8, "Secret": 7, "Brainrot God": 6, "Mythic": 5,
+        "Legendary": 4, "Epic": 3, "Rare": 2, "Commun": 1
+    };
+
+    const listLucky = [
+        "Mythic Lucky Block", "Brainrot God Lucky Block", 
+        "Secret Lucky Block", "Admin Lucky Block"
+    ];
+
+    // Tri par rareté
+    collection.sort((a, b) => {
+        const scoreA = ordreRarete[a.rarity] || 0;
+        const scoreB = ordreRarete[b.rarity] || 0;
+        return scoreB - scoreA;
+    });
+
+    // --- PARTIE 3 : CONFIGURATION DU BOUTON DE SCROLL ---
+    const btnScroll = document.getElementById("scrollToBottomVente");
+    if (btnScroll) {
+        btnScroll.innerText = "↓";
+        btnScroll.style.display = "flex"; 
     }
 
-    collection.forEach((card, index) => {
+    // IMPORTANT : On écoute le scroll sur l'OVERLAY car c'est lui qui a l'overflow
+    overlay.onscroll = function() {
+        if (!btnScroll) return;
+        // Détection du bas sur l'élément overlay
+        const isAtBottom = (overlay.scrollHeight - overlay.scrollTop) <= (overlay.clientHeight + 60);
+        btnScroll.innerText = isAtBottom ? "↑" : "↓";
+    };
+
+    // --- PARTIE 4 : GÉNÉRATION DES CARTES (AVEC FILTRE) ---
+    collection.filter(c => !listLucky.includes(c.rarity)).forEach((card) => {
+        const originalIndex = collection.indexOf(card);
         const cardEl = document.createElement('div');
         
-        // --- STYLE DE LA CARTE : COPIE EXACTE DU MARCHÉ ---
+        // --- AJOUT : DÉTECTION EXCLUSIVITÉ ---
+        const estExclu = (card.rarity === "Exclu Season 1");
+
         cardEl.className = `card r-${card.rarity.toLowerCase().replace(/\s+/g, '-')} market-card-animate`;
-        
-        cardEl.style.display = "flex";
-        cardEl.style.flexDirection = "column";
-        cardEl.style.padding = "12px";
-        cardEl.style.borderRadius = "15px";
-        cardEl.style.background = "#1a1a1a"; // Couleur de fond du marché
-        cardEl.style.border = "1px solid rgba(255,255,255,0.1)";
-        cardEl.style.position = "relative";
-        cardEl.style.height = "auto";
-        cardEl.style.cursor = "pointer";
-        
-        // --- LOGIQUE DE GESTION DES CARTES DÉJÀ EN VENTE ---
-        if (card.enVente) {
-            cardEl.style.opacity = "0.85"; 
+        cardEl.style.cssText = `
+            display: flex; flex-direction: column; padding: 12px; border-radius: 15px;
+            background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1);
+            position: relative; cursor: pointer; min-height: 220px;
+        `;
+
+        if (card.enVente || estExclu) {
+            cardEl.style.opacity = "0.6"; 
             cardEl.style.filter = "grayscale(1)";
             cardEl.style.cursor = "not-allowed";
-            cardEl.onclick = null; 
+            cardEl.onclick = null; // Bloque la vente
         } else {
-            cardEl.onclick = () => choisirPrixVente(index);
+            cardEl.onclick = () => choisirPrixVente(originalIndex);
         }
         
-        // --- HTML INTERNE : SANS LE BOUTON DU BAS ---
         cardEl.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="color: ${getRarityColor(card.rarity)}; text-transform: uppercase; font-weight: 900; font-size: 0.6rem; letter-spacing: 0.5px;">
+                <div style="color: ${getRarityColor(card.rarity)}; text-transform: uppercase; font-weight: 900; font-size: 0.6rem;">
                     ${card.rarity}
                 </div>
-                <div style="background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">
-                    Lvl ${card.level || 1}
-                </div>
+                
+                ${!estExclu ? `
+                    <div style="background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">
+                        Lvl ${card.level || 1}
+                    </div>
+                ` : '<div></div>'}
             </div>
-
-            <div style="width: 100%; height: 140px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; position: relative;">
-                <img src="${card.image}" style="width: 100%; height: 100%; object-fit: contain; ${card.enVente ? 'filter: brightness(0.4) grayscale(1);' : ''}">
+            <div style="width: 100%; height: 120px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; position: relative;">
+                <img src="${card.image}" style="width: 100%; height: 100%; object-fit: contain; ${(card.enVente || estExclu) ? 'filter: brightness(0.4);' : ''}">
                 
                 ${card.enVente ? `
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); background: #ef4444; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 2; border: 1px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5); white-space:nowrap;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); background: #ef4444; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; z-index: 2; border: 1px solid white; white-space:nowrap;">
                         DÉJÀ EN VENTE
                     </div>
+                ` : estExclu ? `
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; z-index: 2; border: 1px solid white; white-space:nowrap;">
+                        CARTE EXCLUSIVE
+                    </div>
                 ` : ''}
+
             </div>
-            
-<div style="text-align: center; margin-bottom: 5px;">
-                <strong style="display:block; font-size: 0.9rem; color: #fff; line-height: 1.2;">${card.name}</strong>
+            <div style="text-align: center;">
+                <strong style="display:block; font-size: 0.85rem; color: #fff; line-height: 1.2;">${card.name}</strong>
             </div>
         `;
-        
         grid.appendChild(cardEl);
     });
+}
+
+
+
+
+function descendreVente() {
+    const overlay = document.getElementById("selectCardOverlay");
+    if (!overlay) return;
+
+    const isAtBottom = (overlay.scrollHeight - overlay.scrollTop) <= (overlay.clientHeight + 60);
+
+    if (isAtBottom) {
+        overlay.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        overlay.scrollTo({ top: overlay.scrollHeight, behavior: 'smooth' });
+    }
 }
 
 
@@ -9311,6 +9456,9 @@ async function lancerLeCombat() {
 
 
 
+
+
+
 async function executerCalculCombat() {
 
 playFightSound();
@@ -9412,10 +9560,23 @@ if (p1Power > p2Power) {
             const possèdeDéjà = collection.some(c => c.name === carteAdversaire.name);
 
             if (possèdeDéjà) {
-                // BONUS DOUBLON : +1000 fragments
-                dust += 1000;
+                // --- AJOUT : GAIN DOUBLON SELON RARETÉ ---
+                const gainsParRarete = {
+                    "Commun": 400,
+                    "Rare": 400,
+                    "Epic": 500,
+                    "Legendary": 600,
+                    "Mythic": 1000,
+                    "Brainrot God": 1500,
+                    "Secret": 2500,
+                    "OG": 5000
+                };
+
+                let bonusDoublon = gainsParRarete[carteAdversaire.rarity] || 1000;
+                dust += bonusDoublon;
+
                 setTimeout(() => {
-                    alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n✨ Tu possèdes déjà cette carte : BONUS +1000 Fragments ! (Total: 1500 💎)`);
+                    alert(`🏆 VICTOIRE !\n+${xpGagne} XP | +500 Fragments.\n✨ Tu possèdes déjà cette carte : BONUS +${bonusDoublon} Fragments pour rareté ${carteAdversaire.rarity} ! (Total : ${500 + bonusDoublon} 💎)`);
                 }, 100);
             } else {
                 // NOUVELLE CARTE : On l'ajoute normalement
@@ -9491,6 +9652,7 @@ if (typeof refreshCollection === "function") refreshCollection();
 
     currentRoomId = null; 
 }
+
 
 
 

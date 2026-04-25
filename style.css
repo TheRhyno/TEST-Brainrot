@@ -152,10 +152,11 @@ html, body {
 .booster img {
   width: 100%;
   height: 100%;
-  object-fit: cover;     /* remplissage complet de la boîte */
+  object-fit: cover;
   display: block;
 }
 
+}
 
 @media (max-width: 768px) { /* mobile/tablette */
   body, * {

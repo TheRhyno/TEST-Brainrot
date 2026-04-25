@@ -1,0 +1,1749 @@
+<style>
+/* Styles généraux */
+body{margin:0;font-family:Arial;background:#0e1525;color:#e8eef7;padding:20px;text-align:center}
+h1{text-align:center;margin:0 0 20px}
+button{padding:10px 14px;border-radius:8px;border:0;background:#7c3aed;color:#fff;cursor:pointer}
+button:disabled{background:#3b3b3b;cursor:not-allowed}
+.section{max-width:700px;margin:auto}
+.cards{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;justify-content:center}
+.card{background:#162037;padding:10px;border-radius:10px;width:140px;text-align:center}
+.card strong{display:block}
+.note{color:#8da0b8;font-size:0.9rem;margin-top:6px}
+#bigCardOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:10000;display:none;flex-direction:column;cursor:pointer}
+#bigCardOverlay img{max-width:60%;border-radius:12px;margin-bottom:15px}
+#bigCardName{color:#fff;font-size:1.5rem;margin-bottom:10px}
+
+/* Animation booster flash */
+@keyframes boosterFlash {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+
+
+
+html, body {
+  /* On garde ton verrouillage de scroll */
+  overflow: hidden; 
+  height: 100%;
+  width: 100%;
+  position: fixed; 
+  margin: 0;
+  padding: 0;
+  -webkit-touch-callout: none; 
+
+  /* --- CONFIGURATION FLEXBOX --- */
+  display: flex;
+  flex-direction: column;   
+  align-items: center;       /* CENTRE EN LARGEUR */
+  justify-content: flex-start; 
+
+  /* Sécurité anti-débordement globale */
+  box-sizing: border-box;
+}
+
+/* On cible les sections qui peuvent être longues */
+#collectionSection, #allCardsSection, #homeSection {
+  width: 100%;        
+  max-width: 100vw;   /* FORCE la section à ne pas dépasser l'écran */
+  height: 100vh;      
+  overflow-y: auto;   
+  overflow-x: hidden; /* COUPE tout ce qui dépasse à droite (les boosters) */
+  padding-bottom: 80px; 
+  box-sizing: border-box; /* Inclus le padding dans le calcul des 100% */
+  
+  /* Fluidité mobile */
+  -webkit-overflow-scrolling: touch; 
+  touch-action: pan-y; 
+}
+
+
+
+/* Optionnel : Si tu veux que le Shop scrolle aussi s'il y a trop d'objets */
+#shopSection {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+
+@media (max-width: 600px) {
+    body { padding: 10px; }
+    .cards { gap: 6px; justify-content: center; }
+    .card { width: 90%; max-width: none; } /* prend presque toute la largeur en mobile */
+    button { padding: 8px 12px; font-size: 0.9rem; }
+    #searchCard { width: 90%; max-width: 300px; }
+}
+
+@media (max-width: 400px) {
+    #authOverlay input { font-size: 0.9rem; padding: 10px; }
+    #authOverlay button { font-size: 0.9rem; padding: 8px 0; width: 90%; }
+    #authOverlay h2 { font-size: 1.2rem; }
+}
+
+
+#authOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(14,21,37,0.95); /* un léger fondu */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* scroll si écran trop petit */
+    text-align: center;
+    z-index: 9999;
+}
+
+#authOverlay h2 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+#authOverlay input {
+    width: 90%; /* prend presque toute la largeur écran */
+    max-width: 320px; /* limite pour grands écrans */
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+}
+
+#authOverlay button {
+    width: 45%; /* deux boutons côte à côte */
+    max-width: 140px;
+    padding: 10px 0;
+    margin: 5px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+
+
+
+@media (max-width: 480px) {
+#choosePackArea {
+  display: flex;
+  justify-content: space-between; /* espace entre boosters */
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: nowrap; /* on reste sur une seule ligne */
+}
+
+.booster {
+  flex: 1 1 0;           /* prend tout l’espace disponible également */
+  max-width: calc((100% - 20px) / 3); /* 3 boosters avec gap */
+  height: auto;
+  aspect-ratio: 150 / 220;  /* garde les proportions du booster */
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.booster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;     /* remplissage complet de la boîte */
+  display: block;
+}
+
+
+@media (max-width: 768px) { /* mobile/tablette */
+  body, * {
+    user-select: none;       /* Empêche la sélection du texte */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+}
+
+
+
+#disableOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.98); 
+    color: #fff;
+    
+    /* Centrage parfait PC/Mobile */
+    display: none; /* Ton JS passera ça en 'flex' */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    
+    /* On écrase le z-index des news (100000) */
+    z-index: 9999999 !important; 
+    
+    padding: 20px;
+    box-sizing: border-box;
+    font-size: 1.5rem;
+    pointer-events: all; 
+}
+
+
+
+.flash-effect {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  /* On utilise un blanc transparent qui s'efface vers l'extérieur */
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  animation: cleanFlash 0.4s ease-out forwards;
+}
+
+@keyframes cleanFlash {
+  0% { 
+    opacity: 0;
+    transform: scale(0.8); /* L'éclat part du centre */
+  }
+  15% { 
+    opacity: 1; 
+    transform: scale(1.2); /* Il s'étend vite */
+  }
+  100% { 
+    opacity: 0; 
+    transform: scale(1.5); /* Il s'évapore en s'agrandissant */
+  }
+}
+
+.booster.booster-opening {
+  /* On fait juste vibrer le booster sans flash blanc dessus */
+  animation: shake 0.15s infinite;
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  25% { transform: translate(-1px, -2px) rotate(-1deg); }
+  50% { transform: translate(-3px, 0px) rotate(1deg); }
+  100% { transform: translate(1px, 1px) rotate(0deg); }
+}
+
+
+
+
+
+.card {
+  position: relative;
+}
+
+.new-label {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff69b4;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 6px;
+  z-index: 10;
+}
+.card-wrapper {
+  position: relative; /* nécessaire pour positionner le label au-dessus de la carte */
+}
+
+
+/* --- Taille standard type carte Pokémon --- */
+.card {
+    width: 180px;
+    height: 260px;
+    background: #162037;
+    border-radius: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #fff; /* à adapter selon rareté */
+}
+
+.card img {
+    width: calc(100% - 10px);  /* laisse 5px de chaque côté */
+    height: 50%;                /* exactement la moitié de la carte */
+    object-fit: contain;        /* garde les proportions sans étirer */
+    display: block;
+    margin: 5px auto 10px auto; /* petit espace en haut et entre image/nom */
+    border-radius: 8px;
+}
+
+
+
+/* Contours par rareté */
+.r-Commun      { border-color: #b0b0b0; }   /* gris */
+.r-Rare   { border-color: #3cb043; }   /* vert */
+.r-Epic       { border-color: #a335ee; }   /* bleu */
+.r-Legendary { border-color: #FFD700; }
+.r-Mythic  { border-color: #FF8C00; }   /* orange */
+.r-Brainrot-God  { border-color: #FF4500; }
+.r-Secret  { border-color: #DA70D6; }
+.r-OG  { border-color: #00FFFF; }
+
+
+
+/* Carte grand format pendant l'ouverture du booster */
+.big-card {
+    width: 260px;
+    height: 380px;
+    background: #162037;
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+    border: 6px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.big-card img {
+    display: block;
+    margin: 0 auto 12px auto;  /* centre l’image */
+    max-width: 100%;           /* évite seulement de dépasser la carte */
+    height: auto;              /* conserve la vraie proportion */
+    border-radius: 10px;
+}
+
+
+
+/* Couleur du nom des cartes selon la rareté */
+
+/* --- Couleur du texte pour les petites cartes --- */
+.r-Commun strong { color: #b0b0b0; }
+.r-Rare strong { color: #3cb043; }
+.r-Epic strong { color: #a335ee; }
+.r-Legendary strong { color: #FFD700; }
+.r-Mythic strong { color: #FF8C00; }
+.r-Brainrot-God strong { color: #FF4500; }
+.r-Secret strong { color: #DA70D6; }
+.r-OG strong { color: #00FFFF; }
+
+/* --- Bordure pour grandes cartes --- */
+.big-Commun { border-color: #b0b0b0; }
+.big-Rare { border-color: #3cb043; }
+.big-Epic { border-color: #a335ee; }
+.big-Legendary { border-color: #FFD700; }
+.big-Mythic { border-color: #FF8C00; }
+.big-Brainrot-God { border-color: #FF4500; }
+.big-Secret { border-color: #DA70D6; }
+.big-OG { border-color: #00FFFF; }
+
+/* --- Texte pour grandes cartes --- */
+.big-Commun strong { color: #b0b0b0; }
+.big-Rare strong { color: #3cb043; }
+.big-Epic strong { color: #a335ee; }
+.big-Legendary strong { color: #FFD700; }
+.big-Mythic strong { color: #FF8C00; }
+.big-Brainrot-God strong { color: #FF4500; }
+.big-Secret strong { color: #DA70D6; }
+.big-OG strong { color: #00FFFF; }
+
+/* --- Badge pourcentage selon rareté --- */
+.rarity-indicator {
+    position: absolute;
+    bottom: 5px;  /* en bas */
+    right: 5px;   /* à droite */
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    pointer-events: none;
+    color: #fff;
+    background: #555; /* fallback */
+}
+
+.rarity-indicator.r-OG {
+    background: rgba(0,0,0,0.6); /* fond semi-transparent pour OG */
+    color: #fff;
+}
+
+/* Couleur selon rareté */
+.rarity-indicator.r-Commun { background: #b0b0b0; }
+.rarity-indicator.r-Rare { background: #3cb043; }
+.rarity-indicator.r-Epic { background: #a335ee; }
+.rarity-indicator.r-Legendary { background: #FFD700; color: #000; }
+.rarity-indicator.r-Mythic { background: #FF8C00; }
+.rarity-indicator.r-Brainrot-God { background: #FF4500; }
+.rarity-indicator.r-Secret { background: #DA70D6; }
+.rarity-indicator.r-OG { background: #00FFFF; color: #000; }
+
+
+#dustDisplay {
+  display: none;
+}
+
+
+
+
+
+/* --- Contours pour les 4 Lucky Blocks (Petites Cartes) --- */
+.r-Mythic-Lucky-Block { border-color: #FF8C00; box-shadow: 0 0 10px #FF8C00; }
+.r-Brainrot-God-Lucky-Block { border-color: #007BFF; box-shadow: 0 0 15px #007BFF; }
+.r-Secret-Lucky-Block { border-color: #8A2BE2; box-shadow: 0 0 20px #8A2BE2; animation: glow-white 2s infinite alternate; }
+.r-Admin-Lucky-Block { border-color: #ff0000; box-shadow: 0 0 25px #ff0000; animation: glitch-admin 0.4s infinite; }
+
+/* --- Couleurs du texte (Petites Cartes) --- */
+.r-Mythic-Lucky-Block strong { color: #FF8C00; }
+.r-Brainrot-God-Lucky-Block strong { color: #007BFF; }
+.r-Secret-Lucky-Block strong { color: #8A2BE2; text-shadow: 0 0 5px #8A2BE2; }
+.r-Admin-Lucky-Block strong { color: #ff0000; text-shadow: 0 0 8px #ff0000; }
+
+/* --- Bordures pour Grandes Cartes (Ouverture Booster) --- */
+.big-Mythic-Lucky-Block { border-color: #FF8C00; box-shadow: 0 0 30px #FF8C00; }
+.big-Brainrot-God-Lucky-Block { border-color: #007BFF; box-shadow: 0 0 40px #007BFF; }
+.big-Secret-Lucky-Block { border-color: #8A2BE2; box-shadow: 0 0 50px #8A2BE2; }
+.big-Admin-Lucky-Block { border-color: #ff0000; box-shadow: 0 0 60px #ff0000; }
+
+/* --- Texte pour Grandes Cartes --- */
+.big-Mythic-Lucky-Block strong { color: #FF8C00; }
+.big-Brainrot-God-Lucky-Block strong { color: #007BFF; }
+.big-Secret-Lucky-Block strong { color: #8A2BE2; }
+.big-Admin-Lucky-Block strong { color: #ff0000; }
+
+/* --- Badges de rareté --- */
+.rarity-indicator.r-Mythic-Lucky-Block { background: #FF8C00; color: #000; }
+.rarity-indicator.r-Brainrot-God-Lucky-Block { background: #007BFF; color: #fff; }
+.rarity-indicator.r-Secret-Lucky-Block { background: #8A2BE2; color: #000; }
+.rarity-indicator.r-Admin-Lucky-Block { background: #ff0000; color: #fff; }
+
+/* --- Animations Spéciales --- */
+@keyframes glow-white {
+    from { box-shadow: 0 0 5px #DA70D6; }
+    to { box-shadow: 0 0 25px #DA70D6; }
+}
+
+@keyframes glitch-admin {
+    0% { transform: translate(0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0); }
+}
+
+
+
+
+
+/* Couleur de la bordure et lueur de la carte */
+.card.r-Exclu-Season-1 {
+    border: 3px solid #ff00ff; /* Rose néon / Violet */
+    box-shadow: 0 0 15px #ff00ff, inset 0 0 10px rgba(255, 0, 255, 0.2);
+    background: linear-gradient(145deg, #162037, #2a1b3d); /* Fond légèrement violacé */
+}
+
+/* Couleur du texte de rareté (en haut ou en bas) */
+.r-Exclu-Season-1 .rarity-indicator, 
+.card.r-Exclu-Season-1 div[style*="color:#ccc"] {
+    color: #ff00ff !important; /* On force la couleur rose néon */
+    text-shadow: 0 0 5px #ff00ff;
+    font-weight: 900;
+}
+
+/* Effet de brillance spécial pour les exclus */
+.card.r-Exclu-Season-1::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    animation: shineExclu 3s infinite;
+}
+
+@keyframes shineExclu {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+
+
+
+/* --- RARETÉ EXCLU PÂQUES 2026 --- */
+
+/* Couleur de la bordure et lueur de la carte */
+.card.r-Exclu-Pâques-2026 {
+    border: 3px solid #ffeb3b; /* Jaune Poussin */
+    box-shadow: 0 0 15px #ffeb3b, inset 0 0 10px rgba(255, 235, 59, 0.3);
+    background: linear-gradient(145deg, #2d1b0d, #4e342e); /* Fond marron chocolat doux */
+}
+
+/* Couleur du texte de rareté */
+.r-Exclu-Pâques-2026 .rarity-indicator, 
+.card.r-Exclu-Pâques-2026 div[style*="color:#ccc"] {
+    color: #ffeb3b !important; /* Jaune vif */
+    text-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+    font-weight: 900;
+}
+
+/* Effet de brillance spécial (Arc-en-ciel Pastel) */
+.card.r-Exclu-Pâques-2026::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    /* Dégradé de Pâques : Rose, Bleu ciel, Jaune, Vert menthe */
+    background: linear-gradient(
+        45deg, 
+        transparent, 
+        rgba(255, 182, 193, 0.3), /* Rose */
+        rgba(135, 206, 250, 0.3), /* Bleu */
+        rgba(255, 255, 224, 0.3), /* Jaune */
+        rgba(152, 251, 152, 0.3), /* Vert */
+        transparent
+    );
+    transform: rotate(45deg);
+    animation: shinePaques 4s infinite ease-in-out;
+    pointer-events: none;
+}
+
+/* Animation de brillance plus douce pour Pâques */
+@keyframes shinePaques {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+
+
+
+
+
+
+
+/* Animation OG avec overlay qui bloque tout */
+#ogAnimation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  pointer-events: all; /* on capture le clic ici */
+  user-select: none;
+}
+
+#ogText {
+  font-size: 80px;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow:
+    0 0 20px #00ffff,
+    0 0 40px #00ffff,
+    0 0 80px #00ffff;
+  animation: ogText 1.5s ease-out;
+}
+
+@keyframes ogText {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+
+
+/* L'overlay qui prend tout l'écran et bloque les clics */
+#secretAnimation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Fond violet très sombre transparent */
+  background: rgba(40, 0, 80, 0.9); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30000; /* Encore plus haut que tout le reste */
+  pointer-events: all; /* Bloque les interactions avec le reste du site */
+  user-select: none;
+}
+
+/* Le texte Secret avec l'effet néon violet/blanc */
+#secretText {
+  font-size: 80px;
+  font-weight: bold;
+  color: #ff00ff; /* Magenta électrique */
+  text-align: center;
+  text-shadow:
+    0 0 20px #ff00ff,
+    0 0 40px #ff00ff,
+    0 0 80px #ffffff;
+  /* Utilise la même animation que ton OG pour l'entrée */
+  animation: secretEntry 1.5s ease-out;
+}
+
+/* On reprend la même logique d'animation que pour l'OG */
+@keyframes secretEntry {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+
+
+
+
+
+#maintenanceOverlay {
+    display: none; /* Caché par défaut */
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.98);
+    
+    /* --- SOLUTION : On met un chiffre plus haut que le newsOverlay (100000) --- */
+    z-index: 2000000 !important; 
+    
+    color: white;
+    
+    /* Centrage total */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    font-family: sans-serif;
+    
+    /* On bloque tous les clics derrière */
+    pointer-events: all; 
+}
+
+#maintenanceOverlay h1 {
+    color: #ff4444;
+    font-size: clamp(1.8rem, 5vw, 3rem); 
+    margin: 0 0 20px 0;
+}
+
+#maintenanceOverlay p {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+}
+
+.error-box {
+    display: inline-block;
+    padding: 12px 20px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    background: #1a1a1a;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+
+  // Force le rechargement si la page est restaurée depuis le cache
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
+
+
+
+
+
+.quest-btn {
+    position: fixed !important;
+    bottom: 100px !important;
+    right: 20px !important;
+    width: 65px !important;
+    height: 65px !important;
+    background: #7c3aed !important; /* Violet */
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 30px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+    z-index: 9999 !important;
+    border: 3px solid #fff !important;
+    transition: transform 0.1s ease !important;
+}
+
+/* L'effet de clic qui fonctionne enfin */
+.quest-btn:active {
+    transform: scale(0.9) !important;
+}
+
+/* TECHNIQUE DE DISPARITION : On cache le bouton ET le profil/argent (subway-hud) quand un menu est ouvert */
+body:has(#questOverlay[style*="display: flex"]) .quest-btn,
+body:has(#questOverlay[style*="display: block"]) .quest-btn,
+body:has(#questOverlay[style*="display: flex"]) #subway-hud,
+body:has(#questOverlay[style*="display: block"]) #subway-hud,
+body:has(#lobby-overlay[style*="display: block"]) .quest-btn,
+body:has(#lobby-overlay[style*="display: block"]) #subway-hud,
+body:has(#marketSection[style*="display: block"]) .quest-btn,
+body:has(#marketSection[style*="display: block"]) #subway-hud,
+body:has(#bpOverlay[style*="display: flex"]) .quest-btn,
+body:has(#bpOverlay[style*="display: flex"]) #subway-hud,
+body:has(#bpOverlay[style*="display: block"]) .quest-btn,
+body:has(#bpOverlay[style*="display: block"]) #subway-hud {
+    display: none !important;
+}
+
+
+
+
+
+
+
+
+
+.floating-market-btn {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%; /* C'est ça qui fait le rond */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Pour passer devant tout le reste */
+    
+    /* Le reste de ton style */
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    border: 3px solid #fff;
+    cursor: pointer;
+}
+
+.floating-market-btn:active { transform: scale(0.9); }
+
+/* Style de la page Marché Plein Écran */
+/* 1. On s'assure que le Marché a la priorité maximale */
+#marketSection {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: #0e1525 !important;
+    z-index: 1000000 !important;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+    display: none;
+}
+
+/* 2. LA TECHNIQUE : On cache le HUD quand le marché est visible */
+/* Si le style du marché n'est PAS "display: none", alors on dégage le HUD */
+#marketSection:not([style*="display: none"]) ~ #subway-hud,
+#marketSection:not([style*="display: none"]) + #subway-hud {
+    display: none !important;
+}
+
+/* Sécurité pour forcer la disparition via le body */
+body:has(#marketSection[style*="display: block"]) #subway-hud {
+    display: none !important;
+}
+
+
+
+.back-btn-market {
+    position: sticky;
+    top: 0;
+    left: 0;
+    background: #4b5563;
+    margin-bottom: 20px;
+    z-index: 2001;
+}
+
+
+/* Badge de prix sur les cartes */
+.market-price-tag {
+    background: #fbbf24;
+    color: #000;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin: 5px 0;
+    display: inline-block;
+}
+
+
+
+
+/* On force les menus de vente à passer DEVANT le marché (qui est à 1 000 000) */
+#selectCardOverlay, #sellOverlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.9) !important; /* Fond bien noir pour cacher le marché derrière */
+    
+    /* LE FIX : On met une valeur supérieure à 1 000 000 */
+    z-index: 2000000 !important; 
+    
+    display: none; /* Toujours caché par défaut */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* On s'assure que le contenu interne est bien visible */
+#sellOverlay .overlay-content, #selectCardOverlay .overlay-content {
+    background: #162037;
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 400px;
+    width: 90%;
+    border: 2px solid #7c3aed;
+}
+
+
+
+
+
+
+#combatSection {
+    display: none; 
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+
+
+    margin-top: 0px;    /* Remplacé -20px par 0px pour libérer de l'espace */
+    padding-top: 60px;  /* Ajout de 60px pour passer sous la barre de navigation */
+    
+    height: auto; 
+    padding-bottom: 100px; 
+    box-sizing: border-box;
+}
+
+
+
+/* On réduit l'espace entre le titre et l'arène */
+#battle-info {
+    font-size: 0.85rem;
+    margin: 2px 0 8px 0; /* Marge très petite */
+    font-weight: bold;
+    color: #4ade80;
+}
+
+.arena-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    
+    /* On réduit la taille de l'arène pour qu'elle prenne moins de place verticale */
+    height: 160px; 
+    margin: 0 auto; /* Pas de marge en haut/bas pour coller au titre */
+}
+
+#player-slot, #opponent-slot {
+    width: 120px;
+    height: 160px; 
+    border: 2px dashed #4b5563;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(22, 32, 55, 0.6);
+}
+
+#btn-start-fight {
+    width: 90%;
+    max-width: 300px;
+    height: 48px;
+    margin-top: 15px; /* Juste un petit espace après les cartes */
+    
+    background: linear-gradient(135deg, #ef4444, #7c3aed);
+    border: 2px solid #fff;
+    border-radius: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+
+
+
+#scrollToBottom {
+    position: fixed !important;
+    bottom: 110px !important; 
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    
+    /* Fond totalement invisible au repos */
+    background-color: rgba(255, 255, 255, 0.05) !important; 
+    color: rgba(255, 255, 255, 0.3) !important; /* Flèche très discrète */
+    
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    
+    z-index: 9999999 !important; 
+    font-size: 1.5rem !important;
+    
+    /* Une bordure presque invisible pour le deviner */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    
+    /* Effet de flou derrière pour qu'il reste lisible peu importe la carte */
+    backdrop-filter: blur(4px); 
+    
+    transition: all 0.2s ease;
+}
+
+/* Il s'allume seulement quand tu passes dessus */
+#scrollToBottom:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+
+
+/* --- STYLE DU BOUTON POUR LES CHANCES D'OBTENTION --- */
+#scrollToBottomChances {
+    position: fixed !important;
+    bottom: 110px !important; 
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    
+    /* Fond totalement invisible au repos */
+    background-color: rgba(255, 255, 255, 0.05) !important; 
+    color: rgba(255, 255, 255, 0.3) !important; /* Flèche très discrète */
+    
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    
+    z-index: 9999999 !important; 
+    font-size: 1.5rem !important;
+    
+    /* Une bordure presque invisible pour le deviner */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    
+    /* Effet de flou derrière */
+    backdrop-filter: blur(4px); 
+    
+    transition: all 0.2s ease;
+}
+
+/* Il s'allume seulement quand tu passes dessus */
+#scrollToBottomChances:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+
+
+
+/* --- STYLE DU BOUTON POUR LE MENU DE VENTE --- */
+
+.btn-scroll-style {
+    position: fixed !important;
+    bottom: 20px !important; 
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    
+    background-color: rgba(255, 255, 255, 0.05) !important; 
+    color: rgba(255, 255, 255, 0.3) !important;
+    
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    
+    z-index: 9999999 !important; 
+    font-size: 1.5rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(4px); 
+    transition: all 0.2s ease;
+}
+
+/* Effet au survol identique */
+.btn-scroll-style:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+
+
+
+
+
+
+
+
+#accountSection {
+    overflow-x: hidden;   /* Interdit le défilement horizontal */
+    overflow-y: auto;     /* Autorise le défilement vertical si besoin */
+    width: 100vw;         /* Force la largeur à celle de l'écran */
+    position: fixed;      /* Ou absolute selon ta structure */
+    left: 0;
+    top: 0;
+}
+
+
+
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #1e293b;
+    border-top: 5px solid #7c3aed; /* Ta couleur violette */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animation pour faire disparaître l'écran en douceur */
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+
+
+
+
+/* 1. On donne au Battle Pass la priorité absolue sur l'écran */
+#bpOverlay {
+    display: none; /* Changé en flex par ton JS */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: #000 !important; /* Noir total pour masquer le fond */
+    z-index: 2147483647 !important; /* Maximum technique */
+    
+    /* AJOUT DE L'ANIMATION FLUIDE */
+    animation: slideUpBP 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Définition de l'animation (Glissement vers le haut + apparition) */
+@keyframes slideUpBP {
+    from { 
+        transform: translateY(100%); /* Commence en bas de l'écran */
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0); /* Arrive à sa position normale */
+        opacity: 1;
+    }
+}
+
+
+
+
+/* 2. L'ASTUCE : Si le Battle Pass n'est PAS en "display: none", on cache le HUD */
+#bpOverlay:not([style*="display: none"]) ~ #subway-hud,
+#bpOverlay:not([style*="display: none"]) + #subway-hud {
+    display: none !important;
+}
+
+/* 3. Sécurité : Si ton HUD est APRES le BP dans le code HTML */
+body:has(#bpOverlay[style*="display: flex"]) #subway-hud {
+    display: none !important;
+}
+
+
+
+
+
+/* Le conteneur principal des récompenses */
+.bp-container {
+    width: 100%;
+    max-width: 450px; /* Largeur max pour mobile */
+    background: #111827; /* Fond sombre de la liste */
+    position: relative;
+    margin-top: 80px; /* Espace pour le header */
+    padding-bottom: 20px;
+}
+
+/* La ligne verticale du milieu (jaune) */
+.bp-middle-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 6px;
+    background: #fbbf24; /* Couleur jaune doré */
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Style d'une ligne de récompense (Gratuit - Lvl - Premium) */
+.bp-level-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px; /* Hauteur de chaque palier */
+    position: relative;
+    margin-bottom: 10px;
+    z-index: 2;
+}
+
+/* Le cercle du niveau au milieu */
+.bp-level-circle {
+    width: 50px; height: 50px;
+    background: #fbbf24;
+    color: black;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: bold; font-size: 1.2em;
+    border: 4px solid #111827;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* Les slots de récompenses (communs aux deux côtés) */
+.bp-slot {
+    flex: 1;
+    height: 100%;
+    border-radius: 15px;
+    margin: 0 10px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+/* === CÔTÉ GRATUIT (GAUCHE) === */
+.bp-slot-free {
+    background: rgba(55, 65, 81, 0.8); /* Gris/Bleu sombre */
+    border-color: #4b5563;
+}
+.bp-slot-free.unlocked {
+    background: #374151; /* Plus clair quand débloqué */
+    border-color: #10b981; /* Bordure verte */
+}
+
+/* === CÔTÉ PREMIUM (DROITE) === */
+.bp-slot-prem {
+    background: rgba(31, 41, 55, 0.9); /* Très sombre si bloqué */
+    border-color: #374151;
+}
+.bp-slot-prem.unlocked {
+    /* Dégradé doré quand débloqué */
+    background: linear-gradient(135deg, #f59e0b, #d97706); 
+    border-color: #fff; /* Bordure blanche */
+    color: black; /* Texte noir sur fond doré */
+}
+
+/* Icône de cadenas pour les récompenses bloquées */
+.lock-icon {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 1.2em;
+}
+
+
+
+
+
+@keyframes cardShake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake-anim {
+    animation: cardShake 0.5s;
+    animation-iteration-count: infinite;
+}
+
+
+
+
+
+
+
+/* --- NOUVEAU DESIGN INTERFACE (STYLE SUBWAY) --- */
+.main-dashboard-header {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 10000;
+    pointer-events: none; /* Permet de cliquer à travers le vide */
+}
+.main-dashboard-header * { pointer-events: auto; } /* Réactive le clic sur les boutons */
+
+/* Profil Haut Gauche */
+.profile-badge {
+    display: flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 4px 15px 4px 4px;
+    border-radius: 40px 15px 15px 40px;
+    border: 2px solid #7c3aed;
+    width: fit-content;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+.profile-avatar-container { position: relative; width: 45px; height: 45px; }
+.profile-avatar-container img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; background: #1e293b; }
+.level-tag {
+    position: absolute; bottom: -5px; right: -2px; background: #f59e0b; color: black;
+    font-weight: 900; padding: 1px 6px; border-radius: 6px; border: 2px solid white; font-size: 11px;
+}
+
+/* HUD Haut Droite */
+.top-right-hud { position: absolute; top: 0; right: 0; display: flex; gap: 8px; align-items: center; }
+.resource-item {
+    background: rgba(15, 23, 42, 0.85); padding: 6px 12px; border-radius: 12px;
+    border: 2px solid #334155; color: white; font-weight: bold; display: flex; align-items: center; gap: 6px; font-size: 14px;
+}
+
+/* Mini Pass (Rectangle vert) */
+.mini-bp-card {
+    margin-top: 10px; background: linear-gradient(90deg, #10b981, #059669);
+    width: 150px; padding: 8px; border-radius: 12px; border: 2px solid #064e3b;
+    box-shadow: 0 4px 0 #064e3b; cursor: pointer;
+}
+.mini-bp-title { font-size: 10px; font-weight: 900; color: white; text-transform: uppercase; margin-bottom: 4px; }
+.mini-bp-progress { display: flex; align-items: center; gap: 6px; }
+.mini-bar { flex: 1; height: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+#miniBPFill { height: 100%; background: #fbbf24; width: 0%; transition: width 0.5s; }
+
+
+
+
+
+
+
+/* Ajoute de l'espace en bas de TOUTES tes sections pour ne pas que le menu cache le contenu */
+#homeSection, 
+#collectionSection, 
+#allCardsSection, 
+#shopSection, 
+#combatSection {
+    padding-bottom: 110px !important; 
+}
+
+
+
+
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ef4444; /* Rouge quand OFF */
+  transition: .4s;
+  border-radius: 34px;
+}
+
+/* Le petit rond blanc */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+/* Changement de couleur en VERT quand on clique */
+input:checked + .slider {
+  background-color: #22c55e !important; /* VERT quand ON */
+}
+
+/* Déplacement du rond blanc */
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+
+
+
+
+
+
+/* Animation de transition douce */
+.section-fade {
+    animation: fadeInSimple 0.4s ease-out forwards;
+}
+
+@keyframes fadeInSimple {
+    from { 
+        opacity: 0; 
+    }
+    to { 
+        opacity: 1; 
+    }
+}
+
+
+
+
+
+
+/* 1. On s'assure que le Lobby est bien positionné et opaque */
+#lobby-overlay {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(14, 21, 37, 0.98) !important;
+    z-index: 2000000 !important; /* Déjà très haut, on le verrouille */
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* 2. LA TECHNIQUE : Cache le HUD quand le Lobby est ouvert */
+#lobby-overlay:not([style*="display: none"]) ~ #subway-hud,
+#lobby-overlay:not([style*="display: none"]) + #subway-hud {
+    display: none !important;
+}
+
+/* Sécurité supplémentaire via le body */
+body:has(#lobby-overlay[style*="display: block"]) #subway-hud {
+    display: none !important;
+}
+
+
+
+
+
+
+/* ANIMATIONS D'ENTRÉE */
+    @keyframes slideInUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeInOverlay {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    /* ANIMATIONS DE SORTIE (INVERSE) */
+    @keyframes fadeOutDown {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(20px); opacity: 0; }
+    }
+    @keyframes fadeOutOverlay {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+
+    /* CLASSES D'ENTRÉE */
+    .lobby-animate {
+        animation: fadeInOverlay 0.3s ease-out forwards;
+    }
+    .lobby-content-animate {
+        animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    /* CLASSES DE SORTIE (À AJOUTER) */
+    .lobby-exit-animate {
+        animation: fadeOutOverlay 0.3s ease-in forwards;
+    }
+    .lobby-content-exit-animate {
+        animation: fadeOutDown 0.3s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+    }
+
+
+
+
+
+
+@keyframes marketCardPop {
+    0% { 
+        opacity: 0; 
+        transform: scale(0.7) translateY(20px); 
+    }
+    100% { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+}
+
+.market-card-animate {
+    opacity: 0; /* Empêche le flash avant l'animation */
+    animation: marketCardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+
+
+
+
+
+/* Animation de fond (entrée) */
+@keyframes questFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Animation de fond (sortie) */
+@keyframes questFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.quest-overlay-animate {
+    animation: questFadeIn 0.3s ease-out forwards;
+}
+
+.quest-exit-animate {
+    animation: questFadeOut 0.3s ease-in forwards;
+}
+
+
+
+
+
+@keyframes profilePop {
+    0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.profile-animate {
+    animation: profilePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+
+
+
+
+
+
+
+
+/* Animation du fond noir (Overlay) */
+@keyframes fadeInSettings {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Animation de la fenêtre (Pop-in) */
+@keyframes popSettings {
+    from { 
+        transform: scale(0.85) translateY(20px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: scale(1) translateY(0); 
+        opacity: 1; 
+    }
+}
+
+/* On applique l'animation au menu quand il passe en display: flex */
+#settingsMenu {
+    animation: fadeInSettings 0.3s ease-out;
+    
+    /* AJOUT POUR LE SCROLL : */
+    overflow-y: auto; /* Active le défilement vertical */
+    padding: 20px 0;  /* Sécurité pour ne pas coller aux bords en scrollant */
+}
+
+/* On cible la div enfant (le rectangle bleu) pour l'effet de pop */
+#settingsMenu > div {
+    animation: popSettings 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* AJOUT POUR LE SCROLL : */
+    flex-shrink: 0; /* Empêche le menu de se compresser pour tenir dans l'écran */
+}
+
+/* Animation de sortie pour le fond */
+@keyframes fadeOutSettings {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Animation de sortie pour le contenu (rétrécissement) */
+@keyframes popOutSettings {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(0.9); opacity: 0; }
+}
+
+/* Classe appliquée par le JS lors de la fermeture */
+.menu-closing {
+    animation: fadeOutSettings 0.3s ease-in forwards !important;
+    pointer-events: none; /* Empêche de cliquer pendant la fermeture */
+}
+
+.menu-closing > div {
+    animation: popOutSettings 0.3s ease-in forwards !important;
+}
+
+
+
+
+
+
+
+
+/* Animation de sortie : le menu glisse vers le bas de l'écran */
+@keyframes slideDownBP {
+    from { 
+        transform: translateY(0); 
+        opacity: 1; 
+    }
+    to { 
+        transform: translateY(100%); 
+        opacity: 0; 
+    }
+}
+
+/* La classe appliquée par le JavaScript lors de la fermeture */
+.bp-closing {
+    pointer-events: none; /* Empêche de cliquer sur les récompenses pendant qu'il se ferme */
+    animation: fadeOut 0.4s ease-in forwards !important; /* Pour le fond noir */
+}
+
+/* On cible la boîte de contenu à l'intérieur de l'overlay pour la faire glisser */
+.bp-closing > div {
+    animation: slideDownBP 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Si tu n'as pas encore l'animation de fondu pour le fond noir */
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+
+
+
+
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes cardPopOut {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+
+
+
+@keyframes confettiFall {
+    0% { transform: translateY(0) translateX(0) rotateX(0deg) rotateY(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) translateX(var(--dx)) rotateX(var(--rx)) rotateY(var(--ry)); opacity: 0; }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 1000000; /* Par-dessus tout */
+    animation: confettiFall 4s ease-out forwards;
+}
+
+
+
+
+
+
+
+
+
+.btn-rainbow {
+    padding: 10px;
+    /* Création du dégradé arc-en-ciel */
+    background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+    background-size: 400% 400%; /* On agrandit le fond pour pouvoir le faire bouger */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Pour que le texte soit lisible */
+    
+    /* Animation */
+    animation: rainbow-animation 5s ease infinite;
+    transition: transform 0.2s;
+}
+
+/* Effet de clic pour le fun */
+.btn-rainbow:active {
+    transform: scale(0.95);
+}
+
+/* L'animation qui fait défiler les couleurs */
+@keyframes rainbow-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+
+
+
+
+
+
+
+
+/* Animation de préparation */
+.prepare-p1 { animation: prepare-p1 0.5s forwards; }
+.prepare-p2 { animation: prepare-p2 0.5s forwards; }
+
+@keyframes prepare-p1 {
+    100% { transform: translateX(20px) rotate(10deg); }
+}
+@keyframes prepare-p2 {
+    100% { transform: translateX(-20px) rotate(-10deg); }
+}
+
+/* Animation d'impact (les cartes se foncent dedans) */
+.collision-p1 { animation: collision-p1 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+.collision-p2 { animation: collision-p2 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes collision-p1 {
+    0% { transform: translateX(20px) rotate(10deg); }
+    50% { transform: translateX(100px) rotate(30deg) scale(1.1); }
+    100% { transform: translateX(20px) rotate(10deg); }
+}
+@keyframes collision-p2 {
+    0% { transform: translateX(-20px) rotate(-10deg); }
+    50% { transform: translateX(-100px) rotate(-30deg) scale(1.1); }
+    100% { transform: translateX(-20px) rotate(-10deg); }
+}
+
+/* Vainqueur et Perdant */
+.winner-anim {
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: scale(1.4) translateY(-20px) !important;
+    z-index: 100;
+    box-shadow: 0 0 30px gold !important;
+}
+
+.loser-anim {
+    transition: all 0.6s ease;
+    opacity: 0.3;
+    transform: scale(0.8) rotate(90deg) !important;
+    filter: grayscale(1);
+}
+
+
+
+
+
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+
+
+
+
+
+@keyframes pulseEvent {
+    0% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.7; transform: scale(1); }
+}
+
+
+
+
+
+
+
+
+/* Désactive la sélection bleue sur tout le jeu */
+* {
+    -webkit-tap-highlight-color: transparent; /* Mobile */
+    -webkit-user-select: none;               /* Safari */
+    -ms-user-select: none;                   /* IE/Edge */
+    user-select: none;                       /* Standard */
+}
+
+/* Optionnel : Autorise la sélection seulement dans les inputs si tu en as */
+input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+
+
+
+
+
+
+
+</style>

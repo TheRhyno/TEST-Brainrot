@@ -3,6 +3,40 @@
 // ============================================================
 
 // --- Configuration Speedies & Récompenses BP ---
+const bpRewards = [];
+
+
+const battlePassRewards = [
+    { level: 2,  type: 'speedy', qty: 1, isPremium: false },
+    { level: 5,  type: 'speedy', qty: 2, isPremium: true  },
+    { level: 8,  type: 'speedy', qty: 1, isPremium: false },
+    { level: 12, type: 'speedy', qty: 3, isPremium: true  },
+    { level: 15, type: 'speedy', qty: 2, isPremium: false },
+    { level: 18, type: 'speedy', qty: 4, isPremium: true  },
+    { level: 20, type: 'speedy', qty: 2, isPremium: false }
+];
+
+const probasRarete = {
+    "Commun": 1, "Rare": 2, "Epic": 5, "Legendary": 8, "Mythic": 23, "Brainrot God": 25, "Secret": 20, "OG": 5
+};
+
+const cartesPaliers = {
+    21: "Bombardini Tortinii",
+    42: "Los Tipi Tacos",
+    63: "To to to Sahur",
+    84: "25",
+    100: "Noo my Eggs" 
+};
+
+const paliersAleatoires = [10, 35, 55, 70, 95];
+
+for (let i = 1; i <= 100; i++) {
+    let fIcon = "💎", pIcon = "💰";
+    let freeAmount = i * 21; 
+    let premAmount = i * 32;
+    let free = freeAmount + " 💎";
+    let prem = premAmount + " 💎";
+
     // --- LOGIQUE DES SPEEDIES (Inchangée) ---
     const speedyReward = battlePassRewards.find(r => r.level === i);
     if (speedyReward) {

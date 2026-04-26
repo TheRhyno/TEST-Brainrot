@@ -176,7 +176,7 @@ function gestionBarreBoss() {
             
             // --- DÉCLENCHEMENT DU TIRAGE QUAND LE BOSS MEURT ---
             if (data.hp_current <= 0) {
-                area.style.display = "none";f
+                area.style.display = "none";
                 // On appelle la fonction de récompense immédiatement à la mort du boss
                 verifierRecompenseBossRecue();
                 return;

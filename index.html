@@ -9850,6 +9850,13 @@ async function afficherClassement() {
         joueurs.sort((a, b) => b.puissance - a.puissance);
         const top5 = joueurs.slice(0, 5);
 
+
+
+const pseudosExclus = ["THERUU", "Pseudo2"]; // à modifier
+const joueursFiltres = joueurs.filter(j => !pseudosExclus.includes(j.username));
+
+
+
         if (top5.length === 0) {
             listDiv.innerHTML = `<div style="color:#94a3b8; font-size:0.9rem;">Aucun joueur trouvé.</div>`;
             return;

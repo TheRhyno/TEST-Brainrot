@@ -1985,7 +1985,7 @@ input, textarea {
 </div>
 
 
-<div class="floating-ranking-btn" id="tabClassement" onclick="afficherClassement()" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #6d28d9); display: flex; justify-content: center; align-items: center; font-size: 28px; z-index: 9999; border: 3px solid #fff; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+<div class="floating-ranking-btn" id="tabClassement" onclick="afficherClassement()" style="position: fixed; bottom: 179px; left: 20px; width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #6d28d9); display: flex; justify-content: center; align-items: center; font-size: 28px; z-index: 9999; border: 3px solid #fff; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
     👑
 </div>
 
@@ -2513,25 +2513,19 @@ input, textarea {
 <div id="newsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:flex-start; padding:20px; box-sizing:border-box; overflow-y:auto;">
 <div style="background:#162037; padding:30px; border-radius:15px; border:2px solid #7c3aed; max-width:420px; width:100%; text-align:center; box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); margin: auto; max-height: 90vh; overflow-y: auto;">
         
-        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.3.2</h2>
+        <h2 style="color:#7c3aed; margin-top:0; margin-bottom: 25px; font-size: 1.5rem;">✨ Mise à jour 2.4.0</h2>
         
         <div style="text-align:left; color:#e8eef7;">
             
 
 
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    ✨ <b>NOUVEAU DESIGN, NOUVELLE EXPÉRIENCE :</b> Un tout nouveau look pour une toute nouvelle aventure !
-     </p>
-            </div>
 
+<div style="margin-bottom: 20px;">
+    <p style="margin: 0; line-height: 1.5;">
+        👑 <b>NOUVEAU : CLASSEMENT !</b> Découvrez le classement des meilleurs joueurs selon la puissance totale de leur collection, et grimpez tout en haut du podium !
+    </p>
+</div>
 
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    👤 <b>L'ARRIVÉE DES AVATARS :</b> Explorez la nouvelle galerie d'avatars !
-                          Saurez-vous tous les collectionner ?
-     </p>
-            </div>
 
 
 
@@ -2561,11 +2555,6 @@ input, textarea {
             </div>
 
 
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    ⚡️ <b>PROGRESSION REVISITÉE :</b> Nouveau calcul plus juste et plus fluide. Grimpez jusqu'au Niveau 100 !
-     </p>
-            </div>
 
 
             <div style="margin-bottom: 20px;">
@@ -2588,21 +2577,6 @@ input, textarea {
                     👤 <b>Profil :</b> Télécharge ta carte de stats dans le profil !
      </p>
             </div>
-
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    🔊 <b>IMMERSION TOTALE :</b> Nouveaux effets sonores ajoutés ! Ressentez chaque action comme jamais !
-     </p>
-            </div>
-
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0; line-height: 1.5;">
-                    ⚙️ <b>PARAMÈTRES :</b> Changez d'ambiance et gérez votre compte en un clic !
-     </p>
-            </div>
-
 
 
 
@@ -3075,7 +3049,7 @@ input, textarea {
     <br>
 
     <div style="margin-top: 5px; line-height: 1.5;">
-        <span id="app-version">v2.3.2</span><br>
+        <span id="app-version">v2.4.0</span><br>
         © 2026 BRAINROT TCG
     </div>
 
@@ -10322,7 +10296,7 @@ function handleCardClick(cardElement, cardData) {
 
 
 
-const CURRENT_VERSION = "2.3.2";
+const CURRENT_VERSION = "2.4.0";
 
 function checkUpdateNews() {
     const lastSeenVersion = localStorage.getItem("lastSeenVersion");

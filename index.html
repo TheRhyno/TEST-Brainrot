@@ -1985,7 +1985,7 @@ input, textarea {
 </div>
 
 
-<div class="floating-ranking-btn" id="tabClassement" onclick="afficherClassement()" style="position: fixed; bottom: 179px; left: 20px; width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #6d28d9); display: flex; justify-content: center; align-items: center; font-size: 28px; z-index: 9999; border: 3px solid #fff; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+<div class="floating-ranking-btn" id="tabClassement" onclick="afficherClassement()" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #6d28d9); display: flex; justify-content: center; align-items: center; font-size: 28px; z-index: 9999; border: 3px solid #fff; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
     👑
 </div>
 
@@ -2014,7 +2014,7 @@ input, textarea {
 
         <button onclick="document.getElementById('classementOverlay').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #ef4444; color: white; border: 2px solid #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">✕</button>
 
-        <h2 style="color: #a855f7; margin-top: 0; font-family: sans-serif; letter-spacing: 1px; text-transform: uppercase; font-size: 1.2em;">👑 Top 5 Joueurs</h2>
+        <h2 style="color: #a855f7; margin-top: 0; font-family: sans-serif; letter-spacing: 1px; text-transform: uppercase; font-size: 1.2em;">👑 Top Brainrot</h2>
 
         <p style="font-size: 0.75em; color: #94a3b8; margin-top: -5px; margin-bottom: 15px;">Classement selon la puissance totale de la collection</p>
 
@@ -9870,7 +9870,7 @@ async function afficherClassement() {
                         <span style="font-size:1.3rem;">${medailles[i]}</span>
                         <span style="font-weight:bold; color:${estMoi ? '#d8b4fe' : '#fff'};">${j.username}${estMoi ? ' (toi)' : ''}</span>
                     </div>
-                    <span style="color:#fbbf24; font-weight:bold; font-size:0.9rem;">${Math.round(j.puissance / 1000).toLocaleString()} ⚡</span>
+                    <span style="color:#fbbf24; font-weight:bold; font-size:0.9rem;">${Math.round(j.puissance / 1000).toLocaleString()}</span>
                 </div>
             `;
         }).join("");

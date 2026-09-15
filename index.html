@@ -2014,7 +2014,7 @@ input, textarea {
 
         <button onclick="document.getElementById('classementOverlay').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: #ef4444; color: white; border: 2px solid #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">✕</button>
 
-        <h2 style="color: #a855f7; margin-top: 0; font-family: sans-serif; letter-spacing: 1px; text-transform: uppercase; font-size: 1.2em;">👑 Top Brainrot</h2>
+        <h2 style="color: #a855f7; margin-top: 0; font-family: sans-serif; letter-spacing: 1px; text-transform: uppercase; font-size: 1.2em;">👑 Top 5 Joueurs</h2>
 
         <p style="font-size: 0.75em; color: #94a3b8; margin-top: -5px; margin-bottom: 15px;">Classement selon la puissance totale de la collection</p>
 
@@ -9846,16 +9846,13 @@ async function afficherClassement() {
             });
         });
 
+        // On exclut certains pseudos du classement
+        const pseudosExclus = ["THERUU", "Pseudo2"]; // à modifier
+        const joueursFiltres = joueurs.filter(j => !pseudosExclus.includes(j.username));
+
         // Tri décroissant par puissance, puis top 5
-        joueurs.sort((a, b) => b.puissance - a.puissance);
-        const top5 = joueurs.slice(0, 5);
-
-
-
-const pseudosExclus = ["THERUU", "Pseudo2"]; // à modifier
-const joueursFiltres = joueurs.filter(j => !pseudosExclus.includes(j.username));
-
-
+        joueursFiltres.sort((a, b) => b.puissance - a.puissance);
+        const top5 = joueursFiltres.slice(0, 5);
 
         if (top5.length === 0) {
             listDiv.innerHTML = `<div style="color:#94a3b8; font-size:0.9rem;">Aucun joueur trouvé.</div>`;
@@ -9873,7 +9870,7 @@ const joueursFiltres = joueurs.filter(j => !pseudosExclus.includes(j.username));
                         <span style="font-size:1.3rem;">${medailles[i]}</span>
                         <span style="font-weight:bold; color:${estMoi ? '#d8b4fe' : '#fff'};">${j.username}${estMoi ? ' (toi)' : ''}</span>
                     </div>
-                    <span style="color:#fbbf24; font-weight:bold; font-size:0.9rem;">${Math.round(j.puissance / 1000).toLocaleString()}</span>
+                    <span style="color:#fbbf24; font-weight:bold; font-size:0.9rem;">${Math.round(j.puissance / 1000).toLocaleString()} ⚡</span>
                 </div>
             `;
         }).join("");

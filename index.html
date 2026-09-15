@@ -9866,7 +9866,7 @@ async function afficherClassement() {
                         <span style="font-size:1.3rem;">${medailles[i]}</span>
                         <span style="font-weight:bold; color:${estMoi ? '#d8b4fe' : '#fff'};">${j.username}${estMoi ? ' (toi)' : ''}</span>
                     </div>
-                    <span style="color:#fbbf24; font-weight:bold; font-size:0.9rem;">${j.puissance.toLocaleString()}</span>
+                    <span style="color:#fbbf24; font-weight:bold; font-size:0.9rem;">${Math.round(j.puissance / 1000).toLocaleString()}</span>
                 </div>
             `;
         }).join("");
